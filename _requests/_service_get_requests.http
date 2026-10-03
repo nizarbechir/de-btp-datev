@@ -1,17 +1,41 @@
-### Finance Service (local mocked user alice / alice)
+### Swiver API examples (local mocked user alice / alice)
 @auth = Basic alice:alice
+@host = http://localhost:4004/odata/v4
+
+### Current organization
+GET {{host}}/organization/myOrganization()
+Authorization: {{auth}}
 
 ### Dashboard key figures
-GET http://localhost:4004/odata/v4/finance/dashboard()
+GET {{host}}/finance/dashboard()
 Authorization: {{auth}}
 
-### Overdue invoices
-GET http://localhost:4004/odata/v4/finance/SupplierInvoices?$filter=status eq 'Overdue'&$expand=supplier($select=name)
+### Overdue sales invoices
+GET {{host}}/sales/SalesInvoices?$filter=isOverdue eq true and IsActiveEntity eq true&$select=invoiceNumber,outstandingAmount,dueDate
 Authorization: {{auth}}
 
-### Mark an invoice as paid
-POST http://localhost:4004/odata/v4/finance/SupplierInvoices(ID=22222222-0000-4000-8000-000000000009,IsActiveEntity=true)/FinanceService.markInvoicePaid
+### Record a partial payment
+POST {{host}}/sales/SalesInvoices(ID=44444444-0000-4000-8000-000000000004,IsActiveEntity=true)/SalesService.recordPayment
 Authorization: {{auth}}
 Content-Type: application/json
 
-{}
+{ "amount": 100, "paymentDate": "2026-10-03", "reference": "Partial payment" }
+
+### ZUGFeRD PDF of a sent invoice
+GET {{host}}/sales/SalesInvoices(ID=44444444-0000-4000-8000-000000000004,IsActiveEntity=true)/SalesService.zugferd(download=true)
+Authorization: {{auth}}
+
+### Import a bank statement CSV
+POST {{host}}/finance/importBankStatement
+Authorization: {{auth}}
+Content-Type: application/json
+
+{ "fileName": "sample.csv", "content": "Buchungstag;Betrag;Verwendungszweck\n03.10.2026;974,61;INV-2026-0004" }
+
+### Estimated VAT of a period
+GET {{host}}/finance/vatOverview(fromDate=2026-10-01,toDate=2026-10-31)
+Authorization: {{auth}}
+
+### Accountant export (ZIP)
+GET {{host}}/finance/accountantExport(fromDate=2026-01-01,toDate=2026-12-31)
+Authorization: {{auth}}
