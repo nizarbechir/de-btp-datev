@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: transfer-translation
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
       - uses: actions/setup-node@v6
@@ -64,7 +64,7 @@ jobs:
           private-key: ${{ secrets.WORKFLOW_APP_KEY }}
 
       - name: Checkout
-        uses: actions/checkout@v6          
+        uses: actions/checkout@v7          
         with:          
           ref: ${{ github.ref }}
           token: ${{ steps.fetch-token.outputs.token }}

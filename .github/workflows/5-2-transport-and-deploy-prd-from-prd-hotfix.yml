@@ -10,7 +10,7 @@ jobs:
       hotfix-version: ${{ steps.compute-version.outputs.hotfix-version }}
     steps:
       - name: Checkout prd branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: prd
           fetch-depth: 0
@@ -54,7 +54,7 @@ jobs:
           private-key: ${{ secrets.WORKFLOW_APP_KEY }}
 
       - name: Checkout prd branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: prd
           fetch-depth: 0

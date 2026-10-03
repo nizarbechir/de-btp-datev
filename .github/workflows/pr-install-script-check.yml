@@ -42,7 +42,7 @@ jobs:
           node-version: ${{ vars.GH_ACTION_NODEJS_VERSION || '24' }}
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Full history needed for git diff
 
