@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.ref }}
       - uses: actions/setup-node@v6
         with:
-          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION || '24' }}
       - run: npm ci
       - name: check existance of release.config.js 
         run: |
@@ -51,7 +51,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION || '24' }}
 
       # Fetch App token BEFORE checkout so checkout persists only the App token
       # credential — avoiding a conflict between the default GITHUB_TOKEN
