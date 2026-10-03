@@ -3,6 +3,7 @@ import cds from "@sap/cds";
 import { currentOrganization, requireOrganization } from "../organizations/organization-context";
 import { assertOwned } from "../organizations/tenant-guard";
 import { audit, boundKey } from "./audit";
+import { notifyTaxAdvisorQuestion } from "./comment-email";
 
 /**
  * Comments and questions on financial records, e.g. from the tax advisor. A record's addComment
@@ -29,6 +30,9 @@ export function registerComments(srv: cds.ApplicationService, targets: Record<st
 				text,
 			});
 			await audit({ action: "commentCreated", details: `comment ${ID}`, targetID: recordID, targetType: entity });
+			if (req.user.is("TaxAdvisor")) {
+				await notifyTaxAdvisorQuestion(req, entity, recordID, text);
+			}
 			return SELECT.one.from(req.subject);
 		});
 	}
