@@ -1,0 +1,2 @@
+ID;companyName;ownerName;street;postalCode;city;country_code;email;phone;website;taxNumber;vatId;iban;bic;bankName;defaultCurrency_code;defaultTaxRate;defaultPaymentTermDays;invoicePrefix
+1;Nordwind IT Consulting;Max Mustermann;Friedrichstraße 123;10117;Berlin;DE;hello@nordwind-consulting.example;+49 30 12345678;nordwind-consulting.example;27/123/45678;DE123456789;DE89370400440532013000;COBADEFFXXX;Commerzbank;EUR;19;14;INV

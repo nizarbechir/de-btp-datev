@@ -1,0 +1,5 @@
+code;name;descr
+DRAFT;Draft;Not sent to the customer yet
+SENT;Sent;Sent to the customer, waiting for payment
+PAID;Paid;Paid by the customer
+CANCELLED;Cancelled;Cancelled, no longer valid
