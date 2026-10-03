@@ -1,0 +1,277 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.finance",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/finance/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Finance-manage": {
+					"semanticObject": "Finance",
+					"action": "manage",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://loan",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {},
+				"sap.f": {},
+				"sap.ui.unified": {},
+				"sap.ui.layout": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.finance.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "BankTransactionsList",
+					"target": "BankTransactionsList"
+				},
+				{
+					"pattern": "BankTransactions:?query:",
+					"name": "BankTransactionsListAlias",
+					"target": "BankTransactionsList"
+				},
+				{
+					"pattern": "BankTransactions({key}):?query:",
+					"name": "BankTransactionsObjectPage",
+					"target": "BankTransactionsObjectPage"
+				},
+				{
+					"pattern": "Payments:?query:",
+					"name": "PaymentsList",
+					"target": "PaymentsList"
+				},
+				{
+					"pattern": "Payments({key}):?query:",
+					"name": "PaymentsObjectPage",
+					"target": "PaymentsObjectPage"
+				},
+				{
+					"pattern": "Reports:?query:",
+					"name": "Reports",
+					"target": "Reports"
+				}
+			],
+			"targets": {
+				"BankTransactionsList": {
+					"type": "Component",
+					"id": "BankTransactionsList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/BankTransactions",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"BankTransactions": {
+									"detail": {
+										"route": "BankTransactionsObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"selectionMode": "Multi"
+									},
+									"actions": {
+										"importCsv": {
+											"press": "swiver.finance.ext.bank.BankImport.importCsv",
+											"text": "{i18n>importCsv}",
+											"requiresSelection": false,
+											"enabled": true
+										},
+										"suggestMatches": {
+											"press": "swiver.finance.ext.bank.BankImport.suggestMatches",
+											"text": "{i18n>suggestMatches}",
+											"requiresSelection": false,
+											"enabled": true
+										}
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "toConfirm",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#ToConfirm"
+									},
+									{
+										"key": "unmatched",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Unmatched"
+									},
+									{
+										"key": "matched",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Matched"
+									},
+									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									}
+								],
+								"showCounts": true
+							}
+						}
+					}
+				},
+				"BankTransactionsObjectPage": {
+					"type": "Component",
+					"id": "BankTransactionsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/BankTransactions",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				},
+				"PaymentsList": {
+					"type": "Component",
+					"id": "PaymentsList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Payments",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Payments": {
+									"detail": {
+										"route": "PaymentsObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"PaymentsObjectPage": {
+					"type": "Component",
+					"id": "PaymentsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Payments",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				},
+				"Reports": {
+					"type": "Component",
+					"id": "Reports",
+					"name": "sap.fe.core.fpm",
+					"options": {
+						"settings": {
+							"viewName": "swiver.finance.ext.reports.Reports",
+							"contextPath": "/Payments"
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

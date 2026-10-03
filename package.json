@@ -38,7 +38,7 @@
 		"undeploy": "cf undeploy swiver --delete-services --delete-service-keys --delete-service-brokers",
 		"watch": "cds-ts watch",
 		"watch-hybrid": "cds-ts watch --profile hybrid",
-		"watch-swiver": "cds-ts watch --open swiver.app/index.html?sap-ui-xx-viewCache=false --livereload false"
+		"watch-swiver": "cds-ts watch --open launchpad.html?sap-ui-xx-viewCache=false --livereload false"
 	},
 	"lint-staged": {
 		"**/*.{js,ts,json,sh,md,yml}": [
@@ -55,6 +55,10 @@
 		"@sap-cloud-sdk/openapi": "~4.7.0",
 		"@sap/cds": "~10.0.3",
 		"@sap/xssec": "^4",
+		"dejavu-fonts-ttf": "^2.37.3",
+		"fast-xml-parser": "^5.11.1",
+		"fflate": "^0.8.3",
+		"pdf-lib": "^1.17.1",
 		"pdfkit": "^0.20.2"
 	},
 	"devDependencies": {
@@ -114,6 +118,10 @@
 		"npm": "^11.12"
 	},
 	"sapux": [
-		"app/swiver"
+		"app/dashboard",
+		"app/sales",
+		"app/purchases",
+		"app/finance",
+		"app/settings"
 	]
 }

@@ -1,0 +1,505 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.sales",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/sales/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Sales-manage": {
+					"semanticObject": "Sales",
+					"action": "manage",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://sales-document",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {},
+				"sap.f": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.sales.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "SalesInvoicesList",
+					"target": "SalesInvoicesList"
+				},
+				{
+					"pattern": "SalesInvoices:?query:",
+					"name": "SalesInvoicesListAlias",
+					"target": "SalesInvoicesList"
+				},
+				{
+					"pattern": "SalesInvoices({key}):?query:",
+					"name": "SalesInvoicesObjectPage",
+					"target": "SalesInvoicesObjectPage"
+				},
+				{
+					"pattern": "Quotes:?query:",
+					"name": "QuotesList",
+					"target": "QuotesList"
+				},
+				{
+					"pattern": "Quotes({key}):?query:",
+					"name": "QuotesObjectPage",
+					"target": "QuotesObjectPage"
+				},
+				{
+					"pattern": "Customers:?query:",
+					"name": "CustomersList",
+					"target": "CustomersList"
+				},
+				{
+					"pattern": "Customers({key}):?query:",
+					"name": "CustomersObjectPage",
+					"target": "CustomersObjectPage"
+				},
+				{
+					"pattern": "ProductServices:?query:",
+					"name": "ProductServicesList",
+					"target": "ProductServicesList"
+				},
+				{
+					"pattern": "ProductServices({key}):?query:",
+					"name": "ProductServicesObjectPage",
+					"target": "ProductServicesObjectPage"
+				}
+			],
+			"targets": {
+				"SalesInvoicesList": {
+					"type": "Component",
+					"id": "SalesInvoicesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/SalesInvoices",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"SalesInvoices": {
+									"detail": {
+										"route": "SalesInvoicesObjectPage"
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									},
+									{
+										"key": "draft",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Draft"
+									},
+									{
+										"key": "sent",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Sent"
+									},
+									{
+										"key": "overdue",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Overdue"
+									},
+									{
+										"key": "paid",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Paid"
+									}
+								],
+								"showCounts": true
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"selectionMode": "Multi"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SalesInvoicesObjectPage": {
+					"type": "Component",
+					"id": "SalesInvoicesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/SalesInvoices",
+							"enhanceI18n": "i18n/i18n.properties",
+							"sectionLayout": "Page",
+							"controlConfiguration": {
+								"items/@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"creationMode": {
+											"name": "InlineCreationRows",
+											"createAtEnd": true
+										},
+										"personalization": false,
+										"enableExport": false,
+										"enablePaste": false,
+										"disableCopyToClipboard": true
+									}
+								},
+								"payments/@com.sap.vocabularies.UI.v1.LineItem#Invoice": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"personalization": false
+									}
+								}
+							},
+							"content": {
+								"header": {
+									"actions": {
+										"preview": {
+											"press": "swiver.sales.ext.document.DocumentActions.preview",
+											"text": "{i18n>preview}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "Before",
+												"anchor": "DataFieldForAction::SalesService.finalize"
+											}
+										},
+										"downloadPdf": {
+											"press": "swiver.sales.ext.document.DocumentActions.downloadPdf",
+											"text": "{i18n>downloadPdf}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "After",
+												"anchor": "preview"
+											}
+										},
+										"duplicate": {
+											"press": "swiver.sales.ext.document.DocumentActions.duplicate",
+											"text": "{i18n>duplicate}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "After",
+												"anchor": "downloadPdf"
+											}
+										},
+										"downloadZugferd": {
+											"press": "swiver.sales.ext.document.DocumentActions.downloadZugferd",
+											"text": "{i18n>downloadZugferd}",
+											"visible": "{= ${IsActiveEntity} === true && ${isIssued} === true }",
+											"position": {
+												"placement": "After",
+												"anchor": "downloadPdf"
+											}
+										},
+										"correct": {
+											"press": "swiver.sales.ext.document.DocumentActions.correct",
+											"text": "{i18n>correct}",
+											"visible": "{= ${IsActiveEntity} === true && (${status_code} === 'FINALIZED' || ${status_code} === 'SENT' || ${status_code} === 'CANCELLED') }",
+											"position": {
+												"placement": "After",
+												"anchor": "duplicate"
+											}
+										}
+									}
+								},
+								"footer": {
+									"actions": {
+										"previewDraft": {
+											"press": "swiver.sales.ext.document.DocumentActions.preview",
+											"text": "{i18n>preview}",
+											"visible": "{= ${IsActiveEntity} === false }"
+										}
+									}
+								},
+								"body": {
+									"sections": {
+										"totals": {
+											"template": "swiver.sales.ext.salesInvoice.Totals",
+											"title": "{i18n>totals}",
+											"position": {
+												"placement": "After",
+												"anchor": "Items"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"QuotesList": {
+					"type": "Component",
+					"id": "QuotesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Quotes",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Quotes": {
+									"detail": {
+										"route": "QuotesObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"QuotesObjectPage": {
+					"type": "Component",
+					"id": "QuotesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Quotes",
+							"enhanceI18n": "i18n/i18n.properties",
+							"sectionLayout": "Page",
+							"controlConfiguration": {
+								"items/@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"creationMode": {
+											"name": "InlineCreationRows",
+											"createAtEnd": true
+										},
+										"personalization": false,
+										"enableExport": false,
+										"enablePaste": false,
+										"disableCopyToClipboard": true
+									}
+								}
+							},
+							"content": {
+								"header": {
+									"actions": {
+										"preview": {
+											"press": "swiver.sales.ext.document.DocumentActions.preview",
+											"text": "{i18n>preview}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "Before",
+												"anchor": "DataFieldForAction::SalesService.sendByEmail"
+											}
+										},
+										"downloadPdf": {
+											"press": "swiver.sales.ext.document.DocumentActions.downloadPdf",
+											"text": "{i18n>downloadPdf}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "After",
+												"anchor": "preview"
+											}
+										},
+										"convertToInvoice": {
+											"press": "swiver.sales.ext.document.DocumentActions.convertToInvoice",
+											"text": "{i18n>convertToInvoice}",
+											"type": "Emphasized",
+											"visible": "{= ${IsActiveEntity} === true && ${status_code} !== 'REJECTED' }",
+											"position": {
+												"placement": "After",
+												"anchor": "downloadPdf"
+											}
+										}
+									}
+								},
+								"footer": {
+									"actions": {
+										"previewDraft": {
+											"press": "swiver.sales.ext.document.DocumentActions.preview",
+											"text": "{i18n>preview}",
+											"visible": "{= ${IsActiveEntity} === false }"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"CustomersList": {
+					"type": "Component",
+					"id": "CustomersList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Customers",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Customers": {
+									"detail": {
+										"route": "CustomersObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"CustomersObjectPage": {
+					"type": "Component",
+					"id": "CustomersObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Customers",
+							"enhanceI18n": "i18n/i18n.properties",
+							"navigation": {
+								"invoices": {
+									"detail": {
+										"route": "SalesInvoicesObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"ProductServicesList": {
+					"type": "Component",
+					"id": "ProductServicesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/ProductServices",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"ProductServices": {
+									"detail": {
+										"route": "ProductServicesObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"ProductServicesObjectPage": {
+					"type": "Component",
+					"id": "ProductServicesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/ProductServices",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

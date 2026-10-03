@@ -1,5 +1,22 @@
 import PDFDocument from "pdfkit";
 
+/** PDF/A-3b output for e-invoices: embedded fonts, attachments and additional XMP metadata. */
+export interface PdfArchiveOptions {
+	attachments: PdfAttachment[];
+	/** Font files to embed, since PDF/A does not allow the standard PDF fonts. */
+	fonts: { bold: string; regular: string };
+	xmp?: string;
+}
+
+/** A file embedded in the PDF, e.g. the ZUGFeRD invoice XML. */
+export interface PdfAttachment {
+	content: Buffer;
+	description?: string;
+	mimeType: string;
+	name: string;
+	relationship: "Alternative" | "Data" | "Source" | "Supplement" | "Unspecified";
+}
+
 export interface SalesInvoicePdfData {
 	company?: {
 		bankName?: null | string;
@@ -49,10 +66,14 @@ export interface SalesInvoicePdfData {
 		}[];
 		netAmount?: Value;
 		paymentDate?: null | string;
+		paymentStatus_code?: null | string;
+		replacesInvoice_ID?: null | string;
 		status_code?: null | string;
 		subject?: null | string;
+		taxAmount?: Value;
 		taxes?: { netAmount?: Value; taxAmount?: Value; taxRate?: Value }[];
 	};
+	kind?: "invoice" | "quote";
 	logo?: Buffer;
 }
 
@@ -89,8 +110,21 @@ export function formatMoney(value: Value, currency: string): string {
  * Renders a sales invoice as an A4 PDF: seller, customer address, invoice details, items,
  * totals per tax rate, payment information and the seller's details in the page footer.
  */
-export function renderSalesInvoicePdf({ company = {}, invoice, logo }: SalesInvoicePdfData): Promise<Buffer> {
-	const doc = new PDFDocument({ bufferPages: true, margins: { bottom: 40, left: 56, right: 56, top: 48 }, size: "A4" });
+export function renderSalesInvoicePdf(
+	{ company = {}, invoice, kind = "invoice", logo }: SalesInvoicePdfData,
+	archive?: PdfArchiveOptions,
+): Promise<Buffer> {
+	const doc = new PDFDocument({
+		bufferPages: true,
+		margins: { bottom: 40, left: 56, right: 56, top: 48 },
+		size: "A4",
+		...(archive && { font: archive.fonts.regular, pdfVersion: "1.7", subset: "PDF/A-3b" }),
+	});
+	if (archive) {
+		// The layout uses the Helvetica names; for PDF/A they point to the embedded fonts.
+		doc.registerFont(font.regular, archive.fonts.regular);
+		doc.registerFont(font.bold, archive.fonts.bold);
+	}
 	const chunks: Buffer[] = [];
 	doc.on("data", (chunk: Buffer) => chunks.push(chunk));
 	const done = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
@@ -100,11 +134,12 @@ export function renderSalesInvoicePdf({ company = {}, invoice, logo }: SalesInvo
 
 	drawSeller(doc, company, logo);
 	drawRecipient(doc, company, invoice);
-	drawDetails(doc, invoice);
+	drawDetails(doc, invoice, kind);
 
 	// Title, subject and introduction
 	setTop(doc, 300);
-	const title = invoice.invoiceNumber ? `Invoice ${invoice.invoiceNumber}` : "Invoice (draft)";
+	const label = kind === "quote" ? "Quote" : "Invoice";
+	const title = invoice.invoiceNumber ? `${label} ${invoice.invoiceNumber}` : `${label} (draft)`;
 	doc.font(font.bold).fontSize(20).fillColor(color.text).text(title, page.left, doc.y);
 	drawStatusBadge(doc, invoice);
 	if (invoice.subject) {
@@ -123,7 +158,13 @@ export function renderSalesInvoicePdf({ company = {}, invoice, logo }: SalesInvo
 
 	drawItems(doc, invoice, money);
 	drawTotals(doc, invoice, money);
-	drawPayment(doc, company, invoice, money);
+	if (kind === "quote") {
+		ensureSpace(doc, 40);
+		doc.font(font.regular).fontSize(10).fillColor(color.text);
+		doc.text(`This quote is valid until ${formatDate(invoice.dueDate)}.`, page.left, doc.y, { width: page.width });
+	} else {
+		drawPayment(doc, company, invoice, money);
+	}
 
 	if (invoice.footerText) {
 		ensureSpace(doc, 40);
@@ -133,15 +174,28 @@ export function renderSalesInvoicePdf({ company = {}, invoice, logo }: SalesInvo
 	}
 
 	drawPageFooters(doc, company);
+	for (const attachment of archive?.attachments ?? []) {
+		// pdfkit supports the PDF/A-3 relationship, its type definitions do not know it yet
+		doc.file(attachment.content, {
+			description: attachment.description,
+			name: attachment.name,
+			relationship: attachment.relationship,
+			type: attachment.mimeType,
+		} as PDFKit.Mixins.PDFAttachmentOptions);
+	}
+	if (archive?.xmp) {
+		doc.appendXML(archive.xmp);
+	}
 	doc.end();
 	return done;
 }
 
-function drawDetails(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"]) {
+function drawDetails(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"], kind: "invoice" | "quote") {
+	const quote = kind === "quote";
 	const rows: [string, string][] = [
-		["Invoice number", invoice.invoiceNumber || "Assigned when saved"],
-		["Invoice date", formatDate(invoice.invoiceDate)],
-		["Due date", formatDate(invoice.dueDate)],
+		[quote ? "Quote number" : "Invoice number", invoice.invoiceNumber || "Assigned when saved"],
+		[quote ? "Quote date" : "Invoice date", formatDate(invoice.invoiceDate)],
+		[quote ? "Valid until" : "Due date", formatDate(invoice.dueDate)],
 	];
 	if (invoice.customer?.customerNumber) {
 		rows.push(["Customer number", invoice.customer.customerNumber]);
@@ -252,7 +306,7 @@ function drawPayment(
 	ensureSpace(doc, 70);
 	doc.font(font.bold).fontSize(10).fillColor(color.text).text("Payment", page.left, doc.y);
 	doc.moveDown(0.3).font(font.regular).fontSize(10);
-	if (invoice.status_code === "PAID") {
+	if (invoice.paymentStatus_code === "PAID") {
 		doc.text(`Paid on ${formatDate(invoice.paymentDate)}. Thank you!`, { width: page.width });
 		return;
 	}
@@ -330,7 +384,7 @@ function drawSeller(doc: PDFKit.PDFDocument, company: NonNullable<SalesInvoicePd
 
 function drawStatusBadge(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"]) {
 	const badge =
-		invoice.status_code === "PAID"
+		invoice.paymentStatus_code === "PAID" && invoice.status_code !== "CANCELLED"
 			? { color: "#067647", fill: "#ecfdf3", text: "PAID" }
 			: invoice.status_code === "CANCELLED"
 				? { color: "#b42318", fill: "#fef3f2", text: "CANCELLED" }

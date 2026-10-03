@@ -4,14 +4,15 @@ using {
   Currency
 } from '@sap/cds/common';
 using {swiver.TaxRate} from './sales';
+using {swiver.OrganizationOwned} from './organizations';
 
 namespace swiver;
 
 /**
- * The seller details printed on sales invoices, and the defaults for new invoices.
- * There is exactly one record (ID 1), created on startup if it is missing.
+ * The seller details printed on sales invoices and quotes, and the defaults for new documents.
+ * Every organization has exactly one record.
  */
-entity CompanySettings : managed {
+entity CompanySettings : managed, OrganizationOwned {
   key ID                     : Integer default 1;
       companyName            : String(120);
       ownerName              : String(120);
@@ -34,6 +35,7 @@ entity CompanySettings : managed {
         365
       ];
       invoicePrefix          : String(10) default 'INV';
+      quotePrefix            : String(10) default 'QUO';
       // Shown at the top of the invoice PDF (PNG or JPEG).
       logo                   : LargeBinary @Core.MediaType: logoMediaType
                                            @Core.AcceptableMediaTypes: [

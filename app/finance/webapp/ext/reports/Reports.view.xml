@@ -1,0 +1,51 @@
+<mvc:View
+	xmlns:core="sap.ui.core"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	xmlns:form="sap.ui.layout.form"
+	controllerName="swiver.finance.ext.reports.Reports"
+>
+	<f:DynamicPage id="reportsPage" showFooter="false">
+		<f:title>
+			<f:DynamicPageTitle id="reportsTitle">
+				<f:heading>
+					<Title id="reportsHeading" text="{i18n>vatAndExport}" />
+				</f:heading>
+				<f:expandedContent>
+					<Label id="reportsSubtitle" text="{i18n>reportsSubtitle}" />
+				</f:expandedContent>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox id="reportsContent" class="sapUiSmallMargin">
+				<HBox id="periodBar" alignItems="Center" wrap="Wrap">
+					<Label id="periodLabel" text="{i18n>period}" class="sapUiSmallMarginEnd" />
+					<DateRangeSelection id="period" width="18rem" valueFormat="yyyy-MM-dd" dateValue="{report>/from}" secondDateValue="{report>/to}" change=".onPeriodChange" />
+					<Button id="downloadExport" text="{i18n>exportForAccountant}" icon="sap-icon://download" type="Emphasized" press=".onExport" class="sapUiSmallMarginBegin" />
+				</HBox>
+				<Title id="vatTitle" text="{i18n>estimatedVatTitle}" titleStyle="H4" class="swiverSectionTitle sapUiMediumMarginTop" />
+				<MessageStrip id="vatHint" text="{i18n>estimatedVatHint}" type="Information" showIcon="true" class="sapUiSmallMarginBottom" />
+				<form:SimpleForm id="vatForm" layout="ColumnLayout" columnsM="2" columnsL="3" binding="{vat>/}">
+					<core:Title id="salesTitle" text="{i18n>sales}" />
+					<Label id="netSalesLabel" text="{i18n>netSales}" />
+					<ObjectNumber id="netSales" number="{vat>netSales}" unit="{vat>currency}" />
+					<Label id="outputVatLabel" text="{i18n>outputVat}" />
+					<ObjectNumber id="outputVat" number="{vat>outputVat}" unit="{vat>currency}" />
+					<Label id="salesCountLabel" text="{i18n>salesInvoices}" />
+					<Text id="salesCount" text="{vat>salesInvoiceCount}" />
+					<core:Title id="purchasesTitle" text="{i18n>purchases}" />
+					<Label id="netExpensesLabel" text="{i18n>netExpenses}" />
+					<ObjectNumber id="netExpenses" number="{vat>netExpenses}" unit="{vat>currency}" />
+					<Label id="inputVatLabel" text="{i18n>inputVat}" />
+					<ObjectNumber id="inputVat" number="{vat>inputVat}" unit="{vat>currency}" />
+					<Label id="expenseCountLabel" text="{i18n>supplierInvoices}" />
+					<Text id="expenseCount" text="{vat>expenseCount}" />
+					<core:Title id="summaryTitle" text="{i18n>summary}" />
+					<Label id="estimatedVatLabel" text="{i18n>estimatedVat}" />
+					<ObjectNumber id="estimatedVat" number="{vat>estimatedVat}" unit="{vat>currency}" emphasized="true" state="{= ${vat>estimatedVat} > 0 ? 'Warning' : 'Success' }" />
+				</form:SimpleForm>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

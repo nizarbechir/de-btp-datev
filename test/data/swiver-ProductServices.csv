@@ -1,0 +1,4 @@
+ID;code;name;description;unit;defaultPrice;defaultTaxRate;active
+99999999-0000-4000-8000-000000000001;CONS-DAY;SAP BTP Consulting;;day;1000.00;19;true
+99999999-0000-4000-8000-000000000002;CAP-DEV;SAP CAP Development;;hour;125.00;19;true
+99999999-0000-4000-8000-000000000003;ARCH-WS;Architecture Workshop;;day;1200.00;19;true

@@ -48,7 +48,7 @@ A single SAP CAP (Node.js, TypeScript) application with one Fiori Elements app.
 
 Key design choices:
 
-- **Annotations first.** The UI is defined by CDS annotations. The only custom UI code is the dashboard page (`app/swiver/webapp/ext/dashboard`).
+- **Annotations first.** The UI is defined by CDS annotations. The UI is split into five apps (`app/dashboard`, `app/sales`, `app/purchases`, `app/finance`, `app/settings`); custom UI code is limited to the dashboard, document preview/PDF actions, bank CSV upload and the VAT/export page.
 - **Overdue is derived, not stored.** `status` (Open / Overdue / Paid) and `grossAmount` are calculated elements, so they are always correct and can be filtered.
 - **Validation is declarative.** Required fields use `@mandatory`, and "amounts cannot be negative" and "due date not before invoice date" use `@assert`.
 - **Payment fields are read-only** in the UI and API. They change only through the Mark as Paid and Mark as Open actions.
@@ -63,7 +63,9 @@ npm ci
 npm run watch
 ```
 
-Open http://localhost:4004/swiver.app/index.html and log in as `alice` / `alice` (a mocked user with the `InvoiceManager` role).
+Open http://localhost:4004/launchpad.html and log in as `alice` / `alice` (owner of the demo organization), or `bob` / `bob` to try the onboarding of a new organization.
+
+E-mail sending needs `MS_GRAPH_TENANT_ID`, `MS_GRAPH_CLIENT_ID`, `MS_GRAPH_CLIENT_SECRET` and `MS_GRAPH_SENDER_EMAIL` (app registration with the `Mail.Send` application permission). Without them the app runs and e-mail actions report that the provider is not configured. `SWIVER_DEFAULT_ORG_OWNER` names the user who owns the migrated organization #1.
 
 Data is kept in memory (SQLite) and reloaded from `db/data` and `test/data` on every restart. In development, demo invoice dates are moved relative to today, so the dashboard always shows overdue and soon-due invoices.
 

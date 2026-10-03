@@ -1,0 +1,199 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.settings",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/organization/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Settings-manage": {
+					"semanticObject": "Settings",
+					"action": "manage",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://action-settings",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {},
+				"sap.f": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.settings.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"resources": {
+			"css": []
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "OrganizationsList",
+					"target": "OrganizationsList"
+				},
+				{
+					"pattern": "Organizations:?query:",
+					"name": "OrganizationsListAlias",
+					"target": "OrganizationsList"
+				},
+				{
+					"pattern": "Organizations({key}):?query:",
+					"name": "OrganizationsObjectPage",
+					"target": "OrganizationsObjectPage"
+				},
+				{
+					"pattern": "CompanySettings({key}):?query:",
+					"name": "CompanySettingsObjectPage",
+					"target": "CompanySettingsObjectPage"
+				}
+			],
+			"targets": {
+				"OrganizationsList": {
+					"type": "Component",
+					"id": "OrganizationsList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Organizations",
+							"variantManagement": "None",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Organizations": {
+									"detail": {
+										"route": "OrganizationsObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"OrganizationsObjectPage": {
+					"type": "Component",
+					"id": "OrganizationsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Organizations",
+							"enhanceI18n": "i18n/i18n.properties",
+							"content": {
+								"header": {
+									"actions": {
+										"companySettings": {
+											"press": "swiver.settings.ext.SettingsActions.openCompanySettings",
+											"text": "{i18n>companySettings}",
+											"visible": "{= ${IsActiveEntity} === true }"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"CompanySettingsObjectPage": {
+					"type": "Component",
+					"id": "CompanySettingsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/CompanySettings",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

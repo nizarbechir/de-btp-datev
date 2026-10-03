@@ -1,0 +1,179 @@
+<mvc:View
+	xmlns:core="sap.ui.core"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	xmlns:form="sap.ui.layout.form"
+	xmlns:macros="sap.fe.macros"
+	controllerName="swiver.dashboard.ext.Dashboard"
+>
+	<f:DynamicPage id="dashboardPage" showFooter="false" class="sapUiNoContentPadding">
+		<f:title>
+			<f:DynamicPageTitle id="dashboardTitle">
+				<f:heading>
+					<Title id="dashboardHeading" text="{= ${view>/organizationName} || ${i18n>dashboardTitle} }" />
+				</f:heading>
+				<f:expandedContent>
+					<Label id="dashboardSubtitle" text="{i18n>dashboardSubtitle}" />
+				</f:expandedContent>
+				<f:actions>
+					<Button id="newInvoiceButton" text="{i18n>newSalesInvoice}" icon="sap-icon://add-document" type="Emphasized" press=".onNewSalesInvoice" visible="{view>/hasOrganization}" />
+					<MenuButton id="salesMenu" text="{i18n>sales}" icon="sap-icon://sales-document" type="Transparent" visible="{view>/hasOrganization}">
+						<menu>
+							<Menu id="salesMenuItems">
+								<MenuItem id="salesInvoicesItem" text="{i18n>salesInvoices}" icon="sap-icon://sales-document" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')" />
+								<MenuItem id="quotesItem" text="{i18n>quotes}" icon="sap-icon://sales-quote" press=".onNavigate($event, 'Sales-manage&amp;/Quotes')" />
+								<MenuItem id="customersItem" text="{i18n>customers}" icon="sap-icon://customer" press=".onNavigate($event, 'Sales-manage&amp;/Customers')" />
+								<MenuItem id="productsItem" text="{i18n>productServices}" icon="sap-icon://product" press=".onNavigate($event, 'Sales-manage&amp;/ProductServices')" />
+							</Menu>
+						</menu>
+					</MenuButton>
+					<MenuButton id="purchasesMenu" text="{i18n>purchases}" icon="sap-icon://receipt" type="Transparent" visible="{view>/hasOrganization}">
+						<menu>
+							<Menu id="purchasesMenuItems">
+								<MenuItem id="supplierInvoicesItem" text="{i18n>supplierInvoices}" icon="sap-icon://receipt" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')" />
+								<MenuItem id="inboxItem" text="{i18n>inbox}" icon="sap-icon://inbox" press=".onNavigate($event, 'Purchases-manage&amp;/IncomingDocuments')" />
+								<MenuItem id="suppliersItem" text="{i18n>suppliers}" icon="sap-icon://supplier" press=".onNavigate($event, 'Purchases-manage&amp;/Suppliers')" />
+								<MenuItem id="expenseCategoriesItem" text="{i18n>expenseCategories}" icon="sap-icon://expense-report" press=".onNavigate($event, 'Purchases-manage&amp;/ExpenseCategories')" />
+							</Menu>
+						</menu>
+					</MenuButton>
+					<MenuButton id="financeMenu" text="{i18n>finance}" icon="sap-icon://loan" type="Transparent" visible="{view>/hasOrganization}">
+						<menu>
+							<Menu id="financeMenuItems">
+								<MenuItem id="bankItem" text="{i18n>bankTransactions}" icon="sap-icon://loan" press=".onNavigate($event, 'Finance-manage&amp;/BankTransactions')" />
+								<MenuItem id="paymentsItem" text="{i18n>payments}" icon="sap-icon://payment-approval" press=".onNavigate($event, 'Finance-manage&amp;/Payments')" />
+								<MenuItem id="reportsItem" text="{i18n>vatAndExport}" icon="sap-icon://business-objects-experience" press=".onNavigate($event, 'Finance-manage&amp;/Reports')" />
+							</Menu>
+						</menu>
+					</MenuButton>
+					<Button id="settingsButton" text="{i18n>settings}" icon="sap-icon://action-settings" type="Transparent" press=".onNavigate($event, 'Settings-manage')" visible="{view>/hasOrganization}" />
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox id="dashboardRoot">
+				<!-- Onboarding: shown until the signed-in user belongs to an organization -->
+				<VBox id="onboarding" class="sapUiSmallMargin" visible="{= ${view>/loaded} === true &amp;&amp; !${view>/hasOrganization} }">
+					<Title id="onboardingTitle" text="{i18n>onboardingTitle}" titleStyle="H3" />
+					<Text id="onboardingText" text="{i18n>onboardingText}" class="sapUiSmallMarginBottom" />
+					<form:SimpleForm id="onboardingForm" editable="true" layout="ColumnLayout" maxWidth="40rem">
+						<Label id="companyNameLabel" text="{i18n>companyName}" required="true" />
+						<Input id="companyName" value="{onboarding>/companyName}" />
+						<Label id="countryLabel" text="{i18n>country}" />
+						<Input id="country" value="{onboarding>/country}" maxLength="3" />
+						<Label id="currencyLabel" text="{i18n>currency}" />
+						<Input id="currency" value="{onboarding>/currency}" maxLength="3" />
+						<Label id="vatIdLabel" text="{i18n>vatId}" />
+						<Input id="vatId" value="{onboarding>/vatId}" />
+						<Label id="taxRateLabel" text="{i18n>defaultVatRate}" />
+						<StepInput id="taxRate" value="{onboarding>/defaultTaxRate}" min="0" max="100" />
+						<Label id="termLabel" text="{i18n>paymentTermDays}" />
+						<StepInput id="term" value="{onboarding>/defaultPaymentTermDays}" min="0" max="365" />
+						<Label id="prefixLabel" text="{i18n>invoicePrefix}" />
+						<Input id="prefix" value="{onboarding>/invoicePrefix}" maxLength="10" />
+					</form:SimpleForm>
+					<Button id="createOrganization" text="{i18n>createOrganization}" type="Emphasized" press=".onCreateOrganization" />
+				</VBox>
+
+				<VBox id="dashboardContent" class="sapUiSmallMargin" visible="{view>/hasOrganization}" binding="{path: '/dashboard()', parameters: {$$groupId: '$auto'}}">
+					<!-- Needs attention -->
+					<Title id="attentionTitle" text="{i18n>needsAttention}" level="H2" titleStyle="H4" class="swiverSectionTitle" />
+					<List id="attentionList" items="{path: 'needsAttention', templateShareable: false}" noDataText="{i18n>nothingToDo}" class="sapUiSmallMarginBottom swiverAttention">
+						<StandardListItem id="attentionItem" title="{text}" icon="sap-icon://alert" type="Navigation" press=".onAttention" />
+					</List>
+
+					<!-- Money in -->
+					<Title id="receivablesTitle" text="{i18n>receivablesTitle}" level="H2" titleStyle="H4" class="swiverSectionTitle" />
+					<FlexBox id="receivableTiles" wrap="Wrap" class="sapUiSmallMarginBottom">
+						<GenericTile id="kpiOutstanding" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOutstanding}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
+							<TileContent id="kpiOutstandingContent" footer="{path: 'receivables/outstanding/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiOutstandingValue" class="sapMObjectNumberLarge" number="{receivables/outstanding/amount}" unit="{currency}" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiReceivablesOverdue" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOverdue}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
+							<TileContent id="kpiReceivablesOverdueContent" footer="{path: 'receivables/overdue/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiReceivablesOverdueValue" class="sapMObjectNumberLarge" number="{receivables/overdue/amount}" unit="{currency}" state="Error" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiReceived" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiReceivedThisMonth}" press=".onNavigate($event, 'Finance-manage&amp;/Payments')">
+							<TileContent id="kpiReceivedContent" footer="{path: 'receivables/paidThisMonth/count', formatter: '.formatPayments'}">
+								<ObjectNumber id="kpiReceivedValue" class="sapMObjectNumberLarge" number="{receivables/paidThisMonth/amount}" unit="{currency}" state="Success" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiRevenue" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiRevenueThisMonth}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
+							<TileContent id="kpiRevenueContent" footer="{path: 'receivables/revenueThisMonth/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiRevenueValue" class="sapMObjectNumberLarge" number="{receivables/revenueThisMonth/amount}" unit="{currency}" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+					</FlexBox>
+					<macros:Table
+						id="openSalesInvoices"
+						contextPath="/SalesInvoices"
+						metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Receivables"
+						header="{i18n>openSalesInvoices}"
+						type="ResponsiveTable"
+						personalization="false"
+						variantManagement="None"
+						width="100%"
+					/>
+
+					<!-- Money out -->
+					<Title id="payablesTitle" text="{i18n>payablesTitle}" level="H2" titleStyle="H4" class="swiverSectionTitle sapUiMediumMarginTop" />
+					<FlexBox id="kpiTiles" wrap="Wrap" class="sapUiSmallMarginBottom">
+						<GenericTile id="kpiOpen" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOpen}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
+							<TileContent id="kpiOpenContent" footer="{path: 'payables/open/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiOpenValue" class="sapMObjectNumberLarge" number="{payables/open/amount}" unit="{currency}" state="None" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiOverdue" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOverdue}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
+							<TileContent id="kpiOverdueContent" footer="{path: 'payables/overdue/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiOverdueValue" class="sapMObjectNumberLarge" number="{payables/overdue/amount}" unit="{currency}" state="Error" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiDueSoon" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiDueNext7Days}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
+							<TileContent id="kpiDueSoonContent" footer="{path: 'payables/dueNext7Days/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiDueSoonValue" class="sapMObjectNumberLarge" number="{payables/dueNext7Days/amount}" unit="{currency}" state="Warning" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiExpenses" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiExpensesThisMonth}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
+							<TileContent id="kpiExpensesContent" footer="{path: 'payables/expensesThisMonth/count', formatter: '.formatCount'}">
+								<ObjectNumber id="kpiExpensesValue" class="sapMObjectNumberLarge" number="{payables/expensesThisMonth/amount}" unit="{currency}" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+					</FlexBox>
+					<macros:Table
+						id="upcomingPayments"
+						contextPath="/SupplierInvoices"
+						metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Upcoming"
+						header="{i18n>upcomingPayments}"
+						type="ResponsiveTable"
+						personalization="false"
+						variantManagement="None"
+						width="100%"
+					/>
+
+					<!-- Finance -->
+					<Title id="financeTitle" text="{i18n>financeTitle}" level="H2" titleStyle="H4" class="swiverSectionTitle sapUiMediumMarginTop" />
+					<FlexBox id="financeTiles" wrap="Wrap" class="sapUiSmallMarginBottom">
+						<GenericTile id="kpiVat" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiEstimatedVat}" subheader="{i18n>kpiEstimatedVatSub}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
+							<TileContent id="kpiVatContent">
+								<ObjectNumber id="kpiVatValue" class="sapMObjectNumberLarge" number="{estimatedVat}" unit="{currency}" emphasized="true" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiInbox" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiInbox}" press=".onNavigate($event, 'Purchases-manage&amp;/IncomingDocuments')">
+							<TileContent id="kpiInboxContent">
+								<NumericContent id="kpiInboxValue" value="{inboxCount}" icon="sap-icon://inbox" withMargin="false" />
+							</TileContent>
+						</GenericTile>
+						<GenericTile id="kpiUnmatched" width="15rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiUnmatched}" press=".onNavigate($event, 'Finance-manage&amp;/BankTransactions')">
+							<TileContent id="kpiUnmatchedContent">
+								<NumericContent id="kpiUnmatchedValue" value="{unmatchedCount}" icon="sap-icon://loan" withMargin="false" />
+							</TileContent>
+						</GenericTile>
+					</FlexBox>
+				</VBox>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

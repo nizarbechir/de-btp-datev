@@ -1,0 +1,123 @@
+import PageController from "sap/fe/core/PageController";
+import MessageBox from "sap/m/MessageBox";
+import Event from "sap/ui/base/Event";
+import JSONModel from "sap/ui/model/json/JSONModel";
+import Context from "sap/ui/model/odata/v4/Context";
+import ODataModel from "sap/ui/model/odata/v4/ODataModel";
+import ResourceModel from "sap/ui/model/resource/ResourceModel";
+
+/**
+ * The start page: onboarding for users without organization, otherwise key figures, what needs
+ * attention, and the entry points into the other apps. Figures come from the backend; the
+ * controller only navigates.
+ */
+interface ShellServices {
+	toExternal(args: { target: { shellHash: string } }): void;
+}
+
+const attentionTargets: Record<string, string> = {
+	BankTransaction: "Finance-manage&/BankTransactions",
+	IncomingDocument: "Purchases-manage&/IncomingDocuments",
+	SalesInvoice: "Sales-manage&/SalesInvoices",
+	SupplierInvoice: "Purchases-manage&/SupplierInvoices",
+};
+
+/**
+ * @namespace swiver.dashboard.ext
+ */
+export default class Dashboard extends PageController {
+	public onInit(): void {
+		super.onInit();
+		const view = this.getView();
+		view?.setModel(new JSONModel({ hasOrganization: false, loaded: false, organizationName: "" }), "view");
+		view?.setModel(
+			new JSONModel({
+				companyName: "",
+				country: "DE",
+				currency: "EUR",
+				defaultPaymentTermDays: 14,
+				defaultTaxRate: 19,
+				invoicePrefix: "INV",
+				vatId: "",
+			}),
+			"onboarding",
+		);
+		void this.loadOrganization();
+	}
+
+	public async onCreateOrganization(): Promise<void> {
+		const input = (this.getView()?.getModel("onboarding") as JSONModel).getData() as Record<string, unknown>;
+		const action = this.orgModel().bindContext("/createOrganization(...)");
+		for (const [name, value] of Object.entries(input)) {
+			action.setParameter(name, value);
+		}
+		try {
+			await action.invoke();
+			// The organization is resolved per request, so reload to start with fresh data everywhere.
+			window.location.reload();
+		} catch (error) {
+			MessageBox.error((error as Error).message);
+		}
+	}
+
+	public onAttention(event: Event): void {
+		const context = (event.getSource() as { getBindingContext(): Context }).getBindingContext();
+		const target = attentionTargets[context.getProperty("target") as string];
+		if (target) {
+			this.navigate(target);
+		}
+	}
+
+	public onNavigate(event: Event, shellHash: string): void {
+		this.navigate(shellHash);
+	}
+
+	/** Creates a draft invoice and opens it in the Sales app. */
+	public async onNewSalesInvoice(): Promise<void> {
+		const sales = this.getAppComponent().getModel("sales") as ODataModel;
+		const context = sales.bindList("/SalesInvoices").create({});
+		try {
+			await context.created();
+			this.navigate(`Sales-manage&/SalesInvoices(ID=${context.getProperty("ID") as string},IsActiveEntity=false)`);
+		} catch (error) {
+			MessageBox.error((error as Error).message);
+		}
+	}
+
+	public formatCount(count: null | number): string {
+		return this.text(count === 1 ? "invoiceCountOne" : "invoiceCount", [count ?? 0]);
+	}
+
+	public formatPayments(count: null | number): string {
+		return this.text(count === 1 ? "paymentCountOne" : "paymentCount", [count ?? 0]);
+	}
+
+	private async loadOrganization(): Promise<void> {
+		const binding = this.orgModel().bindContext("/myOrganization()");
+		const result = (await binding.requestObject().catch(() => undefined)) as
+			undefined | { name?: string; organizationID?: string };
+		const model = this.getView()?.getModel("view") as JSONModel;
+		model.setData({
+			hasOrganization: Boolean(result?.organizationID),
+			loaded: true,
+			organizationName: result?.name ?? "",
+		});
+	}
+
+	private navigate(shellHash: string): void {
+		(this.getAppComponent() as unknown as { getShellServices(): ShellServices })
+			.getShellServices()
+			.toExternal({ target: { shellHash } });
+	}
+
+	private orgModel(): ODataModel {
+		return this.getAppComponent().getModel("org") as ODataModel;
+	}
+
+	private text(key: string, args: unknown[]): string {
+		const bundle = (this.getAppComponent().getModel("i18n") as ResourceModel).getResourceBundle() as {
+			getText: (key: string, args: unknown[]) => string;
+		};
+		return bundle.getText(key, args);
+	}
+}

@@ -1,0 +1,28 @@
+/* Invoice totals below the items: right-aligned, with a prominent total. */
+.swiverTotals {
+	padding: 0.5rem 0 1rem;
+}
+
+.swiverTotalsBox {
+	max-width: 100%;
+}
+
+.swiverTotalsRow {
+	padding: 0.375rem 0;
+}
+
+.swiverTotalsGrand {
+	margin-top: 0.5rem;
+	padding: 0.75rem 1rem;
+	border-radius: 0.75rem;
+	background: var(--sapInformationBackgroundColor);
+}
+
+.swiverTotalsGrand .sapMObjectNumberLarge .sapMObjectNumberText {
+	font-size: 1.75rem;
+}
+
+/* Dashboard: section headings above the key figure tiles */
+.swiverSectionTitle {
+	margin: 1rem 0 0.5rem;
+}

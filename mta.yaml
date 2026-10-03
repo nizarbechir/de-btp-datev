@@ -117,9 +117,25 @@ modules:
     build-parameters:
       build-result: resources
       requires:
-        - name: swiverapp
+        - name: swiverdashboard
           artifacts:
-            - swiverapp.zip
+            - swiverdashboard.zip
+          target-path: resources/
+        - name: swiversales
+          artifacts:
+            - swiversales.zip
+          target-path: resources/
+        - name: swiverpurchases
+          artifacts:
+            - swiverpurchases.zip
+          target-path: resources/
+        - name: swiverfinance
+          artifacts:
+            - swiverfinance.zip
+          target-path: resources/
+        - name: swiversettings
+          artifacts:
+            - swiversettings.zip
           target-path: resources/
   - name: swiver-destination-content
     type: com.sap.application.content
@@ -151,9 +167,49 @@ modules:
           existing_destinations_policy: update
     build-parameters:
       no-source: true
-  - name: swiverapp
+  - name: swiverdashboard
     type: html5
-    path: app/swiver
+    path: app/dashboard
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiversales
+    type: html5
+    path: app/sales
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverpurchases
+    type: html5
+    path: app/purchases
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverfinance
+    type: html5
+    path: app/finance
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiversettings
+    type: html5
+    path: app/settings
     build-parameters:
       build-result: dist
       builder: custom
