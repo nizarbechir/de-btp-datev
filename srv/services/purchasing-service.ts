@@ -3,6 +3,7 @@ import cds, { Request } from "@sap/cds";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 import { recordPayment, rejectDomainError, removeManualPayments } from "../payments/payments";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
+import { prefillInvoiceDraft } from "../purchases/supplier-invoice-prefill";
 
 /**
  * Money out: suppliers, supplier invoices with their payments, the document inbox and expense categories.
@@ -43,6 +44,14 @@ export default class PurchasingService extends cds.ApplicationService {
 		this.on("markInvoiceOpen", SupplierInvoices, (req) =>
 			guarded(req, () => removeManualPayments("supplier", key(req))),
 		);
+
+		// An uploaded invoice document proposes the invoice data in the draft
+		this.after("UPDATE", SupplierInvoices.drafts, async (_result, req) => {
+			const ID = (req.data as { ID?: string }).ID ?? key(req);
+			if (ID && "documentContent" in req.data) {
+				await prefillInvoiceDraft(ID);
+			}
+		});
 
 		// Inbox: read the document after every save, and on request
 		this.after(["CREATE", "UPDATE"], IncomingDocuments, async (_result, req) => {

@@ -26,7 +26,7 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
 
   entity IncomingDocuments        as projection on my.IncomingDocuments
     actions {
-      /** Reads an embedded e-invoice (ZUGFeRD) again and proposes the invoice data. */
+      /** Reads the document again (e-invoice or PDF text) and proposes the invoice data. */
       @title: '{i18n>Process}'
       action process()                                         returns IncomingDocuments;
       /** Creates the supplier invoice from the document and marks the document as processed. */

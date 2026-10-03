@@ -209,6 +209,23 @@ annotate service.SupplierInvoices with @(
     ],
     TargetProperties: ['grossAmount']
   },
+  // An uploaded document proposes the invoice data (see supplier-invoice-prefill.ts)
+  Common.SideEffects #Document: {
+    SourceProperties: [documentContent],
+    TargetProperties: [
+      'supplier_ID',
+      'supplier/name',
+      'invoiceNumber',
+      'invoiceDate',
+      'dueDate',
+      'currency_code',
+      'netAmount',
+      'taxAmount',
+      'grossAmount',
+      'status',
+      'statusCriticality'
+    ]
+  },
   Common.SideEffects #Status : {
     SourceProperties: [dueDate],
     TargetProperties: [
