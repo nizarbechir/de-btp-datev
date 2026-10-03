@@ -91,7 +91,7 @@ entity SupplierInvoices : cuid, managed, OrganizationOwned {
   incomingDocument  : Association to IncomingDocuments;
   // The original invoice (PDF, PNG or JPEG). One document per invoice.
   documentContent   : LargeBinary @Core.MediaType: documentMediaType
-                                  @Core.ContentDisposition.Filename: documentFileName
+                                  @Core.ContentDisposition: {Filename: documentFileName, Type: 'inline'}
                                   @Core.AcceptableMediaTypes: [
                                     'application/pdf',
                                     'image/png',
@@ -145,7 +145,7 @@ entity ExpenseCategories : cuid, managed, OrganizationOwned {
 entity IncomingDocuments : cuid, managed, OrganizationOwned {
   originalFileName      : String(255);
   content               : LargeBinary @Core.MediaType: mediaType
-                                      @Core.ContentDisposition.Filename: originalFileName
+                                      @Core.ContentDisposition: {Filename: originalFileName, Type: 'inline'}
                                       @Core.AcceptableMediaTypes: [
                                         'application/pdf',
                                         'image/png',
