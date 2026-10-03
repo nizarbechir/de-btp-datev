@@ -1,0 +1,24 @@
+name: "Create .env file"
+description: "Create an .env file"
+
+inputs:
+  path:
+    description: "Desired path of the .env file"
+    required: true
+  file-template:
+    description: ".env without secrets"
+    required: true
+  fdm-password:
+    description: "FDM password"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create .env file
+      shell: bash
+      run: |
+        touch ${{ inputs.path }}
+        echo "${{ inputs.file-template }}" >> ${{ inputs.path }}
+        echo FDM_PASSWORD="${{ inputs.fdm-password }}" >> ${{ inputs.path }}
+        cat ${{ inputs.path }}

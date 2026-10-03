@@ -1,0 +1,25 @@
+{
+	"scopes": [
+		{
+			"name": "$XSAPPNAME.InvoiceManager",
+			"description": "Manage suppliers and supplier invoices"
+		}
+	],
+	"role-templates": [
+		{
+			"name": "InvoiceManager",
+			"description": "Manage suppliers and supplier invoices",
+			"scope-references": ["$XSAPPNAME.InvoiceManager"],
+			"attribute-references": []
+		}
+	],
+	"role-collections": [
+		{
+			"name": "Swiver_InvoiceManager",
+			"description": "Swiver - Invoice Manager",
+			"role-template-references": ["$XSAPPNAME.InvoiceManager"]
+		}
+	],
+	"attributes": [],
+	"authorities-inheritance": false
+}

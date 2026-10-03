@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+policy="\n\n[Policy] Never commit code directly to the "$current_branch" branch! (Prevented with pre-commit hook.)\n\n"
+
+do_exit() {
+	echo -e $policy
+	exit 1
+}
+
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "qas" ]; then
+	do_exit
+fi
+
+unset do_exit
+
+# Prettier and lint staged files
+npx lint-staged

@@ -1,0 +1,38 @@
+name: PR Typescript Strict Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.githooks/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'README.MD'    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION || '24' }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Clean install node packages
+        run: npm ci
+
+      - name: Generate cds-typescript types
+        uses: ./.github/actions/cds-typer     
+
+      - name: Run Unit Tests
+        run: npx tsc --project tsconfig.strict.json

@@ -1,0 +1,227 @@
+_schema-version: "3.1"
+ID: swiver
+description: Swiver - supplier invoices for small businesses.
+version: 1.2.0
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npx cds build --production
+        - npx @cap-js/cds-typer "*" --outputDirectory gen/srv/@cds-models
+        - mkdir -p resources
+        - cp app/workzone/cdm.json resources/cdm.json
+
+modules:
+  - name: swiver-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: swiver-auth
+      - name: swiver-db
+      - name: swiver-destination
+      - name: swiver-connectivity
+      - name: swiver-cls
+      - name: swiver-autoscaler
+        parameters:
+          config:
+            instance_min_count: 1
+            instance_max_count: 5
+            scaling_rules:
+              - metric_type: memoryutil
+                threshold: 80
+                operator: ">"
+                breach_duration_secs: 180
+                cool_down_secs: 600
+                adjustment: "+1"
+              - metric_type: memoryutil
+                threshold: 50
+                operator: "<"
+                breach_duration_secs: 600
+                cool_down_secs: 600
+                adjustment: "-1"
+              - metric_type: cpuutil
+                threshold: 75
+                operator: ">"
+                breach_duration_secs: 180
+                cool_down_secs: 600
+                adjustment: "+1"
+              - metric_type: cpuutil
+                threshold: 45
+                operator: "<"
+                breach_duration_secs: 600
+                cool_down_secs: 600
+                adjustment: "-1"
+              - metric_type: diskutil
+                threshold: 80
+                operator: ">"
+                breach_duration_secs: 300
+                cool_down_secs: 600
+                adjustment: "+1"
+              - metric_type: diskutil
+                threshold: 55
+                operator: "<"
+                breach_duration_secs: 600
+                cool_down_secs: 600
+                adjustment: "-1"
+              - metric_type: responsetime
+                threshold: 1200
+                operator: ">"
+                breach_duration_secs: 300
+                cool_down_secs: 600
+                adjustment: "+1"
+              - metric_type: responsetime
+                threshold: 700
+                operator: "<"
+                breach_duration_secs: 600
+                cool_down_secs: 600
+                adjustment: "-1"
+              - metric_type: throughput
+                threshold: 90
+                operator: ">"
+                breach_duration_secs: 300
+                cool_down_secs: 600
+                adjustment: "+1"
+              - metric_type: throughput
+                threshold: 40
+                operator: "<"
+                breach_duration_secs: 600
+                cool_down_secs: 600
+                adjustment: "-1"
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+  - name: swiver-db-deployer
+    type: hdb
+    path: gen/db
+    requires:
+      - name: swiver-db
+    parameters:
+      buildpack: nodejs_buildpack
+  - name: swiver-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: swiver-repo-host
+        parameters:
+          content-target: true
+      - name: swiver-auth 
+      - name: swiver-destination 
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: swiverapp
+          artifacts:
+            - swiverapp.zip
+          target-path: resources/
+  - name: swiver-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: srv-api
+      - name: swiver-destination
+        parameters:
+          content-target: true
+      - name: swiver-repo-host
+        parameters:
+          service-key:
+            name: swiver-repo-host-key
+      - name: swiver-auth
+        parameters:
+          service-key:
+            name: swiver-auth-key
+      - name: swiver-html5-rt
+        parameters:
+          service-key:
+            name: swiver-html5-rt-key
+    parameters:
+      content:
+        subaccount:
+          destinations:
+            - Name: wz-swiver-cdm-dt # this name should follow wz-<app-name>-cdm-dt pattern
+              ServiceInstanceName: swiver-html5-rt
+              ServiceKeyName: swiver-html5-rt-key
+              URL: https://html5-apps-repo-rt.cfapps.eu10.hana.ondemand.com/applications/cdm/swiverservice
+          existing_destinations_policy: update
+    build-parameters:
+      no-source: true
+  - name: swiverapp
+    type: html5
+    path: app/swiver
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+resources:
+  - name: swiver-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        tenant-mode: dedicated
+        xsappname: swiver-${org}-${space}
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+  - name: swiver-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: swiver-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+  - name: swiver-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: false # this is set to false to use destination service in the subaccount and not in the instance
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: true
+                Name: swiver-srv-api
+                ProxyType: Internet
+                Type: HTTP
+                URL: ~{srv-api/srv-url}
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+            existing_destinations_policy: update
+        version: 1.0.0
+      service: destination
+      service-plan: lite
+    requires:
+      - name: srv-api
+  - name: swiver-connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+  - name: swiver-cls
+    type: org.cloudfoundry.existing-service
+    optional: true
+  - name: swiver-autoscaler
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: autoscaler
+      service-plan: standard
+  - name: swiver-html5-rt
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime

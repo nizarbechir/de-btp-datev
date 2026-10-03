@@ -1,0 +1,71 @@
+name: "#Transfer Translations from qas"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  transfer-translations:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Fetch GitHub App Token
+        id: fetch-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.fetch-token.outputs.token }}
+
+      - name: Copy translation files from "qas" branch
+        run: |
+          git switch qas
+          mkdir ../translations
+          find . -type f \( -name 'i18n_*.properties' -o -name 'messages_*.properties' \) | xargs -i cp -v {} --parents -t ../translations/
+          git switch ${{ github.ref_name }}
+          if [ -n "$(ls -A ../translations 2>/dev/null)" ]
+          then
+            cp -rvf ../translations/* ./
+          else
+            echo "not translation files found"
+          fi
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+              echo "changes=true" >> "$GITHUB_OUTPUT"; 
+          fi
+
+      - name: add translation files
+        if: steps.check_changes.outputs.changes == 'true'
+        run: git add *i18n_*.properties *messages_*.properties
+
+      - name: Configure Git
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions [Bot]"
+
+      - name: Run the scripts
+        if: steps.check_changes.outputs.changes == 'true'
+        id: "get_languages"
+        run: |
+          chmod +x .github/scripts/get_changed_languages.sh
+          echo "languages=$( .github/scripts/get_changed_languages.sh )" >> $GITHUB_OUTPUT
+
+      - name: commit translations
+        if: steps.check_changes.outputs.changes == 'true'
+        run: "git commit -m 'fix(translation): Update translations - ${{steps.get_languages.outputs.languages}}'"
+
+      - name: push to public repo
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git push https://x-access-token:${{ steps.fetch-token.outputs.token }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}

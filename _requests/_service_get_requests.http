@@ -1,0 +1,17 @@
+### Finance Service (local mocked user alice / alice)
+@auth = Basic alice:alice
+
+### Dashboard key figures
+GET http://localhost:4004/odata/v4/finance/dashboard()
+Authorization: {{auth}}
+
+### Overdue invoices
+GET http://localhost:4004/odata/v4/finance/SupplierInvoices?$filter=status eq 'Overdue'&$expand=supplier($select=name)
+Authorization: {{auth}}
+
+### Mark an invoice as paid
+POST http://localhost:4004/odata/v4/finance/SupplierInvoices(ID=22222222-0000-4000-8000-000000000009,IsActiveEntity=true)/FinanceService.markInvoicePaid
+Authorization: {{auth}}
+Content-Type: application/json
+
+{}

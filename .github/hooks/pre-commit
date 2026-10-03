@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# .github/hooks/pre-commit-npmrc.sh
+# -------------------------------------------------------------------
+# Pre-commit hook: Validates that .npmrc contains min-release-age.
+# Prevents pushing code without the supply chain cooldown configured.
+#
+# Installation (per-repo):
+#   cp .github/hooks/pre-commit-npmrc.sh .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# Or use with core.hooksPath:
+#   git config core.hooksPath .github/hooks
+# -------------------------------------------------------------------
+set -euo pipefail
+
+NPMRC=".npmrc"
+
+# Only check if .npmrc exists or is staged
+if [[ ! -f "$NPMRC" ]] && ! git diff --cached --name-only | grep -q "^\.npmrc$"; then
+  echo "⚠️  No .npmrc found. Supply chain security requires min-release-age."
+  echo "   See: docs/npm-cooldown-guide.md"
+  exit 1
+fi
+
+# If .npmrc is staged, check the staged version; otherwise check working tree
+if git diff --cached --name-only | grep -q "^\.npmrc$"; then
+  CONTENT=$(git show ":$NPMRC")
+else
+  CONTENT=$(cat "$NPMRC")
+fi
+
+# Validate min-release-age is present and not commented out
+if ! echo "$CONTENT" | grep -qE '^[[:space:]]*min-release-age[[:space:]]*='; then
+  echo "❌ .npmrc is missing 'min-release-age' setting."
+  echo ""
+  echo "   Required for npm supply chain security. Add to .npmrc:"
+  echo "     min-release-age=7"
+  echo ""
+  echo "   See: docs/npm-cooldown-guide.md"
+  exit 1
+fi
+
+# Validate the value is at least 1 day
+# Use awk instead of grep -P to stay portable across environments.
+VALUE=$(echo "$CONTENT" | awk -F'=' '/^[[:space:]]*min-release-age[[:space:]]*=/{
+  v=$2
+  gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+  print v
+  exit
+}')
+if [[ -z "$VALUE" ]]; then
+  echo "❌ Could not parse min-release-age value from .npmrc."
+  echo "   Expected format: min-release-age=<number>"
+  exit 1
+fi
+if ! [[ "$VALUE" =~ ^[0-9]+$ ]]; then
+  echo "❌ .npmrc has unsupported min-release-age format: $VALUE"
+  echo "   npm expects a numeric day count, e.g. min-release-age=7"
+  exit 1
+fi
+if [[ "$VALUE" == "0" || "$VALUE" == "0d" || "$VALUE" == "0h" ]]; then
+  echo "❌ .npmrc has min-release-age=$VALUE — must be at least 1d."
+  echo "   Recommended: min-release-age=7"
+  exit 1
+fi
+
+echo "✅ .npmrc: min-release-age=$VALUE"

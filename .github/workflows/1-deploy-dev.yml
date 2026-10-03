@@ -1,0 +1,26 @@
+name: "# 1. Deploy to DEV"
+
+on:
+  workflow_dispatch:
+  push:    
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+      - '.husky/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'test/**'
+      - 'README.MD'  
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Call_Deploy_DEV:
+    uses: ./.github/workflows/deployment-script.yml
+    with:
+      environment: Development
+      stage: dev
+    secrets: inherit

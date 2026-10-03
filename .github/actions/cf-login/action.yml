@@ -1,0 +1,40 @@
+name: 'Install CF CLI and Login'
+description: 'Installs the Cloud Foundry CLI, the multiapps plugin, and logs into a specified CF space.'
+inputs:
+  btp-api:
+    description: 'The API endpoint for the BTP Cloud Foundry environment.'
+    required: true
+  btp-deployment-user:
+    description: 'The username for BTP deployment.'
+    required: true
+  btp-deployment-password:
+    description: 'The password for the BTP deployment user.'
+    required: true
+  btp-origin:
+    description: 'The identity provider origin for CF authentication.'
+    required: true
+  btp-subaccount:
+    description: 'The BTP subaccount (org) to target.'
+    required: true
+  btp-space:
+    description: 'The BTP space to target.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install CF CLI and multiapps plugin
+      shell: bash
+      run: |
+        wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cli.cloudfoundry.org.gpg
+        echo "deb [signed-by=/usr/share/keyrings/cli.cloudfoundry.org.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+        sudo apt-get update
+        sudo apt-get install -y cf8-cli # Added -y to auto-confirm
+        cf --version # Verify installation
+        cf install-plugin multiapps -f
+
+    - name: CF Login to subaccount and space
+      shell: bash
+      run: |
+        cf api ${{ inputs.btp-api }}
+        cf auth "${{ inputs.btp-deployment-user }}" "${{ inputs.btp-deployment-password }}" --origin ${{ inputs.btp-origin }}
+        cf target -o "${{ inputs.btp-subaccount }}" -s "${{ inputs.btp-space }}"

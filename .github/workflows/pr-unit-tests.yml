@@ -1,0 +1,47 @@
+name: PR Unit Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.githooks/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'README.MD'    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION || '24' }}
+      
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Clean install node packages
+        run: npm ci
+
+      - name: Generate cds-typescript types
+        uses: ./.github/actions/cds-typer
+
+      - name: Run Unit Tests
+        run: |
+          echo "::group::🧪 Running Unit Tests"
+          npm run test:ci | tee test-output.log
+          echo "::endgroup::"
+      
+          echo "### 🧪 Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 50 test-output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+              

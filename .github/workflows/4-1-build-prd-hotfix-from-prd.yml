@@ -1,0 +1,14 @@
+name: "# 4.1. Build PRD-HOTFIX branch from PRD"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rebuild-prd-branch:
+    uses: ./.github/workflows/rebuild-branch.yml
+    permissions:
+      contents: write
+    with:
+      branch: prd-hotfix      
+      source_ref: prd      
+    secrets: inherit

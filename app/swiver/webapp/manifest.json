@@ -1,0 +1,265 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.app",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/finance/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"swiver-manage": {
+					"semanticObject": "SupplierInvoice",
+					"action": "manage",
+					"title": "{{swiver-manage.flpTitle}}",
+					"subTitle": "{{swiver-manage.flpSubtitle}}",
+					"icon": "sap-icon://customer-financial-fact-sheet",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.app.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"resources": {
+			"css": []
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "Dashboard",
+					"target": "Dashboard"
+				},
+				{
+					"pattern": "SupplierInvoices:?query:",
+					"name": "SupplierInvoicesList",
+					"target": "SupplierInvoicesList"
+				},
+				{
+					"pattern": "SupplierInvoices({key}):?query:",
+					"name": "SupplierInvoicesObjectPage",
+					"target": "SupplierInvoicesObjectPage"
+				},
+				{
+					"pattern": "Suppliers:?query:",
+					"name": "SuppliersList",
+					"target": "SuppliersList"
+				},
+				{
+					"pattern": "Suppliers({key}):?query:",
+					"name": "SuppliersObjectPage",
+					"target": "SuppliersObjectPage"
+				}
+			],
+			"targets": {
+				"Dashboard": {
+					"type": "Component",
+					"id": "Dashboard",
+					"name": "sap.fe.core.fpm",
+					"options": {
+						"settings": {
+							"viewName": "swiver.app.ext.dashboard.Dashboard",
+							"contextPath": "/SupplierInvoices",
+							"navigation": {
+								"SupplierInvoices": {
+									"detail": {
+										"route": "SupplierInvoicesObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SupplierInvoicesList": {
+					"type": "Component",
+					"id": "SupplierInvoicesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/SupplierInvoices",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"SupplierInvoices": {
+									"detail": {
+										"route": "SupplierInvoicesObjectPage"
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									},
+									{
+										"key": "open",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Open"
+									},
+									{
+										"key": "overdue",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Overdue"
+									},
+									{
+										"key": "paid",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Paid"
+									}
+								],
+								"showCounts": true
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"selectionMode": "Multi"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SupplierInvoicesObjectPage": {
+					"type": "Component",
+					"id": "SupplierInvoicesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/SupplierInvoices",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				},
+				"SuppliersList": {
+					"type": "Component",
+					"id": "SuppliersList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Suppliers",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Suppliers": {
+									"detail": {
+										"route": "SuppliersObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SuppliersObjectPage": {
+					"type": "Component",
+					"id": "SuppliersObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Suppliers",
+							"enhanceI18n": "i18n/i18n.properties",
+							"navigation": {
+								"invoices": {
+									"detail": {
+										"route": "SupplierInvoicesObjectPage"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

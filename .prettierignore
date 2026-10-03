@@ -1,0 +1,9 @@
+# Ignore artifacts, generated code, and dependencies
+.github
+dist
+node_modules
+@cds-models
+gen
+mta_archives
+resources
+.vscode

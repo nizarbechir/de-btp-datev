@@ -1,0 +1,6 @@
+ID;name;supplierNumber;taxNumber;email;phone;address;city;postalCode;country_code;iban;notes;active
+11111111-0000-4000-8000-000000000001;Telekom Deutschland GmbH;SUP-1001;DE123475223;geschaeftskunden@telekom.example;+49 228 1810;Landgrabenweg 151;Bonn;53227;DE;DE89370400440532013000;Mobile and landline contract;true
+11111111-0000-4000-8000-000000000002;Bürobedarf Müller GmbH;SUP-1002;DE811234567;bestellung@mueller-buero.example;+49 221 555010;Hohe Straße 12;Köln;50667;DE;DE12500105170648489890;Office supplies, monthly order;true
+11111111-0000-4000-8000-000000000003;Rhein Energie GmbH;SUP-1003;DE814445566;service@rhein-energie.example;+49 211 8210;Rheinufer 4;Düsseldorf;40213;DE;DE44500105175407324931;Electricity and gas, monthly advance payment;true
+11111111-0000-4000-8000-000000000004;Cloud Services GmbH;SUP-1004;DE298877665;billing@cloud-services.example;+49 30 9876540;Friedrichstraße 88;Berlin;10117;DE;DE02120300000000202051;Hosting and SaaS subscriptions;true
+11111111-0000-4000-8000-000000000005;Steuerberatung Schmidt;SUP-1005;DE145566778;kanzlei@stb-schmidt.example;+49 89 2233440;Leopoldstraße 21;München;80802;DE;DE02700202700010108669;Bookkeeping and annual tax return;true

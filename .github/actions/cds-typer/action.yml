@@ -1,0 +1,9 @@
+name: 'Generate CDS TypeScript Types'
+description: 'Generates TypeScript type definitions from CDS models using @cap-js/cds-typer.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate cds-typescript types
+      shell: bash
+      run: npx @cap-js/cds-typer "*" --outputDirectory @cds-models

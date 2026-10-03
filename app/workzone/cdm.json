@@ -1,0 +1,136 @@
+[
+	{
+		"_version": "3.1",
+		"identification": {
+			"id": "swiverCatalog",
+			"title": "{{title}}",
+			"entityType": "catalog"
+		},
+		"payload": {
+			"viz": [
+				{
+					"appId": "swiver.app",
+					"vizId": "swiver-manage"
+				}
+			]
+		},
+		"texts": [
+			{
+				"locale": "",
+				"textDictionary": {
+					"title": "Swiver Catalog"
+				}
+			}
+		]
+	},
+	{
+		"_version": "3.1",
+		"identification": {
+			"id": "swiverGroup",
+			"title": "{{title}}",
+			"entityType": "group"
+		},
+		"payload": {
+			"viz": [
+				{
+					"appId": "swiver.app",
+					"vizId": "swiver-manage"
+				}
+			]
+		},
+		"texts": [
+			{
+				"locale": "",
+				"textDictionary": {
+					"title": "Swiver"
+				}
+			}
+		]
+	},
+	{
+		"_version": "3.1",
+		"identification": {
+			"id": "swiverInvoiceManagerRole",
+			"entityType": "role",
+			"title": "Swiver Invoice Manager"
+		},
+		"payload": {
+			"apps": [
+				{
+					"id": "swiver.app"
+				}
+			],
+			"catalogs": [
+				{
+					"id": "swiverCatalog"
+				}
+			],
+			"groups": [
+				{
+					"id": "swiverGroup"
+				}
+			],
+			"spaces": [
+				{
+					"id": "swiverSpace"
+				}
+			]
+		}
+	},
+	{
+		"_version": "3.1",
+		"identification": {
+			"id": "swiverSpace",
+			"title": "{{title}}",
+			"entityType": "space"
+		},
+		"payload": {
+			"contentNodes": [
+				{
+					"type": "page",
+					"id": "swiverPage"
+				}
+			]
+		},
+		"texts": [
+			{
+				"locale": "",
+				"textDictionary": {
+					"title": "Swiver"
+				}
+			}
+		]
+	},
+	{
+		"_version": "3.1",
+		"identification": {
+			"id": "swiverPage",
+			"title": "{{title}}",
+			"entityType": "page"
+		},
+		"payload": {
+			"sections": [
+				{
+					"id": "swiverSection",
+					"title": "{{swiverSection}}",
+					"viz": [
+						{
+							"id": "swiverWidget",
+							"appId": "swiver.app",
+							"vizId": "swiver-manage"
+						}
+					]
+				}
+			]
+		},
+		"texts": [
+			{
+				"locale": "",
+				"textDictionary": {
+					"title": "Swiver",
+					"swiverSection": "Supplier Invoices"
+				}
+			}
+		]
+	}
+]

@@ -1,0 +1,81 @@
+name: "Rebuild Branch"
+
+on:  
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
+      source_ref:
+        required: false
+        type: string
+
+jobs:
+  await-approval:
+    runs-on: ubuntu-latest
+    if: inputs.branch == 'prd'
+    environment:
+      name: ChangeControl
+    steps:
+      - name: Approval gate for prd branch rebuild
+        run: echo "Approval granted for rebuilding prd branch."
+
+  rebuild-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: await-approval
+    if: |
+      always() &&
+      (needs.await-approval.result == 'success' || needs.await-approval.result == 'skipped')
+    
+    steps:
+
+      - name: Fetch GitHub App Token
+        id: fetch-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_KEY }}
+
+      - name: Validate token for protected branch rebuild
+        if: ${{ inputs.branch == 'qas' || inputs.branch == 'rse' || inputs.branch == 'prd' }}
+        env:
+          APP_TOKEN: ${{ steps.fetch-token.outputs.token }}
+        run: |
+          if [ -z "$APP_TOKEN" ]; then
+            echo "GitHub App token could not be generated. Check WORKFLOW_APP_ID variable and WORKFLOW_APP_KEY secret."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_ref || github.ref }}
+          token: ${{ steps.fetch-token.outputs.token || github.token }}
+
+      - name: git pull
+        run: git pull
+
+      - name: Configure authenticated remote for push
+        env:
+          PUSH_TOKEN: ${{ steps.fetch-token.outputs.token || github.token }}
+        run: |
+          echo "::add-mask::$PUSH_TOKEN"
+          git remote set-url origin "https://x-access-token:${PUSH_TOKEN}@github.com/${{ github.repository }}.git"
+
+      - name: Delete target branch if it exists
+        run: |
+          if git ls-remote --exit-code --heads origin "${{ inputs.branch }}"; then
+            echo "Remote branch '${{ inputs.branch }}' exists. Deleting it."
+            git push origin -d "${{ inputs.branch }}"
+          else
+            echo "Remote branch '${{ inputs.branch }}' does not exist. No need to delete."
+          fi
+
+      - name: Create new local branch based on current ref
+        run: git checkout -b "${{ inputs.branch }}"
+
+      - name: Push new branch to origin
+        run: git push origin "${{ inputs.branch }}"

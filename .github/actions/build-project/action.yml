@@ -1,0 +1,16 @@
+name: 'Install MBT and Build Project'
+description: 'Installs MBT globally and runs npm run build:<stage>'
+inputs:
+  stage:
+    description: 'Build stage (dev, qas, rse, prd)'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install mbt
+      run: npm install -g mbt
+      shell: bash
+
+    - name: Build project
+      run: npm run build:${{ inputs.stage }}
+      shell: bash

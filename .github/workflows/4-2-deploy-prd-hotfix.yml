@@ -1,0 +1,16 @@
+name: "# 4.2. Deploy to RSE from PRD-HOTFIX"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Call_Deploy_PRD-HOTFIX:
+    uses: ./.github/workflows/deployment-script.yml
+    with:
+      environment: Release
+      stage: prd-hotfix
+    secrets: inherit

@@ -1,0 +1,66 @@
+{
+	"log": {
+		"levels": {
+			"hana": "warn",
+			"cds": "info",
+			"app": "error",
+			"remote": "warn",
+			"odata": "warn",
+			"auth": "info"
+		}
+	},
+	"requires": {
+		"db": {
+			"credentials": {
+				"url": ":memory:"
+			},
+			"[development]": {
+				"data": ["db/data", "test/data"]
+			},
+			"[integration-test]": {
+				"data": ["db/data", "test/data"]
+			},
+			"[production]": {
+				"data": ["db/data"]
+			}
+		},
+		"change-tracking": {
+			"preserveDeletes": true
+		},
+		"[development]": {
+			"auth": {
+				"kind": "mocked",
+				"users": {
+					"alice": {
+						"password": "alice",
+						"roles": ["InvoiceManager"]
+					}
+				}
+			}
+		},
+		"[hybrid]": {
+			"db": "hana-cloud",
+			"auth": {
+				"kind": "basic",
+				"users": {
+					"alice": {
+						"password": "alice",
+						"roles": ["InvoiceManager"]
+					}
+				}
+			}
+		},
+		"[production]": {
+			"auth": "xsuaa",
+			"db": "hana-cloud"
+		}
+	},
+	"server": {
+		"body_parser": {
+			"limit": "10mb"
+		}
+	},
+	"i18n": {
+		"folders": ["i18n"]
+	}
+}
