@@ -45,7 +45,7 @@ export default class PurchasingService extends cds.ApplicationService {
 		);
 
 		// Inbox: read the document after every save, and on request
-		this.after(["CREATE", "UPDATE"], IncomingDocuments, async (result, req) => {
+		this.after(["CREATE", "UPDATE"], IncomingDocuments, async (_result, req) => {
 			const ID = (req.data as { ID?: string }).ID;
 			if (ID) {
 				await processDocument(ID);

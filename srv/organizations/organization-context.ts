@@ -30,7 +30,7 @@ export function currentOrganization(): OrganizationContext | undefined {
 /** Express middleware, added after authentication: resolves the organization once per request. */
 export async function organizationMiddleware(
 	req: { headers: Record<string, unknown> },
-	res: unknown,
+	_res: unknown,
 	next: (error?: unknown) => void,
 ) {
 	try {

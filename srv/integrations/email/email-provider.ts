@@ -40,8 +40,7 @@ export class EmailNotConfiguredError extends Error {
  * The provider for an organization. For now one deployment-wide Microsoft Graph configuration
  * sends for all organizations (with the organization's e-mail as reply-to).
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- per-organization providers will use it
-export function getEmailProvider(organizationId: string): EmailProvider {
+export function getEmailProvider(_organizationId: string): EmailProvider {
 	const config = readGraphConfig();
 	if (!config) {
 		throw new EmailNotConfiguredError();

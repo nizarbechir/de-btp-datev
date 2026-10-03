@@ -91,13 +91,13 @@ export function registerItemCalculation(srv: cds.ApplicationService, itemDrafts:
 			await prefillFromProduct(req.data as Data);
 		}
 	});
-	srv.after(["UPDATE", "DELETE"], itemDrafts, async (results, req) => {
+	srv.after(["UPDATE", "DELETE"], itemDrafts, async (_results, req) => {
 		const documentID = itemDocument.get(req);
 		if (documentID) {
 			await recalculateDraft(config, documentID);
 		}
 	});
-	srv.after("NEW", itemDrafts, async (results, req) => {
+	srv.after("NEW", itemDrafts, async (_results, req) => {
 		const documentID = (req.data as Data)[config.itemKey] as string | undefined;
 		if (documentID) {
 			await recalculateDraft(config, documentID);

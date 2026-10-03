@@ -9,7 +9,8 @@ const { axios, GET, PATCH, POST } = cds.test("serve", "--project", projectRootDi
 axios.defaults.auth = { password: "alice", username: "alice" };
 axios.defaults.validateStatus = () => true;
 
-const SERVICE = "/odata/v4/finance";
+const SERVICE = "/odata/v4/purchasing";
+const FINANCE = "/odata/v4/finance";
 const today = new Date();
 
 type Invoice = Record<string, unknown> & { ID: string };
@@ -20,7 +21,7 @@ async function createActive(entitySet: string, data: object) {
 	if (draft.status !== 201) {
 		return draft;
 	}
-	return POST(`${SERVICE}/${entitySet}(ID=${draft.data.ID},IsActiveEntity=false)/FinanceService.draftActivate`, {});
+	return POST(`${SERVICE}/${entitySet}(ID=${draft.data.ID},IsActiveEntity=false)/PurchasingService.draftActivate`, {});
 }
 
 async function readInvoice(id: string): Promise<Invoice> {
@@ -28,7 +29,7 @@ async function readInvoice(id: string): Promise<Invoice> {
 	return data;
 }
 
-describe("FinanceService", () => {
+describe("PurchasingService", () => {
 	let supplierID: string;
 
 	beforeAll(async () => {
@@ -94,7 +95,7 @@ describe("FinanceService", () => {
 
 		it("marks an invoice as paid today", async () => {
 			const { status } = await POST(
-				`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=true)/FinanceService.markInvoicePaid`,
+				`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=true)/PurchasingService.markInvoicePaid`,
 				{},
 			);
 
@@ -106,9 +107,9 @@ describe("FinanceService", () => {
 			});
 		});
 
-		it("marks an invoice as open again", async () => {
+		it("removes the manual payment, so the invoice is open again", async () => {
 			const { status } = await POST(
-				`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=true)/FinanceService.markInvoiceOpen`,
+				`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=true)/PurchasingService.markInvoiceOpen`,
 				{},
 			);
 
@@ -121,26 +122,29 @@ describe("FinanceService", () => {
 		});
 
 		it("does not let users set the payment status directly", async () => {
-			await POST(`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=true)/FinanceService.draftEdit`, {});
+			await POST(`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=true)/PurchasingService.draftEdit`, {});
 			await PATCH(`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=false)`, { paymentStatus_code: "PAID" });
-			await POST(`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=false)/FinanceService.draftActivate`, {});
+			await POST(
+				`${SERVICE}/SupplierInvoices(ID=${invoiceID},IsActiveEntity=false)/PurchasingService.draftActivate`,
+				{},
+			);
 
 			expect(await readInvoice(invoiceID)).toMatchObject({ paymentStatus_code: "OPEN" });
 		});
 	});
 
-	it("lists open invoices and matches the dashboard", async () => {
+	it("lists unpaid invoices and matches the dashboard", async () => {
 		const { data: open } = await GET(
-			`${SERVICE}/SupplierInvoices?$filter=paymentStatus_code eq 'OPEN'&$count=true&$top=0`,
+			`${SERVICE}/SupplierInvoices?$filter=paymentStatus_code ne 'PAID' and IsActiveEntity eq true&$count=true&$top=0`,
 		);
-		const { data: dashboard } = await GET(`${SERVICE}/dashboard()`);
+		const { data: dashboard } = await GET(`${FINANCE}/dashboard()`);
 
 		expect(open["@odata.count"]).toBeGreaterThan(0);
-		expect(dashboard.open.count).toBe(open["@odata.count"]);
+		expect(dashboard.payables.open.count).toBe(open["@odata.count"]);
 	});
 
 	it("derives overdue from the due date and payment status", async () => {
-		const { data: before } = await GET(`${SERVICE}/dashboard()`);
+		const { data: before } = await GET(`${FINANCE}/dashboard()`);
 		const { data: overdue } = await createActive("SupplierInvoices", {
 			dueDate: isoDate(addDays(today, -1)),
 			invoiceDate: isoDate(addDays(today, -10)),
@@ -159,16 +163,19 @@ describe("FinanceService", () => {
 		expect(await readInvoice(overdue.ID)).toMatchObject({ status: "Overdue", statusCriticality: 1 });
 		expect(await readInvoice(dueToday.ID)).toMatchObject({ status: "Open" });
 
-		const { data: after } = await GET(`${SERVICE}/dashboard()`);
-		expect(after.overdue.count).toBe(before.overdue.count + 1);
-		expect(after.dueNext7Days.count).toBe(before.dueNext7Days.count + 1);
+		const { data: after } = await GET(`${FINANCE}/dashboard()`);
+		expect(after.payables.overdue.count).toBe(before.payables.overdue.count + 1);
+		expect(after.payables.dueNext7Days.count).toBe(before.payables.dueNext7Days.count + 1);
 
-		await POST(`${SERVICE}/SupplierInvoices(ID=${overdue.ID},IsActiveEntity=true)/FinanceService.markInvoicePaid`, {});
+		await POST(
+			`${SERVICE}/SupplierInvoices(ID=${overdue.ID},IsActiveEntity=true)/PurchasingService.markInvoicePaid`,
+			{},
+		);
 		expect(await readInvoice(overdue.ID)).toMatchObject({ status: "Paid", statusCriticality: 3 });
 	});
 
 	it("rejects documents that are not PDF, PNG or JPEG", async () => {
-		const { data: invoices } = await GET(`${SERVICE}/SupplierInvoices?$top=1`);
+		const { data: invoices } = await GET(`${SERVICE}/SupplierInvoices?$filter=IsActiveEntity eq true&$top=1`);
 		const url = `${SERVICE}/SupplierInvoices(ID=${invoices.value[0].ID},IsActiveEntity=true)/documentContent`;
 
 		const rejected = await axios.put(url, "text", { headers: { "Content-Type": "text/plain" } });
@@ -176,5 +183,18 @@ describe("FinanceService", () => {
 
 		expect(rejected.status).toBe(415);
 		expect(accepted.status).toBe(204);
+	});
+
+	it("keeps the data of other organizations invisible", async () => {
+		const asBob = { auth: { password: "bob", username: "bob" } };
+		const { data: invoices } = await GET(`${SERVICE}/SupplierInvoices?$top=1`);
+		const own = await GET(`${SERVICE}/SupplierInvoices?$count=true&$top=0`, asBob);
+		const foreign = await GET(
+			`${SERVICE}/SupplierInvoices(ID=${invoices.value[0].ID},IsActiveEntity=true)/documentContent`,
+			asBob,
+		);
+
+		expect(own.data["@odata.count"]).toBe(0);
+		expect([403, 404]).toContain(foreign.status);
 	});
 });
