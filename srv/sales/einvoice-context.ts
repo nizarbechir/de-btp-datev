@@ -71,6 +71,7 @@ export function toEInvoice(document: DocumentData, replacedInvoiceNumber?: null 
 			taxNumber: company.taxNumber,
 			vatId: company.vatId,
 		},
+		servicePeriod: { end: invoice.servicePeriodEnd, start: invoice.servicePeriodStart },
 		taxAmount: decimal(invoice.taxAmount),
 		taxes: (invoice.taxes ?? []).map((tax) => ({
 			netAmount: decimal(tax.netAmount),

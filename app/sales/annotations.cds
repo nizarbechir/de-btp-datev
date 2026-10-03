@@ -223,7 +223,9 @@ annotate service.SalesInvoices with @(
     {Value: invoiceDate},
     {Value: dueDate},
     {Value: currency_code},
-    {Value: subject}
+    {Value: subject},
+    {Value: servicePeriodStart},
+    {Value: servicePeriodEnd}
   ]},
   UI.FieldGroup #Payment         : {Data: [
     {Value: paymentStatus_code},
@@ -469,14 +471,24 @@ annotate service.SalesInvoices actions {
   sendByEmail    @(
     Core.OperationAvailable: {$edmJson: {$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}, {$Eq: [{$Path: 'in/status_code'}, 'SENT']}]}, {$Path: 'in/IsActiveEntity'}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
-  )(recipient @UI.ParameterDefaultValue: in.customer.email);
+  )(
+    // Prefilled from the customer, still editable; empty and required if the customer has no e-mail.
+    recipient @(
+      UI.ParameterDefaultValue: in.customerEmail,
+      Common.FieldControl     : #Mandatory
+    ),
+    subject   @UI.ParameterDefaultValue: in.emailSubject
+  );
   sendReminder   @(
     Core.OperationAvailable: {$edmJson: {$And: [{$Path: 'in/isOverdue'}, {$Path: 'in/IsActiveEntity'}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/reminders']
     }
-  )(recipient @UI.ParameterDefaultValue: in.customer.email);
+  )(recipient @(
+    UI.ParameterDefaultValue: in.customerEmail,
+    Common.FieldControl     : #Mandatory
+  ));
   recordPayment  @(
     Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']}]}, {$Path: 'in/IsActiveEntity'}]}},
     Common.SideEffects     : {
@@ -981,7 +993,13 @@ annotate service.Quotes actions {
   sendByEmail      @(
     Core.OperationAvailable: {$edmJson: {$And: [{$Ne: [{$Path: 'in/status_code'}, 'REJECTED']}, {$Path: 'in/IsActiveEntity'}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
-  )(recipient @UI.ParameterDefaultValue: in.customer.email);
+  )(
+    recipient @(
+      UI.ParameterDefaultValue: in.customerEmail,
+      Common.FieldControl     : #Mandatory
+    ),
+    subject   @UI.ParameterDefaultValue: in.emailSubject
+  );
 };
 
 annotate service.QuoteItems with @(

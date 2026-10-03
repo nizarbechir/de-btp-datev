@@ -71,11 +71,24 @@ entity SalesInvoices : cuid, managed, OrganizationOwned {
   currency                 : Currency @mandatory default 'EUR';
   status                   : Association to SalesInvoiceStatuses default 'DRAFT';
   subject                  : String(200);
+  // Service period (Leistungszeitraum). Without it, the invoice date is printed as service date.
+  servicePeriodStart       : Date;
+  servicePeriodEnd         : Date @assert: (case
+                                              when servicePeriodEnd < servicePeriodStart
+                                              then 'SERVICE_PERIOD_END_BEFORE_START'
+                                            end);
   introductionText         : String(2000);
   footerText               : String(2000);
   netAmount                : Amount default 0;
   taxAmount                : Amount default 0;
   grossAmount              : Amount default 0;
+  // Defaults for the send e-mail dialog.
+  customerEmail            : String(120) = customer.email;
+  emailSubject             : String(255) = (case
+                                              when organization.settings.documentLanguage.code = 'EN'
+                                              then 'Invoice '
+                                              else 'Rechnung '
+                                            end) || coalesce(invoiceNumber, '') || coalesce(' - ' || organization.settings.companyName, '');
   // Maintained by the backend from the payments.
   paymentStatus            : Association to PaymentStatuses default 'OPEN';
   paidAmount               : Amount default 0;
@@ -257,6 +270,13 @@ entity Quotes : cuid, managed, OrganizationOwned {
   taxAmount                : Amount default 0;
   grossAmount              : Amount default 0;
   convertedInvoice         : Association to SalesInvoices;
+  // Defaults for the send e-mail dialog.
+  customerEmail            : String(120) = customer.email;
+  emailSubject             : String(255) = (case
+                                              when organization.settings.documentLanguage.code = 'EN'
+                                              then 'Quote '
+                                              else 'Angebot '
+                                            end) || coalesce(quoteNumber, '') || coalesce(' - ' || organization.settings.companyName, '');
   sentAt                   : Timestamp;
   sentTo                   : String(255);
   notes                    : String(1000);

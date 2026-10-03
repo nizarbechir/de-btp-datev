@@ -1,7 +1,5 @@
-import { createRequire } from "node:module";
-import path from "node:path";
-
 import { PdfArchiveOptions } from "../../core/invoice-pdf";
+import { documentFonts } from "../../core/pdf-fonts";
 import { readCii } from "./cii-reader";
 import { writeCii } from "./cii-writer";
 import { EInvoiceContext, ExtractedInvoice } from "./einvoice-types";
@@ -20,11 +18,6 @@ import { facturXXmp } from "./xmp";
 export const xmlFileName = "factur-x.xml";
 const knownXmlNames = [xmlFileName, "zugferd-invoice.xml", "ZUGFeRD-invoice.xml", "xrechnung.xml"];
 const conformanceLevel = "EN 16931";
-
-const fontDirectory = path.join(
-	path.dirname(createRequire(__filename).resolve("dejavu-fonts-ttf/package.json")),
-	"ttf",
-);
 
 export class ZugferdValidationError extends Error {
 	constructor(public problems: string[]) {
@@ -63,10 +56,7 @@ export function generate(invoice: EInvoiceContext): { pdfOptions: PdfArchiveOpti
 					relationship: "Alternative",
 				},
 			],
-			fonts: {
-				bold: path.join(fontDirectory, "DejaVuSans-Bold.ttf"),
-				regular: path.join(fontDirectory, "DejaVuSans.ttf"),
-			},
+			fonts: documentFonts,
 			xmp: facturXXmp(xmlFileName, conformanceLevel),
 		},
 		xml,

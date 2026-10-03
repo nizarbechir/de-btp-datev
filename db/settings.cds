@@ -1,12 +1,21 @@
 using {
   managed,
   Country,
-  Currency
+  Currency,
+  sap.common.CodeList
 } from '@sap/cds/common';
 using {swiver.TaxRate} from './sales';
 using {swiver.OrganizationOwned} from './organizations';
 
 namespace swiver;
+
+/** The languages sales invoices and quotes can be printed in. */
+entity DocumentLanguages : CodeList {
+  key code : String(2) enum {
+        german  = 'DE';
+        english = 'EN';
+      };
+}
 
 /**
  * The seller details printed on sales invoices and quotes, and the defaults for new documents.
@@ -28,6 +37,12 @@ entity CompanySettings : managed, OrganizationOwned {
       iban                   : String(34);
       bic                    : String(11);
       bankName               : String(80);
+      // Legal details for corporations (e.g. GmbH), printed in the invoice footer.
+      managingDirectors      : String(200);
+      registerCourt          : String(80);
+      registerNumber         : String(40);
+      // All labels, dates and amounts of a sales invoice or quote are printed in this language.
+      documentLanguage       : Association to DocumentLanguages default 'DE';
       defaultCurrency        : Currency default 'EUR';
       defaultTaxRate         : TaxRate default 19;
       defaultPaymentTermDays : Integer default 14  @assert.range: [

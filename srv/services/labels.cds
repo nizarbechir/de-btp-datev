@@ -143,8 +143,12 @@ annotate swiver.SalesInvoices with @(
   // Status and payment date only change through the actions.
   status                   @title: '{i18n>Status}'            @readonly;
   subject                  @title: '{i18n>Subject}';
+  servicePeriodStart       @title: '{i18n>ServicePeriodStart}';
+  servicePeriodEnd         @title: '{i18n>ServicePeriodEnd}';
   introductionText         @title: '{i18n>IntroductionText}'  @UI.MultiLineText;
   footerText               @title: '{i18n>FooterText}'        @UI.MultiLineText;
+  customerEmail            @UI.Hidden;
+  emailSubject             @UI.Hidden;
   // Amounts are calculated by the backend from the items.
   netAmount                @title: '{i18n>NetAmount}'         @readonly  @Measures.ISOCurrency: currency_code;
   taxAmount                @title: '{i18n>VatAmount}'         @readonly  @Measures.ISOCurrency: currency_code;
@@ -216,6 +220,10 @@ annotate swiver.CompanySettings with @(title: '{i18n>CompanySettings}') {
   iban                   @title: '{i18n>IBAN}';
   bic                    @title: '{i18n>BIC}';
   bankName               @title: '{i18n>BankName}';
+  managingDirectors      @title: '{i18n>ManagingDirectors}';
+  registerCourt          @title: '{i18n>RegisterCourt}';
+  registerNumber         @title: '{i18n>RegisterNumber}';
+  documentLanguage       @title: '{i18n>DocumentLanguage}';
   defaultCurrency        @title: '{i18n>DefaultCurrency}';
   defaultTaxRate         @title: '{i18n>DefaultVatRate}'          @Measures.Unit: '%';
   defaultPaymentTermDays @title: '{i18n>DefaultPaymentTermDays}';
@@ -281,6 +289,8 @@ annotate swiver.Quotes with @(
   taxAmount                @title: '{i18n>VatAmount}'         @readonly  @Measures.ISOCurrency: currency_code;
   grossAmount              @title: '{i18n>Total}'             @readonly  @Measures.ISOCurrency: currency_code;
   convertedInvoice         @title: '{i18n>ConvertedInvoice}'  @readonly  @Common.Text: convertedInvoice.invoiceNumber;
+  customerEmail            @UI.Hidden;
+  emailSubject             @UI.Hidden;
   sentAt                   @title: '{i18n>SentAt}'            @readonly;
   sentTo                   @title: '{i18n>SentTo}'            @readonly;
   notes                    @title: '{i18n>InternalNotes}'     @UI.MultiLineText;
