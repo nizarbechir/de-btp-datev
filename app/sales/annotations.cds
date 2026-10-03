@@ -175,6 +175,11 @@ annotate service.SalesInvoices with @(
       Action     : 'SalesService.cancelInvoice',
       Label      : '{i18n>CancelInvoice}',
       @UI.Hidden : {$edmJson: {$Not: {$And: [{$And: [{$Ne: [{$Path: 'status_code'}, 'CANCELLED']}, {$Eq: [{$Path: 'paymentStatus_code'}, 'OPEN']}]}, {$Path: 'IsActiveEntity'}]}}}
+    },
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'SalesService.addComment',
+      Label : '{i18n>AddComment}'
     }
   ],
   UI.DataPoint #grossAmount      : {
@@ -296,6 +301,12 @@ annotate service.SalesInvoices with @(
       Label     : '{i18n>History}',
       Target    : '@UI.FieldGroup#History',
       @UI.Hidden: {$edmJson: {$Not: {$Path: 'IsActiveEntity'}}}
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Comments',
+      Label : '{i18n>Comments}',
+      Target: 'comments/@UI.LineItem'
     }
   ],
   // Recalculate while editing: items and totals, the due date, and the customer shown in the header
@@ -397,36 +408,41 @@ annotate service.SalesInvoices with {
 };
 
 annotate service.SalesInvoices actions {
+  // Comments and questions, also from the tax advisor
+  addComment @(
+    Core.OperationAvailable: {$edmJson: {$Path: 'in/IsActiveEntity'}},
+    Common.SideEffects     : {TargetEntities: ['in/comments']}
+  );
   finalize @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments', 'in/reminders']
     }
   );
   markAsSent @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments', 'in/reminders']
     }
   );
   markAsPaid @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments', 'in/reminders']
     }
   );
   reopen @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'OPEN']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'OPEN']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments', 'in/reminders']
     }
   );
   correct @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}, {$Eq: [{$Path: 'in/status_code'}, 'SENT']}, {$Eq: [{$Path: 'in/status_code'}, 'CANCELLED']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}, {$Eq: [{$Path: 'in/status_code'}, 'SENT']}, {$Eq: [{$Path: 'in/status_code'}, 'CANCELLED']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.IsActionCritical: true,
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
@@ -434,16 +450,16 @@ annotate service.SalesInvoices actions {
     }
   );
   cancelInvoice @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Ne: [{$Path: 'in/status_code'}, 'CANCELLED']}, {$Eq: [{$Path: 'in/paymentStatus_code'}, 'OPEN']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$And: [{$Ne: [{$Path: 'in/status_code'}, 'CANCELLED']}, {$Eq: [{$Path: 'in/paymentStatus_code'}, 'OPEN']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.IsActionCritical: true,
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments', 'in/reminders']
     }
   );
-  duplicate      @(Core.OperationAvailable: {$edmJson: {$Path: 'in/IsActiveEntity'}});
+  duplicate      @(Core.OperationAvailable: {$edmJson: {$And: [{$Path: 'in/IsActiveEntity'}, {$Not: {$Path: 'in/readOnly'}}]}});
   createCustomer @(
-    Core.OperationAvailable: {$edmJson: {$Not: {$Path: 'in/IsActiveEntity'}}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$Not: {$Path: 'in/IsActiveEntity'}}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/customer_ID'],
       TargetEntities  : ['in/customer']
@@ -469,7 +485,7 @@ annotate service.SalesInvoices actions {
     )
   );
   sendByEmail    @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}, {$Eq: [{$Path: 'in/status_code'}, 'SENT']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Or: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Eq: [{$Path: 'in/status_code'}, 'FINALIZED']}, {$Eq: [{$Path: 'in/status_code'}, 'SENT']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   )(
     // Prefilled from the customer, still editable; empty and required if the customer has no e-mail.
@@ -480,7 +496,7 @@ annotate service.SalesInvoices actions {
     subject   @UI.ParameterDefaultValue: in.emailSubject
   );
   sendReminder   @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Path: 'in/isOverdue'}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Path: 'in/isOverdue'}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/reminders']
@@ -490,7 +506,7 @@ annotate service.SalesInvoices actions {
     Common.FieldControl     : #Mandatory
   ));
   recordPayment  @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']}]}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$And: [{$Path: 'in/isIssued'}, {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']}]}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments']
@@ -1156,3 +1172,51 @@ annotate service.ProductServices with {
     }]
   };
 };
+
+// ---------------------------------------------------------------------------
+// Comments and questions (e.g. from the tax advisor), resolved by the team
+// ---------------------------------------------------------------------------
+
+annotate service.FinancialComments with @(UI.LineItem: [
+  {
+    $Type : 'UI.DataFieldForAction',
+    Action: 'SalesService.resolve',
+    Label : '{i18n>Resolve}'
+  },
+  {Value: text},
+  {Value: createdBy},
+  {Value: authorRole},
+  {Value: createdAt},
+  {
+    Value      : resolved,
+    Criticality: resolvedCriticality
+  }
+]);
+
+annotate service.FinancialComments actions {
+  resolve @(
+    Core.OperationAvailable: {$edmJson: {$Not: {$Path: 'in/resolved'}}},
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Create, edit and delete are hidden for the read-only tax advisor (the backend enforces it)
+// ---------------------------------------------------------------------------
+
+annotate service.Customers with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: readOnly,
+  UI.DeleteHidden: readOnly
+);
+
+annotate service.ProductServices with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: readOnly,
+  UI.DeleteHidden: readOnly
+);
+
+annotate service.SalesInvoices with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: {$edmJson: {$Or: [{$Path: 'isLocked'}, {$Path: 'readOnly'}]}}
+);

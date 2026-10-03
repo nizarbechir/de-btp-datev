@@ -1,5 +1,6 @@
 using {swiver as my} from '../../db/schema';
 using from '../../db/finance';
+using from '../../db/collaboration';
 
 /**
  * Money out: suppliers, the document inbox, supplier invoices and expense categories.
@@ -16,6 +17,9 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
     virtual null as documentHint : String(300) @title: '{i18n>Note}' @readonly @UI.MultiLineText
   }
     actions {
+      /** Adds a comment or question, e.g. from the tax advisor. */
+      @title: '{i18n>AddComment}'
+      action   addComment(text : String(1000) @title: '{i18n>Comment}' @UI.MultiLineText) returns SupplierInvoices;
       /** Records a payment of the open amount, dated today. */
       @title: '{i18n>MarkPaid}'
       action markInvoicePaid() returns SupplierInvoices;
@@ -30,6 +34,9 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
 
   entity IncomingDocuments        as projection on my.IncomingDocuments
     actions {
+      /** Adds a comment or question, e.g. from the tax advisor. */
+      @title: '{i18n>AddComment}'
+      action   addComment(text : String(1000) @title: '{i18n>Comment}' @UI.MultiLineText) returns IncomingDocuments;
       /** Reads the document again (e-invoice or PDF text) and proposes the invoice data. */
       @title: '{i18n>Process}'
       action process()                                         returns IncomingDocuments;
@@ -55,6 +62,13 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
 
   @readonly
   entity Payments                 as projection on my.Payments;
+
+  @readonly
+  entity FinancialComments as projection on my.FinancialComments
+    actions {
+      @title: '{i18n>Resolve}'
+      action resolve() returns FinancialComments;
+    };
 
   @readonly
   entity PaymentStatuses          as projection on my.PaymentStatuses;

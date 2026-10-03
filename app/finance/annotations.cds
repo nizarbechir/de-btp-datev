@@ -116,6 +116,11 @@ annotate service.BankTransactions with @(
       $Type : 'UI.DataFieldForAction',
       Action: 'FinanceService.unmatch',
       Label : '{i18n>Unmatch}'
+    },
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'FinanceService.addComment',
+      Label : '{i18n>AddComment}'
     }
   ],
   UI.DataPoint #amount           : {
@@ -166,6 +171,12 @@ annotate service.BankTransactions with @(
       ID    : 'Match',
       Label : '{i18n>Matching}',
       Target: '@UI.FieldGroup#Match'
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Comments',
+      Label : '{i18n>Comments}',
+      Target: 'comments/@UI.LineItem'
     }
   ]
 );
@@ -179,21 +190,26 @@ annotate service.BankTransactions with {
 };
 
 annotate service.BankTransactions actions {
+  // Comments and questions, also from the tax advisor
+  addComment @(
+    Core.OperationAvailable: {$edmJson: {$Path: 'in/IsActiveEntity'}},
+    Common.SideEffects     : {TargetEntities: ['in/comments']}
+  );
   confirmMatch  @(
-    Core.OperationAvailable: {$edmJson: {$Eq: [{$Path: 'in/matchStatus_code'}, 'SUGGESTED']}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$Eq: [{$Path: 'in/matchStatus_code'}, 'SUGGESTED']}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   );
   ignore        @(
-    Core.OperationAvailable: {$edmJson: {$Ne: [{$Path: 'in/matchStatus_code'}, 'MATCHED']}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$Ne: [{$Path: 'in/matchStatus_code'}, 'MATCHED']}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   );
   unmatch       @(
-    Core.OperationAvailable: {$edmJson: {$Or: [{$Eq: [{$Path: 'in/matchStatus_code'}, 'MATCHED']}, {$Eq: [{$Path: 'in/matchStatus_code'}, 'IGNORED']}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$Or: [{$Eq: [{$Path: 'in/matchStatus_code'}, 'MATCHED']}, {$Eq: [{$Path: 'in/matchStatus_code'}, 'IGNORED']}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.IsActionCritical: true,
     Common.SideEffects     : {TargetProperties: ['in/*']}
   );
   matchManually @(
-    Core.OperationAvailable: {$edmJson: {$Ne: [{$Path: 'in/matchStatus_code'}, 'MATCHED']}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$Ne: [{$Path: 'in/matchStatus_code'}, 'MATCHED']}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   )(
     salesInvoice    @Common.ValueList: {
@@ -302,3 +318,30 @@ annotate service.Payments with @(
     Target: '@UI.FieldGroup#General'
   }]
 );
+
+// ---------------------------------------------------------------------------
+// Comments and questions (e.g. from the tax advisor), resolved by the team
+// ---------------------------------------------------------------------------
+
+annotate service.FinancialComments with @(UI.LineItem: [
+  {
+    $Type : 'UI.DataFieldForAction',
+    Action: 'FinanceService.resolve',
+    Label : '{i18n>Resolve}'
+  },
+  {Value: text},
+  {Value: createdBy},
+  {Value: authorRole},
+  {Value: createdAt},
+  {
+    Value      : resolved,
+    Criticality: resolvedCriticality
+  }
+]);
+
+annotate service.FinancialComments actions {
+  resolve @(
+    Core.OperationAvailable: {$edmJson: {$Not: {$Path: 'in/resolved'}}},
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+};

@@ -1,6 +1,7 @@
 using {swiver as my} from '../../db/schema';
 using from '../../db/sales';
 using from '../../db/finance';
+using from '../../db/collaboration';
 
 /**
  * Finance: bank transactions and payment matching, payments, VAT overview, accountant export
@@ -9,6 +10,9 @@ using from '../../db/finance';
 service FinanceService {
   entity BankTransactions  as projection on my.BankTransactions
     actions {
+      /** Adds a comment or question, e.g. from the tax advisor. */
+      @title: '{i18n>AddComment}'
+      action   addComment(text : String(1000) @title: '{i18n>Comment}' @UI.MultiLineText) returns BankTransactions;
       /** Confirms the suggested invoice: records the payment and marks the transaction as matched. */
       @title: '{i18n>ConfirmMatch}'
       action confirmMatch()                                            returns BankTransactions;
@@ -42,6 +46,13 @@ service FinanceService {
 
   @readonly
   entity ExpenseCategories as projection on my.ExpenseCategories;
+
+  @readonly
+  entity FinancialComments as projection on my.FinancialComments
+    actions {
+      @title: '{i18n>Resolve}'
+      action resolve() returns FinancialComments;
+    };
 
   @readonly
   entity BankMatchStatuses as projection on my.BankMatchStatuses;

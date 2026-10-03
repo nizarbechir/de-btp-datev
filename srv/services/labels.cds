@@ -3,6 +3,7 @@ using from '../../db/sales';
 using from '../../db/settings';
 using from '../../db/finance';
 using from '../../db/organizations';
+using from '../../db/collaboration';
 
 /**
  * Business rules and labels of the domain model, independent of any UI and inherited by all services.
@@ -464,4 +465,50 @@ annotate swiver.Memberships with @(title: '{i18n>Member}') {
   organization @UI.Hidden;
   userId       @title: '{i18n>User}';
   role         @title: '{i18n>Role}';
+  createdAt    @title: '{i18n>Joined}';
+  lastUsedAt   @UI.Hidden;
+};
+
+annotate swiver.Invitations with @(title: '{i18n>Invitation}') {
+  ID           @UI.Hidden;
+  organization @UI.Hidden;
+  email        @title: '{i18n>Email}';
+  role         @title: '{i18n>Role}';
+  status       @UI.Hidden;
+  state        @title: '{i18n>Status}';
+  expiresAt    @title: '{i18n>ExpiresAt}';
+  invitedBy    @title: '{i18n>InvitedBy}';
+  acceptedBy   @title: '{i18n>AcceptedBy}';
+  acceptedAt   @title: '{i18n>AcceptedAt}';
+};
+
+annotate swiver.AuditLogEntries with @(title: '{i18n>AuditLogEntry}') {
+  ID           @UI.Hidden;
+  organization @UI.Hidden;
+  at           @title: '{i18n>Time}';
+  actor        @title: '{i18n>User}';
+  action       @title: '{i18n>Action}';
+  targetType   @title: '{i18n>Record}';
+  targetID     @title: '{i18n>RecordID}';
+  details      @title: '{i18n>Details}';
+};
+
+// ---------------------------------------------------------------------------
+// Comments on sales and supplier invoices, documents and bank transactions
+// ---------------------------------------------------------------------------
+
+annotate swiver.FinancialComments with @(title: '{i18n>Comment}') {
+  ID               @UI.Hidden;
+  organization     @UI.Hidden;
+  salesInvoice     @UI.Hidden;
+  supplierInvoice  @UI.Hidden;
+  incomingDocument @UI.Hidden;
+  bankTransaction  @UI.Hidden;
+  text             @title: '{i18n>Comment}'  @UI.MultiLineText;
+  createdBy        @title: '{i18n>Author}';
+  authorRole       @title: '{i18n>Role}';
+  createdAt        @title: '{i18n>Date}';
+  resolved         @title: '{i18n>Resolved}';
+  resolvedAt       @title: '{i18n>ResolvedAt}';
+  resolvedBy       @title: '{i18n>ResolvedBy}';
 };

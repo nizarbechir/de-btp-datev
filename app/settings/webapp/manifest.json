@@ -162,7 +162,7 @@
 										"companySettings": {
 											"press": "swiver.settings.ext.SettingsActions.openCompanySettings",
 											"text": "{i18n>companySettings}",
-											"visible": "{= ${IsActiveEntity} === true }"
+											"visible": "{= ${IsActiveEntity} === true && ${readOnly} !== true }"
 										}
 									}
 								}

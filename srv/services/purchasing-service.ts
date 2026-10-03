@@ -1,5 +1,8 @@
 import cds, { Request } from "@sap/cds";
 
+import { registerReadOnlyFlag } from "../authorization/read-only-flag";
+import { auditActions } from "../collaboration/audit";
+import { registerComments } from "../collaboration/comments";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 import { recordPayment, rejectDomainError, removeManualPayments } from "../payments/payments";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
@@ -17,6 +20,9 @@ export default class PurchasingService extends cds.ApplicationService {
 			cds.entity & { drafts: cds.entity }
 		>;
 		registerTenantGuard(this);
+		registerReadOnlyFlag(this);
+		registerComments(this, { IncomingDocuments: "incomingDocument", SupplierInvoices: "supplierInvoice" });
+		auditActions(this, { SupplierInvoices: ["markInvoicePaid", "markInvoiceOpen", "recordPayment"] });
 
 		this.before("UPDATE", [SupplierInvoices, SupplierInvoices.drafts], (req) =>
 			checkMediaType(req, "documentMediaType", "documentContent"),

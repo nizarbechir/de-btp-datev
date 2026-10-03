@@ -1,6 +1,9 @@
 import cds, { Request } from "@sap/cds";
 import { Readable } from "node:stream";
 
+import { registerReadOnlyFlag } from "../authorization/read-only-flag";
+import { audit, auditActions } from "../collaboration/audit";
+import { registerComments } from "../collaboration/comments";
 import { isoDate } from "../core/dates";
 import { accountantExport } from "../finance/accountant-export";
 import { importBankStatement } from "../finance/bank-import";
@@ -18,6 +21,9 @@ export default class FinanceService extends cds.ApplicationService {
 	async init() {
 		const { BankTransactions } = this.entities as Record<string, cds.entity>;
 		registerTenantGuard(this);
+		registerReadOnlyFlag(this);
+		registerComments(this, { BankTransactions: "bankTransaction" });
+		auditActions(this, { BankTransactions: ["confirmMatch", "matchManually", "unmatch", "ignore"] });
 
 		this.on("importBankStatement", (req) =>
 			guarded(req, () => importBankStatement(req.data.fileName ?? "statement.csv", req.data.content ?? "")),
@@ -47,6 +53,7 @@ export default class FinanceService extends cds.ApplicationService {
 		this.on("accountantExport", async (req) => {
 			const { fromDate, toDate } = period(req);
 			const { content, fileName } = await accountantExport(fromDate, toDate);
+			await audit({ action: "accountantExport", details: `${fromDate} to ${toDate}`, targetType: "AccountantExport" });
 			return {
 				$mediaContentDispositionType: "attachment",
 				filename: fileName,
