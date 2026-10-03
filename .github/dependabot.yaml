@@ -1,0 +1,50 @@
+# Dependabot configuration with supply-chain cooldown periods.
+# Docs: https://docs.github.com/en/code-security/dependabot/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Berlin"
+
+    # Cooldown: Do not open PRs for versions published less than N days ago.
+    # This avoids the typical attack window where malicious packages are
+    # published and removed within hours/days.
+    cooldown:
+      default-days: 7
+      
+    # Group minor + patch updates into a single PR to reduce noise.
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+    # Limit open PRs to avoid overwhelming reviewers.
+    open-pull-requests-limit: 10
+
+    # Labels for easy filtering and CODEOWNERS routing.
+    labels:
+      - "dependencies"
+      - "security"
+
+    # Commit message settings
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  # GitHub Actions — also apply cooldown to action version bumps.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+      - "ci"

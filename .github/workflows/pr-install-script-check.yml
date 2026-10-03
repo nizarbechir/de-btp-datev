@@ -1,0 +1,109 @@
+# Reusable workflow: Check for new dependencies with install scripts.
+# Delegates detection to scripts/npm-install-safe.sh (check mode)
+# instead of duplicating logic inline.
+#
+# Reference from consuming repos:
+#
+#   jobs:
+#     install-script-check:
+#       uses: <org>/<repo>/.github/workflows/pr-install-script-check.yml@main
+#
+name: "NPM Install Script Check"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "package-lock.json"
+  workflow_call:
+    inputs:
+      base-ref:
+        description: "Git ref to diff against"
+        required: false
+        default: "origin/main"
+        type: string
+      lockfile-path:
+        description: "Path to package-lock.json (relative to repo root)"
+        required: false
+        default: "package-lock.json"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-install-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Full history needed for git diff
+
+      - name: Check for new packages with install scripts
+        id: check
+        run: |
+          set +e
+
+          BASE_REF="${{ inputs.base-ref || format('origin/{0}', github.base_ref) }}"
+
+          # Make base ref available for diffing
+          git fetch origin main --quiet 2>/dev/null || true
+
+          export CHECK_OUTPUT_FILE="/tmp/flagged-packages.txt"
+          bash scripts/npm-install-safe.sh check "$BASE_REF"
+          EXIT_CODE=$?
+
+          if [[ $EXIT_CODE -ne 0 ]] && [[ -s "$CHECK_OUTPUT_FILE" ]]; then
+            echo "result=warn" >> "$GITHUB_OUTPUT"
+
+            PKG_LIST=""
+            while IFS= read -r pkg; do
+              PKG_LIST+="- 🚨 **${pkg}** — [npmjs.com](https://www.npmjs.com/package/${pkg})\n"
+            done < "$CHECK_OUTPUT_FILE"
+
+            BODY="## ⚠️ New Dependency with Install Script Detected\n\n"
+            BODY+="This PR adds a package that declares a \`preinstall\`/\`install\`/\`postinstall\` script.\n"
+            BODY+="Install scripts run arbitrary code during \`npm install\` and are a common supply chain attack vector.\n\n"
+            BODY+="> This is an **informational warning** — the PR is not blocked. Please review the package(s) below before merging.\n\n"
+            BODY+="### Flagged package(s)\n\n"
+            BODY+="${PKG_LIST}\n"
+            BODY+="### Recommended steps\n\n"
+            BODY+="1. **Check the package on npm** — open the link above and verify the publisher, download count, and recent publish activity look legitimate.\n"
+            BODY+="2. **Inspect the install script** — run \`npm show <package> scripts\` locally to see exactly what it executes.\n"
+            BODY+="3. **Confirm it is intentional** — make sure this package was deliberately added and is not a typosquat or transitive surprise.\n"
+            BODY+="4. **If legitimate — merge this PR.** Once merged into \`main\`, this package will no longer be flagged in future PRs (it is already in the baseline).\n"
+            BODY+="5. **If suspicious — remove it** from \`package.json\` and run \`npm install\` to regenerate the lockfile before pushing again."
+
+            echo "comment_body<<EOF" >> "$GITHUB_OUTPUT"
+            echo -e "$BODY" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=pass" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on PR
+        if: steps.check.outputs.result == 'warn' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          COMMENT_BODY: ${{ steps.check.outputs.comment_body }}
+        with:
+          script: |
+            const body = process.env.COMMENT_BODY;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Warn if flagged
+        if: steps.check.outputs.result == 'warn'
+        run: |
+          echo "::warning::New dependencies with install scripts detected. Please review before merging."

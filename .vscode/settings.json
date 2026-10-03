@@ -1,0 +1,37 @@
+{
+	"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": true,
+	"cds.typeGenerator.enabled": true,
+	"editor.rulers": [120],
+	"eslint.probe": [
+		"javascript",
+		"javascriptreact",
+		"json",
+		"jsonc",
+		"markdown",
+		"typescript",
+		"typescriptreact",
+		"yaml",
+		"cds",
+		"csn",
+		"csv",
+		"csv (semicolon)",
+		"tab",
+		"tsv"
+	],
+	"eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }],
+	"eslint.useFlatConfig": true,
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"[cds]": {
+		"editor.defaultFormatter": "SAPSE.vscode-cds"
+	},
+	"[xml]": {
+		"editor.defaultFormatter": "SAPOSS.vscode-ui5-language-assistant"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features"
+	},
+	"SAP HANA Database Explorer.Objects Definition For SQL Generation Retention Time": 7,
+	"SAP HANA Database Explorer.Use Objects Definition For SQL Generation": false
+}

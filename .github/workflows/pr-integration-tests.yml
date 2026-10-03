@@ -1,0 +1,49 @@
+name: PR Integration Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, review_requested, ready_for_review, reopened]
+    paths-ignore:
+      - '.githooks/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'README.MD'    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Clean install node packages
+        run: npm ci
+
+      - name: Generate cds-typescript types
+        uses: ./.github/actions/cds-typer
+
+      # Runs the FinanceService against an in-memory SQLite database
+      - name: Run Integration Tests
+        shell: bash
+        run: |
+          echo "::group::🧪 Running Integration Tests"
+          npm run test:integration | tee test-output.log
+          echo "::endgroup::"
+
+          echo "### 🧪 Integration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 50 test-output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,54 @@
+name: PR Conventional Commit Validation
+
+on:
+  pull_request:
+    types: [opened, reopened, edited]
+
+env:
+  ticket_notice_text: This PR is based on Jira Ticket
+  pr_ticket_exception_regex: '${{ vars.PR_TICKET_EXCEPTION_REGEX }}'  
+  pr_jira_ticket_regex: '${{ vars.PR_JIRA_TICKET_REGEX }}'
+  pr_ticket_to_link_replace: '${{ vars.PR_TICKET_TO_LINK_REPLACE }}'    
+  pull_request_body: ${{ github.event.pull_request.body }}
+  pull_request_number: ${{ github.event.pull_request.number }} 
+  pull_request_title: ${{ github.event.pull_request.title }} 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-pr-title:
+    runs-on: ubuntu-latest
+    permissions:         # unfortunately you need a whole lot of permission to gh pr edit :(
+      contents: write
+      pull-requests: write
+      checks: read
+      statuses: read
+      actions: read
+      repository-projects: read
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        
+      - name: Current PullRequest Title
+        run: |
+          echo "${{ github.event.pull_request.title }}"
+      - name: PR Conventional Commit Validation
+        uses: ytanikin/pr-conventional-commits@1.5.2
+        with:
+         task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert"]'
+         ticket_key_regex: "(${{ env.pr_jira_ticket_regex }}${{ env.pr_ticket_exception_regex }})[ ]"
+         custom_labels: '{"feat": "feature", "fix": "fix", "docs": "documentation", "test": "test", "ci": "CI/CD", "refactor": "refactor", "perf": "performance", "chore": "chore", "revert": "revert", "wip": "WIP"}'
+          
+      - name: Create Links out of Jira Ticket Numbers
+        if: ${{ !contains(github.event.pull_request.body, env.ticket_notice_text) && !contains(github.event.pull_request.body, 'Bumps the ') }}
+        run: |
+          echo "${{ env.ticket_notice_text }}: ${{ env.pull_request_title }} " > notes.txt          
+          sed -E 's`(${{ env.pr_jira_ticket_regex }})[ :]`${{ env.pr_ticket_to_link_replace }}`g' notes.txt > modified_notes.txt
+          echo "" >> modified_notes.txt
+          echo "${{ env.pull_request_body }}" >> modified_notes.txt
+          gh pr edit ${{ env.pull_request_number }} --body-file modified_notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  

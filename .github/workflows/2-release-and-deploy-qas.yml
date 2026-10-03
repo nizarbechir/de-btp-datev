@@ -1,0 +1,113 @@
+name: "# 2. Release and Deploy to QAS"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  transfer-translation:
+    uses: ./.github/workflows/transfer-translation-from-qas.yml
+    permissions:
+      contents: write    
+    secrets: inherit
+  get-next-version:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: transfer-translation
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+      - run: npm ci
+      - name: check existance of release.config.js 
+        run: |
+          if [ ! -f release.config.js ]; then
+            echo "file release.config.js not found"
+            exit 4
+          fi
+          
+      - run: npx semantic-release --dry-run        
+        id: get-next-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Write new version to console
+        run: echo "The new release version is ${{ steps.get-next-version.outputs.new-release-version }}"
+    outputs:
+      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
+      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}    
+  
+  release:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    needs: get-next-version
+    if: needs.get-next-version.outputs.new-release-published == 'true'
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+
+      # Fetch App token BEFORE checkout so checkout persists only the App token
+      # credential — avoiding a conflict between the default GITHUB_TOKEN
+      # extraheader (set by checkout) and the App token used for protected-branch bypass.
+      - name: Fetch GitHub App Token
+        id: fetch-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6          
+        with:          
+          ref: ${{ github.ref }}
+          token: ${{ steps.fetch-token.outputs.token }}
+
+      - name: Write version to file mta.yaml 
+        run: |
+          sed -ir 's+^version: [0-9]*.[0-9]*.[0-9]*$+version: ${{ needs.get-next-version.outputs.new-release-version }}+' mta.yaml
+
+      - name: Write version to file version.json
+        run: |
+            sed -i 's/"version":".*"/"version":"${{ needs.get-next-version.outputs.new-release-version }}"/' version.json
+                  
+      - name: Clean install node packages
+        run: npm ci    
+              
+      # Husky disturbs semantic-release push -> kill husky for this step
+      - name: Delete husky pre-commit hook
+        run: |
+          rm .husky/pre-commit
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run Semantic-Release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ steps.fetch-token.outputs.token }}
+
+  rebuild-qas-branch:
+    uses: ./.github/workflows/rebuild-branch.yml
+    permissions:
+      contents: write
+    needs: release
+    with:
+      branch: qas
+    secrets: inherit
+
+  Call_Deploy_Testing:
+    uses: ./.github/workflows/deployment-script.yml
+    needs: rebuild-qas-branch
+    with:
+      environment: Testing
+      stage: qas
+    secrets: inherit

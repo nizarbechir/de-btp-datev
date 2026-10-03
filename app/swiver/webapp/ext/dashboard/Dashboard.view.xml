@@ -1,0 +1,61 @@
+<mvc:View
+	xmlns:core="sap.ui.core"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	xmlns:macros="sap.fe.macros"
+	controllerName="swiver.app.ext.dashboard.Dashboard"
+>
+	<f:DynamicPage id="dashboardPage" showFooter="false" class="sapUiNoContentPadding">
+		<f:title>
+			<f:DynamicPageTitle id="dashboardTitle">
+				<f:heading>
+					<Title id="dashboardHeading" text="{i18n>dashboardTitle}" />
+				</f:heading>
+				<f:expandedContent>
+					<Label id="dashboardSubtitle" text="{i18n>dashboardSubtitle}" />
+				</f:expandedContent>
+				<f:actions>
+					<Button id="invoicesButton" text="{i18n>invoices}" icon="sap-icon://receipt" type="Transparent" press=".onShowInvoices" />
+					<Button id="suppliersButton" text="{i18n>suppliers}" icon="sap-icon://supplier" type="Transparent" press=".onShowSuppliers" />
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox id="dashboardContent" class="sapUiSmallMargin" binding="{path: '/dashboard()', parameters: {$$groupId: '$auto'}}">
+				<FlexBox id="kpiTiles" wrap="Wrap" class="sapUiSmallMarginBottom">
+					<GenericTile id="kpiOpen" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOpen}" press=".onShowInvoices">
+						<TileContent id="kpiOpenContent" footer="{path: 'open/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiOpenValue" class="sapMObjectNumberLarge" number="{open/amount}" unit="{currency}" state="None" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+					<GenericTile id="kpiOverdue" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOverdue}" press=".onShowInvoices">
+						<TileContent id="kpiOverdueContent" footer="{path: 'overdue/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiOverdueValue" class="sapMObjectNumberLarge" number="{overdue/amount}" unit="{currency}" state="Error" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+					<GenericTile id="kpiDueSoon" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiDueNext7Days}" press=".onShowInvoices">
+						<TileContent id="kpiDueSoonContent" footer="{path: 'dueNext7Days/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiDueSoonValue" class="sapMObjectNumberLarge" number="{dueNext7Days/amount}" unit="{currency}" state="Warning" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+					<GenericTile id="kpiPaid" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiPaidThisMonth}" press=".onShowInvoices">
+						<TileContent id="kpiPaidContent" footer="{path: 'paidThisMonth/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiPaidValue" class="sapMObjectNumberLarge" number="{paidThisMonth/amount}" unit="{currency}" state="Success" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+				</FlexBox>
+				<macros:Table
+					id="upcomingPayments"
+					contextPath="/SupplierInvoices"
+					metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Upcoming"
+					header="{i18n>upcomingPayments}"
+					type="ResponsiveTable"
+					personalization="false"
+					variantManagement="None"
+					width="100%"
+				/>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

@@ -1,0 +1,53 @@
+name: "Deployment"
+
+on:
+  workflow_call:    
+    inputs:
+      environment:
+        required: true
+        type: string
+      ref:
+        required: false
+        type: string
+      stage:
+        required: true
+        type: string
+jobs:
+  deploy_to_btp:
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environment }}
+      url: '${{ vars.URL }}'
+
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}          
+
+      - name: Install CF CLI and Login
+        uses: ./.github/actions/cf-login
+        with:
+          btp-api: ${{ vars.BTP_API }}
+          btp-deployment-user: ${{ secrets.SAP_BTP_DEPLOYMENT_USER }}
+          btp-deployment-password: ${{ secrets.SAP_BTP_DEPLOYMENT_PASSWORD }}
+          btp-origin: ${{ vars.BTP_ORIGIN }}
+          btp-subaccount: ${{ vars.BTP_SUBACCOUNT }}
+          btp-space: ${{ vars.BTP_SPACE }}                
+
+      - name: Clean install node packages
+        run: npm ci
+
+      - name: Install MBT and Build Project
+        uses: ./.github/actions/build-project
+        with:
+          stage: ${{ inputs.stage }}
+
+      - name: Deploy
+        if: ${{ success() }}
+        run: npm run deploy

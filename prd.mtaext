@@ -1,0 +1,8 @@
+_schema-version: "3.1"
+ID: swiver-prd
+extends: swiver
+
+modules:
+  - name: swiver-srv
+    properties:
+      STAGE: 'prd'      

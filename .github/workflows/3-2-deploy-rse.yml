@@ -1,0 +1,16 @@
+name: "# 3.2. Deploy to RSE from RSE"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Call_Deploy_RSE:
+    uses: ./.github/workflows/deployment-script.yml
+    with:
+      environment: Release
+      stage: rse
+    secrets: inherit    

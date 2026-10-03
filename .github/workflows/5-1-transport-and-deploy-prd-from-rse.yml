@@ -1,0 +1,124 @@
+name: "# 5.1. Transport and Deploy to PRD from RSE"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  detect-rse-bugfixes:
+    runs-on: ubuntu-latest
+    outputs:
+      has-bugfixes: ${{ steps.detect.outputs.has-bugfixes }}
+      rse-version: ${{ steps.detect.outputs.rse-version }}
+      bugfix-version: ${{ steps.detect.outputs.bugfix-version }}
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Detect bugfixes and compute version
+        id: detect
+        run: |
+          RSE_VERSION=$(git show origin/rse:version.json | jq -r '.version')
+          echo "RSE version: $RSE_VERSION"
+          echo "rse-version=$RSE_VERSION" >> $GITHUB_OUTPUT
+
+          DIFF=$(git diff origin/qas origin/rse -- . ':!version.json' ':!mta.yaml')
+          if [ -z "$DIFF" ]; then
+            echo "No bugfixes detected between qas and rse."
+            echo "has-bugfixes=false" >> $GITHUB_OUTPUT
+            echo "bugfix-version=$RSE_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "Bugfixes detected between qas and rse."
+            echo "has-bugfixes=true" >> $GITHUB_OUTPUT
+            BASE_VERSION=$(echo "$RSE_VERSION" | sed 's/-rse-bugfix-.*//')
+            EXISTING=$(git tag --list "v${BASE_VERSION}-rse-bugfix-*" | sed "s/v${BASE_VERSION}-rse-bugfix-//" | sort -n | tail -1)
+            if [ -z "$EXISTING" ]; then
+              NEXT=1
+            else
+              NEXT=$((EXISTING + 1))
+            fi
+            BUGFIX_VERSION="${BASE_VERSION}-rse-bugfix-${NEXT}"
+            echo "New bugfix version: $BUGFIX_VERSION"
+            echo "bugfix-version=$BUGFIX_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+  rebuild-prd-branch:
+    uses: ./.github/workflows/rebuild-branch.yml
+    permissions:
+      contents: write
+    needs: detect-rse-bugfixes
+    with:
+      branch: prd      
+      source_ref: rse      
+    secrets: inherit
+
+  tag-rse-bugfix-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: [detect-rse-bugfixes, rebuild-prd-branch]
+    if: needs.detect-rse-bugfixes.outputs.has-bugfixes == 'true'
+    steps:
+      - name: Fetch GitHub App Token
+        id: fetch-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_KEY }}
+
+      - name: Checkout prd branch
+        uses: actions/checkout@v6
+        with:
+          ref: prd
+          fetch-depth: 0
+          token: ${{ steps.fetch-token.outputs.token }}
+
+      - name: Update version.json
+        run: |
+          sed -i 's/"version":".*"/"version":"${{ needs.detect-rse-bugfixes.outputs.bugfix-version }}"/' version.json
+
+      - name: Update mta.yaml version
+        run: |
+          sed -i 's/^version: .*/version: ${{ needs.detect-rse-bugfixes.outputs.bugfix-version }}/' mta.yaml
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push version files
+        run: |
+          git add version.json mta.yaml
+          git commit -m "chore: bump version to ${{ needs.detect-rse-bugfixes.outputs.bugfix-version }} [skip ci]"
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ needs.detect-rse-bugfixes.outputs.bugfix-version }}"
+          git push origin "v${{ needs.detect-rse-bugfixes.outputs.bugfix-version }}"
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "v${{ needs.detect-rse-bugfixes.outputs.bugfix-version }}" \
+            --title "[RSE BUGFIX] v${{ needs.detect-rse-bugfixes.outputs.bugfix-version }}" \
+            --notes "RSE bugfix release deployed to Production." \
+            --target prd
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  Call_Deploy_Production:
+    uses: ./.github/workflows/deployment-script.yml
+    needs: [detect-rse-bugfixes, rebuild-prd-branch, tag-rse-bugfix-version]
+    if: |
+      always() &&
+      needs.rebuild-prd-branch.result == 'success' &&
+      (needs.tag-rse-bugfix-version.result == 'success' || needs.tag-rse-bugfix-version.result == 'skipped')
+    with:
+      environment: Production
+      ref: prd
+      stage: prd
+    secrets: inherit

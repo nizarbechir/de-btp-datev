@@ -1,0 +1,37 @@
+name: PR Test build of project
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.githooks/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'README.MD'    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.GH_ACTION_NODEJS_VERSION }}
+
+      - name: Checkout
+        uses: actions/checkout@v6    
+
+      - name: Clean install node packages
+        run: npm ci
+
+      - name: Install MBT and Build Project
+        uses: ./.github/actions/build-project
+        with:
+          stage: dev

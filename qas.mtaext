@@ -1,0 +1,73 @@
+_schema-version: "3.1"
+ID: swiver-qas
+extends: swiver
+
+modules:
+- name: swiver-srv
+  requires:
+  - name: swiver-autoscaler
+    parameters:
+      config:
+        instance_min_count: 1
+        instance_max_count: 3
+        scaling_rules:
+        - metric_type: cpuutil
+          threshold: 70
+          operator: ">"
+          breach_duration_secs: 120
+          cool_down_secs: 300
+          adjustment: "+1"
+        - metric_type: cpuutil
+          threshold: 40
+          operator: "<"
+          breach_duration_secs: 300
+          cool_down_secs: 300
+          adjustment: "-1"
+        - metric_type: memoryutil
+          threshold: 75
+          operator: ">"
+          breach_duration_secs: 120
+          cool_down_secs: 300
+          adjustment: "+1"
+        - metric_type: memoryutil
+          threshold: 45
+          operator: "<"
+          breach_duration_secs: 300
+          cool_down_secs: 300
+          adjustment: "-1"
+        - metric_type: diskutil
+          threshold: 75
+          operator: ">"
+          breach_duration_secs: 120
+          cool_down_secs: 300
+          adjustment: "+1"
+        - metric_type: diskutil
+          threshold: 50
+          operator: "<"
+          breach_duration_secs: 300
+          cool_down_secs: 300
+          adjustment: "-1"
+        - metric_type: responsetime
+          threshold: 1000
+          operator: ">"
+          breach_duration_secs: 180
+          cool_down_secs: 300
+          adjustment: "+1"
+        - metric_type: responsetime
+          threshold: 600
+          operator: "<"
+          breach_duration_secs: 300
+          cool_down_secs: 300
+          adjustment: "-1"
+        - metric_type: throughput
+          threshold: 60
+          operator: ">"
+          breach_duration_secs: 180
+          cool_down_secs: 300
+          adjustment: "+1"
+        - metric_type: throughput
+          threshold: 25
+          operator: "<"
+          breach_duration_secs: 300
+          cool_down_secs: 300
+          adjustment: "-1"

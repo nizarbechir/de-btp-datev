@@ -1,0 +1,23 @@
+name: "# 3.1. Transport and Deploy to RSE"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rebuild-rel-branch:
+    uses: ./.github/workflows/rebuild-branch.yml
+    permissions:
+      contents: write
+    with:
+      branch: rse
+      source_ref: qas      
+    secrets: inherit
+
+  Call_Deploy_Release:
+    uses: ./.github/workflows/deployment-script.yml
+    needs: rebuild-rel-branch
+    with:
+      environment: Release
+      ref: rse
+      stage: rse
+    secrets: inherit
