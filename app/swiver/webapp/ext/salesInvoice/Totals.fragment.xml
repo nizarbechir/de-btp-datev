@@ -1,0 +1,23 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+	<VBox id="totals" class="swiverTotals" alignItems="End" width="100%">
+		<VBox id="totalsBox" class="swiverTotalsBox" width="22rem">
+			<HBox id="netRow" justifyContent="SpaceBetween" class="swiverTotalsRow">
+				<Text id="netLabel" text="{i18n>netAmount}" />
+				<ObjectNumber id="netValue" number="{netAmount}" unit="{currency_code}" />
+			</HBox>
+			<VBox
+				id="taxRows"
+				items="{path: 'taxes', parameters: {$orderby: 'taxRate desc'}, templateShareable: false}"
+			>
+				<HBox id="taxRow" justifyContent="SpaceBetween" class="swiverTotalsRow">
+					<Text id="taxLabel" text="{= ${i18n>vat} + ' ' + parseFloat(${path: 'taxRate', targetType: 'any'}) + '%' }" />
+					<ObjectNumber id="taxValue" number="{taxAmount}" unit="{invoice/currency_code}" />
+				</HBox>
+			</VBox>
+			<HBox id="totalRow" justifyContent="SpaceBetween" alignItems="Center" class="swiverTotalsGrand">
+				<Title id="totalLabel" text="{i18n>total}" level="H3" />
+				<ObjectNumber id="totalValue" class="sapMObjectNumberLarge" number="{grossAmount}" unit="{currency_code}" emphasized="true" />
+			</HBox>
+		</VBox>
+	</VBox>
+</core:FragmentDefinition>

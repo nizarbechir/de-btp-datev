@@ -54,7 +54,8 @@
 		"@cap-js/hana": "^3.0.1",
 		"@sap-cloud-sdk/openapi": "~4.7.0",
 		"@sap/cds": "~10.0.3",
-		"@sap/xssec": "^4"
+		"@sap/xssec": "^4",
+		"pdfkit": "^0.20.2"
 	},
 	"devDependencies": {
 		"@cap-js/cds-test": "^1.0.1",
@@ -73,6 +74,7 @@
 		"@semantic-release/github": "^12.0.9",
 		"@types/eslint-plugin-markdown": "^2.0.2",
 		"@types/node": "^26.1.1",
+		"@types/pdfkit": "^0.17.6",
 		"cds-plugin-ui5": "^0.17.4",
 		"cds-swagger-ui-express": "^0.11.0",
 		"cspell": "^10.0.1",

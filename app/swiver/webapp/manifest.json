@@ -64,7 +64,8 @@
 				"sap.m": {},
 				"sap.ui.core": {},
 				"sap.fe.templates": {},
-				"sap.fe.macros": {}
+				"sap.fe.macros": {},
+				"sap.f": {}
 			}
 		},
 		"contentDensities": {
@@ -93,7 +94,11 @@
 			}
 		},
 		"resources": {
-			"css": []
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
 		},
 		"routing": {
 			"config": {},
@@ -102,6 +107,31 @@
 					"pattern": ":?query:",
 					"name": "Dashboard",
 					"target": "Dashboard"
+				},
+				{
+					"pattern": "SalesInvoices:?query:",
+					"name": "SalesInvoicesList",
+					"target": "SalesInvoicesList"
+				},
+				{
+					"pattern": "SalesInvoices({key}):?query:",
+					"name": "SalesInvoicesObjectPage",
+					"target": "SalesInvoicesObjectPage"
+				},
+				{
+					"pattern": "Customers:?query:",
+					"name": "CustomersList",
+					"target": "CustomersList"
+				},
+				{
+					"pattern": "Customers({key}):?query:",
+					"name": "CustomersObjectPage",
+					"target": "CustomersObjectPage"
+				},
+				{
+					"pattern": "CompanySettings({key}):?query:",
+					"name": "CompanySettingsObjectPage",
+					"target": "CompanySettingsObjectPage"
 				},
 				{
 					"pattern": "SupplierInvoices:?query:",
@@ -138,8 +168,204 @@
 									"detail": {
 										"route": "SupplierInvoicesObjectPage"
 									}
+								},
+								"SalesInvoices": {
+									"detail": {
+										"route": "SalesInvoicesObjectPage"
+									}
 								}
 							}
+						}
+					}
+				},
+				"SalesInvoicesList": {
+					"type": "Component",
+					"id": "SalesInvoicesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/SalesInvoices",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"SalesInvoices": {
+									"detail": {
+										"route": "SalesInvoicesObjectPage"
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									},
+									{
+										"key": "draft",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Draft"
+									},
+									{
+										"key": "sent",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Sent"
+									},
+									{
+										"key": "overdue",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Overdue"
+									},
+									{
+										"key": "paid",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Paid"
+									}
+								],
+								"showCounts": true
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"selectionMode": "Multi"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SalesInvoicesObjectPage": {
+					"type": "Component",
+					"id": "SalesInvoicesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/SalesInvoices",
+							"enhanceI18n": "i18n/i18n.properties",
+							"sectionLayout": "Page",
+							"controlConfiguration": {
+								"items/@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"creationMode": {
+											"name": "InlineCreationRows",
+											"createAtEnd": true
+										},
+										"personalization": false,
+										"enableExport": false,
+										"enablePaste": false,
+										"disableCopyToClipboard": true
+									}
+								}
+							},
+							"content": {
+								"header": {
+									"actions": {
+										"preview": {
+											"press": "swiver.app.ext.salesInvoice.SalesInvoiceActions.preview",
+											"text": "{i18n>preview}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "Before",
+												"anchor": "DataFieldForAction::FinanceService.markAsSent"
+											}
+										},
+										"downloadPdf": {
+											"press": "swiver.app.ext.salesInvoice.SalesInvoiceActions.downloadPdf",
+											"text": "{i18n>downloadPdf}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "After",
+												"anchor": "preview"
+											}
+										},
+										"duplicate": {
+											"press": "swiver.app.ext.salesInvoice.SalesInvoiceActions.duplicate",
+											"text": "{i18n>duplicate}",
+											"visible": "{= ${IsActiveEntity} === true }",
+											"position": {
+												"placement": "After",
+												"anchor": "downloadPdf"
+											}
+										}
+									}
+								},
+								"footer": {
+									"actions": {
+										"previewDraft": {
+											"press": "swiver.app.ext.salesInvoice.SalesInvoiceActions.preview",
+											"text": "{i18n>preview}",
+											"visible": "{= ${IsActiveEntity} === false }"
+										}
+									}
+								},
+								"body": {
+									"sections": {
+										"totals": {
+											"template": "swiver.app.ext.salesInvoice.Totals",
+											"title": "{i18n>totals}",
+											"position": {
+												"placement": "After",
+												"anchor": "Items"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"CustomersList": {
+					"type": "Component",
+					"id": "CustomersList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Customers",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Customers": {
+									"detail": {
+										"route": "CustomersObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"CustomersObjectPage": {
+					"type": "Component",
+					"id": "CustomersObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Customers",
+							"enhanceI18n": "i18n/i18n.properties",
+							"navigation": {
+								"invoices": {
+									"detail": {
+										"route": "SalesInvoicesObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"CompanySettingsObjectPage": {
+					"type": "Component",
+					"id": "CompanySettingsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/CompanySettings",
+							"enhanceI18n": "i18n/i18n.properties"
 						}
 					}
 				},

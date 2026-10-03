@@ -16,32 +16,80 @@
 					<Label id="dashboardSubtitle" text="{i18n>dashboardSubtitle}" />
 				</f:expandedContent>
 				<f:actions>
-					<Button id="invoicesButton" text="{i18n>invoices}" icon="sap-icon://receipt" type="Transparent" press=".onShowInvoices" />
-					<Button id="suppliersButton" text="{i18n>suppliers}" icon="sap-icon://supplier" type="Transparent" press=".onShowSuppliers" />
+					<Button id="newInvoiceButton" text="{i18n>newSalesInvoice}" icon="sap-icon://add-document" type="Emphasized" press=".onNewSalesInvoice" />
+					<MenuButton id="salesMenu" text="{i18n>sales}" icon="sap-icon://sales-document" type="Transparent">
+						<menu>
+							<Menu id="salesMenuItems">
+								<MenuItem id="salesInvoicesItem" text="{i18n>salesInvoices}" icon="sap-icon://sales-document" press=".onShowSalesInvoices" />
+								<MenuItem id="customersItem" text="{i18n>customers}" icon="sap-icon://customer" press=".onShowCustomers" />
+							</Menu>
+						</menu>
+					</MenuButton>
+					<MenuButton id="purchasesMenu" text="{i18n>purchases}" icon="sap-icon://receipt" type="Transparent">
+						<menu>
+							<Menu id="purchasesMenuItems">
+								<MenuItem id="supplierInvoicesItem" text="{i18n>supplierInvoices}" icon="sap-icon://receipt" press=".onShowInvoices" />
+								<MenuItem id="suppliersItem" text="{i18n>suppliers}" icon="sap-icon://supplier" press=".onShowSuppliers" />
+							</Menu>
+						</menu>
+					</MenuButton>
+					<Button id="settingsButton" text="{i18n>settings}" icon="sap-icon://action-settings" type="Transparent" press=".onShowSettings" />
 				</f:actions>
 			</f:DynamicPageTitle>
 		</f:title>
 		<f:content>
 			<VBox id="dashboardContent" class="sapUiSmallMargin" binding="{path: '/dashboard()', parameters: {$$groupId: '$auto'}}">
+				<!-- Money in -->
+				<Title id="receivablesTitle" text="{i18n>receivablesTitle}" level="H2" titleStyle="H4" class="swiverSectionTitle" />
+				<FlexBox id="receivableTiles" wrap="Wrap" class="sapUiSmallMarginBottom">
+					<GenericTile id="kpiOutstanding" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOutstanding}" press=".onShowSalesInvoices">
+						<TileContent id="kpiOutstandingContent" footer="{path: 'receivables/outstanding/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiOutstandingValue" class="sapMObjectNumberLarge" number="{receivables/outstanding/amount}" unit="{currency}" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+					<GenericTile id="kpiReceivablesOverdue" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOverdue}" press=".onShowSalesInvoices">
+						<TileContent id="kpiReceivablesOverdueContent" footer="{path: 'receivables/overdue/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiReceivablesOverdueValue" class="sapMObjectNumberLarge" number="{receivables/overdue/amount}" unit="{currency}" state="Error" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+					<GenericTile id="kpiReceived" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiReceivedThisMonth}" press=".onShowSalesInvoices">
+						<TileContent id="kpiReceivedContent" footer="{path: 'receivables/paidThisMonth/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiReceivedValue" class="sapMObjectNumberLarge" number="{receivables/paidThisMonth/amount}" unit="{currency}" state="Success" emphasized="true" />
+						</TileContent>
+					</GenericTile>
+				</FlexBox>
+				<macros:Table
+					id="openSalesInvoices"
+					contextPath="/SalesInvoices"
+					metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Receivables"
+					header="{i18n>openSalesInvoices}"
+					type="ResponsiveTable"
+					personalization="false"
+					variantManagement="None"
+					width="100%"
+				/>
+
+				<!-- Money out -->
+				<Title id="payablesTitle" text="{i18n>payablesTitle}" level="H2" titleStyle="H4" class="swiverSectionTitle sapUiMediumMarginTop" />
 				<FlexBox id="kpiTiles" wrap="Wrap" class="sapUiSmallMarginBottom">
 					<GenericTile id="kpiOpen" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOpen}" press=".onShowInvoices">
-						<TileContent id="kpiOpenContent" footer="{path: 'open/count', formatter: '.formatCount'}">
-							<ObjectNumber id="kpiOpenValue" class="sapMObjectNumberLarge" number="{open/amount}" unit="{currency}" state="None" emphasized="true" />
+						<TileContent id="kpiOpenContent" footer="{path: 'payables/open/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiOpenValue" class="sapMObjectNumberLarge" number="{payables/open/amount}" unit="{currency}" state="None" emphasized="true" />
 						</TileContent>
 					</GenericTile>
 					<GenericTile id="kpiOverdue" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiOverdue}" press=".onShowInvoices">
-						<TileContent id="kpiOverdueContent" footer="{path: 'overdue/count', formatter: '.formatCount'}">
-							<ObjectNumber id="kpiOverdueValue" class="sapMObjectNumberLarge" number="{overdue/amount}" unit="{currency}" state="Error" emphasized="true" />
+						<TileContent id="kpiOverdueContent" footer="{path: 'payables/overdue/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiOverdueValue" class="sapMObjectNumberLarge" number="{payables/overdue/amount}" unit="{currency}" state="Error" emphasized="true" />
 						</TileContent>
 					</GenericTile>
 					<GenericTile id="kpiDueSoon" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiDueNext7Days}" press=".onShowInvoices">
-						<TileContent id="kpiDueSoonContent" footer="{path: 'dueNext7Days/count', formatter: '.formatCount'}">
-							<ObjectNumber id="kpiDueSoonValue" class="sapMObjectNumberLarge" number="{dueNext7Days/amount}" unit="{currency}" state="Warning" emphasized="true" />
+						<TileContent id="kpiDueSoonContent" footer="{path: 'payables/dueNext7Days/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiDueSoonValue" class="sapMObjectNumberLarge" number="{payables/dueNext7Days/amount}" unit="{currency}" state="Warning" emphasized="true" />
 						</TileContent>
 					</GenericTile>
 					<GenericTile id="kpiPaid" width="17.5rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="{i18n>kpiPaidThisMonth}" press=".onShowInvoices">
-						<TileContent id="kpiPaidContent" footer="{path: 'paidThisMonth/count', formatter: '.formatCount'}">
-							<ObjectNumber id="kpiPaidValue" class="sapMObjectNumberLarge" number="{paidThisMonth/amount}" unit="{currency}" state="Success" emphasized="true" />
+						<TileContent id="kpiPaidContent" footer="{path: 'payables/paidThisMonth/count', formatter: '.formatCount'}">
+							<ObjectNumber id="kpiPaidValue" class="sapMObjectNumberLarge" number="{payables/paidThisMonth/amount}" unit="{currency}" state="Success" emphasized="true" />
 						</TileContent>
 					</GenericTile>
 				</FlexBox>

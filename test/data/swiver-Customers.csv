@@ -1,0 +1,6 @@
+ID;customerNumber;companyName;name;email;phone;street;postalCode;city;country_code;taxNumber;vatId;notes;active
+33333333-0000-4000-8000-000000000001;CUS-1001;ACME GmbH;Julia Hoffmann;buchhaltung@acme.example;+49 89 4567890;Leopoldstraße 120;80802;München;DE;143/567/89012;DE298765432;Monthly consulting retainer;true
+33333333-0000-4000-8000-000000000002;CUS-1002;Müller Consulting GmbH;Thomas Müller;rechnung@mueller-consulting.example;+49 40 3344550;Jungfernstieg 7;20354;Hamburg;DE;;DE312345678;Workshops and training;true
+33333333-0000-4000-8000-000000000003;CUS-1003;Digital Solutions AG;Sabine Krause;ap@digital-solutions.example;+49 69 1234500;Mainzer Landstraße 50;60325;Frankfurt am Main;DE;;DE276543219;Development projects, purchase order required;true
+33333333-0000-4000-8000-000000000004;CUS-1004;Nordlicht Software GmbH;Lars Petersen;finance@nordlicht-software.example;+49 431 998877;Holstenstraße 88;24103;Kiel;DE;;DE287654321;Hosting and support;true
+33333333-0000-4000-8000-000000000005;CUS-1005;;Anna Becker;anna.becker@mail.example;;Gartenweg 3;50667;Köln;DE;;;Private customer;true
