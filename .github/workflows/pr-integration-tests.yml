@@ -35,7 +35,7 @@ jobs:
       - name: Generate cds-typescript types
         uses: ./.github/actions/cds-typer
 
-      # Runs the FinanceService against an in-memory SQLite database
+      # Runs the services against an in-memory SQLite database
       - name: Run Integration Tests
         shell: bash
         run: |

@@ -1,87 +1,86 @@
 import cds, { Request } from "@sap/cds";
+import { Readable } from "node:stream";
 
-import { CompanySettings, SalesInvoices, SupplierInvoices } from "#cds-models/FinanceService";
+import { isoDate } from "../core/dates";
+import { accountantExport } from "../finance/accountant-export";
+import { importBankStatement } from "../finance/bank-import";
+import { dashboard } from "../finance/dashboard";
+import { confirmMatch, ignoreTransaction, matchManually, suggestMatches, unmatch } from "../finance/matching";
+import { vatOverview } from "../finance/vat-overview";
+import { currentOrganization } from "../organizations/organization-context";
+import { assertOwned, registerTenantGuard } from "../organizations/tenant-guard";
+import { rejectDomainError } from "../payments/payments";
 
-import { addDays, firstDayOfMonth, isoDate } from "../core/dates";
-import { registerSales } from "./sales";
-
-const paid = "PAID";
-const open = "OPEN";
-const sent = "SENT";
-const defaultCurrency = "EUR";
-const documentMediaTypes = ["application/pdf", "image/png", "image/jpeg"];
-const logoMediaTypes = ["image/png", "image/jpeg"];
-
-interface Payment {
-	paymentDate: null | string;
-	paymentStatus_code: string;
-}
-
+/**
+ * Finance: bank import and matching, VAT overview, accountant export and the dashboard.
+ */
 export default class FinanceService extends cds.ApplicationService {
 	async init() {
-		this.on("markInvoicePaid", SupplierInvoices, (req) =>
-			this.setPayment(req, { paymentDate: isoDate(new Date()), paymentStatus_code: paid }),
-		);
-		this.on("markInvoiceOpen", SupplierInvoices, (req) =>
-			this.setPayment(req, { paymentDate: null, paymentStatus_code: open }),
-		);
-		this.on("dashboard", () => this.dashboard());
-		this.before("UPDATE", [SupplierInvoices, SupplierInvoices.drafts], (req) =>
-			this.checkMediaType(req, "documentMediaType", "documentContent", documentMediaTypes),
-		);
-		this.before("UPDATE", [CompanySettings, CompanySettings.drafts], (req) =>
-			this.checkMediaType(req, "logoMediaType", "logo", logoMediaTypes),
-		);
-		registerSales(this);
+		const { BankTransactions } = this.entities as Record<string, cds.entity>;
+		registerTenantGuard(this);
 
+		this.on("importBankStatement", (req) =>
+			guarded(req, () => importBankStatement(req.data.fileName ?? "statement.csv", req.data.content ?? "")),
+		);
+		this.on("suggestMatches", (req) => guarded(req, () => suggestMatches()));
+		this.on("confirmMatch", BankTransactions, (req) => guarded(req, () => confirmMatch(key(req)), true));
+		this.on("matchManually", BankTransactions, (req) =>
+			guarded(
+				req,
+				async () => {
+					await assertOwned(req, "swiver.SalesInvoices", req.data.salesInvoice, "REFERENCE_OTHER_ORGANIZATION");
+					await assertOwned(req, "swiver.SupplierInvoices", req.data.supplierInvoice, "REFERENCE_OTHER_ORGANIZATION");
+					await matchManually(key(req), req.data.salesInvoice, req.data.supplierInvoice);
+				},
+				true,
+			),
+		);
+		this.on("ignore", BankTransactions, (req) => guarded(req, () => ignoreTransaction(key(req)), true));
+		this.on("unmatch", BankTransactions, (req) => guarded(req, () => unmatch(key(req)), true));
+
+		// Users without organization see the onboarding instead of figures.
+		this.on("dashboard", () => (currentOrganization() ? dashboard() : { needsAttention: [] }));
+		this.on("vatOverview", (req) => {
+			const { fromDate, toDate } = period(req);
+			return vatOverview(fromDate, toDate);
+		});
+		this.on("accountantExport", async (req) => {
+			const { fromDate, toDate } = period(req);
+			const { content, fileName } = await accountantExport(fromDate, toDate);
+			return {
+				$mediaContentDispositionType: "attachment",
+				filename: fileName,
+				mimetype: "application/zip",
+				value: Readable.from(content),
+			};
+		});
 		return super.init();
 	}
+}
 
-	private checkMediaType(req: Request, mediaTypeField: string, contentField: string, allowed: string[]) {
-		const mediaType = req.data[mediaTypeField];
-		if (mediaType && !allowed.includes(mediaType)) {
-			req.reject(415, "UNSUPPORTED_DOCUMENT_TYPE", contentField, [mediaType]);
-		}
+async function guarded(req: Request, operation: () => Promise<unknown>, returnSubject = false) {
+	try {
+		const result = await operation();
+		return returnSubject ? await SELECT.one.from(req.subject) : result;
+	} catch (error) {
+		return rejectDomainError(req, error);
 	}
+}
 
-	private async setPayment(req: Request, payment: Payment) {
-		const updated = await UPDATE(req.subject).with(payment);
-		if (!updated) {
-			return req.reject(404, "INVOICE_NOT_FOUND");
-		}
-		return SELECT.one.from(req.subject);
+function key(req: Request): string {
+	const value = req.params.at(-1);
+	return (typeof value === "object" ? (value as { ID: string }).ID : value) as string;
+}
+
+/** The requested period; defaults to the current month. */
+function period(req: Request): { fromDate: string; toDate: string } {
+	const today = new Date();
+	const fromDate =
+		(req.data.fromDate as string | undefined) ||
+		isoDate(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)));
+	const toDate = (req.data.toDate as string | undefined) || isoDate(today);
+	if (toDate < fromDate) {
+		return req.reject(400, "PERIOD_INVALID") as never;
 	}
-
-	private async dashboard() {
-		const now = new Date();
-		const today = isoDate(now);
-		const monthStart = isoDate(firstDayOfMonth(now));
-		const unpaid = ["paymentStatus_code !=", paid];
-		const supplierKpi = (...where: string[]) => this.kpi(SupplierInvoices, "netAmount + taxAmount", where);
-		const salesKpi = (...where: string[]) => this.kpi(SalesInvoices, "grossAmount", where);
-
-		return {
-			currency: defaultCurrency,
-			payables: {
-				dueNext7Days: await supplierKpi(...unpaid, "and dueDate between", today, "and", isoDate(addDays(now, 7))),
-				open: await supplierKpi(...unpaid),
-				overdue: await supplierKpi(...unpaid, "and dueDate <", today),
-				paidThisMonth: await supplierKpi("paymentStatus_code =", paid, "and paymentDate >=", monthStart),
-			},
-			receivables: {
-				outstanding: await salesKpi("status_code =", sent),
-				overdue: await salesKpi("status_code =", sent, "and dueDate <", today),
-				paidThisMonth: await salesKpi("status_code =", paid, "and paymentDate >=", monthStart),
-			},
-		};
-	}
-
-	/** Number and total of the invoices matching the given condition, written as CQL fragments and values. */
-	private async kpi(entity: typeof SalesInvoices | typeof SupplierInvoices, amount: string, where: string[]) {
-		const result = (await SELECT.one
-			.from(entity)
-			.columns("count(1) as count", `sum(${amount}) as amount`)
-			.where(...where)) as null | { amount: null | number | string; count: number };
-		return { amount: Math.round(Number(result?.amount ?? 0) * 100) / 100, count: Number(result?.count ?? 0) };
-	}
+	return { fromDate, toDate };
 }

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiver</title>
+    <!-- Local launchpad: one entry point for the Dashboard, Sales, Purchases, Finance and Settings apps.
+         In production, SAP Build Work Zone takes this role (app/workzone/cdm.json). -->
+    <script>
+        window["sap-ushell-config"] = {
+    "defaultRenderer": "fiori2",
+    "renderers": {
+        "fiori2": {
+            "componentData": {
+                "config": {
+                    "enableSearch": false
+                }
+            }
+        }
+    },
+    "applications": {
+        "Dashboard-display": {
+            "title": "Dashboard",
+            "description": "Who owes you, what you owe",
+            "additionalInformation": "SAPUI5.Component=swiver.dashboard",
+            "applicationType": "URL",
+            "url": "/swiver.dashboard"
+        },
+        "Sales-manage": {
+            "title": "Sales",
+            "description": "Invoices and quotes",
+            "additionalInformation": "SAPUI5.Component=swiver.sales",
+            "applicationType": "URL",
+            "url": "/swiver.sales"
+        },
+        "Purchases-manage": {
+            "title": "Purchases",
+            "description": "Supplier invoices and inbox",
+            "additionalInformation": "SAPUI5.Component=swiver.purchases",
+            "applicationType": "URL",
+            "url": "/swiver.purchases"
+        },
+        "Finance-manage": {
+            "title": "Finance",
+            "description": "Bank, VAT and export",
+            "additionalInformation": "SAPUI5.Component=swiver.finance",
+            "applicationType": "URL",
+            "url": "/swiver.finance"
+        },
+        "Settings-manage": {
+            "title": "Settings",
+            "description": "Organization and company",
+            "additionalInformation": "SAPUI5.Component=swiver.settings",
+            "applicationType": "URL",
+            "url": "/swiver.settings"
+        }
+    },
+    "services": {
+        "LaunchPage": {
+            "adapter": {
+                "config": {
+                    "groups": [
+                        {
+                            "id": "home",
+                            "title": "Home",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "dashboard",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Dashboard",
+                                        "info": "Overview",
+                                        "icon": "sap-icon://home",
+                                        "targetURL": "#Dashboard-display"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "sales",
+                            "title": "Sales",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "salesInvoices",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Invoices",
+                                        "info": "Sales",
+                                        "icon": "sap-icon://sales-document",
+                                        "targetURL": "#Sales-manage&/SalesInvoices"
+                                    }
+                                },
+                                {
+                                    "id": "quotes",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Quotes",
+                                        "info": "Sales",
+                                        "icon": "sap-icon://sales-quote",
+                                        "targetURL": "#Sales-manage&/Quotes"
+                                    }
+                                },
+                                {
+                                    "id": "customers",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Customers",
+                                        "info": "Sales",
+                                        "icon": "sap-icon://customer",
+                                        "targetURL": "#Sales-manage&/Customers"
+                                    }
+                                },
+                                {
+                                    "id": "products",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Products & Services",
+                                        "info": "Sales",
+                                        "icon": "sap-icon://product",
+                                        "targetURL": "#Sales-manage&/ProductServices"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "purchases",
+                            "title": "Purchases",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "supplierInvoices",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Supplier Invoices",
+                                        "info": "Purchases",
+                                        "icon": "sap-icon://receipt",
+                                        "targetURL": "#Purchases-manage&/SupplierInvoices"
+                                    }
+                                },
+                                {
+                                    "id": "inbox",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Document Inbox",
+                                        "info": "Purchases",
+                                        "icon": "sap-icon://inbox",
+                                        "targetURL": "#Purchases-manage&/IncomingDocuments"
+                                    }
+                                },
+                                {
+                                    "id": "suppliers",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Suppliers",
+                                        "info": "Purchases",
+                                        "icon": "sap-icon://supplier",
+                                        "targetURL": "#Purchases-manage&/Suppliers"
+                                    }
+                                },
+                                {
+                                    "id": "expenseCategories",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Expense Categories",
+                                        "info": "Purchases",
+                                        "icon": "sap-icon://expense-report",
+                                        "targetURL": "#Purchases-manage&/ExpenseCategories"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "finance",
+                            "title": "Finance",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "bank",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Bank Transactions",
+                                        "info": "Payment matching",
+                                        "icon": "sap-icon://loan",
+                                        "targetURL": "#Finance-manage&/BankTransactions"
+                                    }
+                                },
+                                {
+                                    "id": "payments",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Payments",
+                                        "info": "Finance",
+                                        "icon": "sap-icon://payment-approval",
+                                        "targetURL": "#Finance-manage&/Payments"
+                                    }
+                                },
+                                {
+                                    "id": "reports",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "VAT & Accountant Export",
+                                        "info": "Finance",
+                                        "icon": "sap-icon://business-objects-experience",
+                                        "targetURL": "#Finance-manage&/Reports"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "settings",
+                            "title": "Settings",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "organization",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Organization & Members",
+                                        "info": "Settings",
+                                        "icon": "sap-icon://building",
+                                        "targetURL": "#Settings-manage"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+};
+    </script>
+    <script src="https://sapui5.hana.ondemand.com/1.148.4/test-resources/sap/ushell/bootstrap/sandbox.js" id="sap-ushell-bootstrap"></script>
+    <script
+        id="sap-ui-bootstrap"
+        src="https://sapui5.hana.ondemand.com/1.148.4/resources/sap-ui-core.js"
+        data-sap-ui-libs="sap.m, sap.ui.core, sap.ushell, sap.fe.templates"
+        data-sap-ui-theme="sap_horizon"
+        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/"}'
+        data-sap-ui-compatVersion="edge"
+        data-sap-ui-async="true"
+        data-sap-ui-frameOptions="allow"
+    ></script>
+    <script>
+        sap.ui.require(["sap/ui/core/Core"], async (Core) => {
+            await Core.ready();
+            sap.ushell.Container.createRenderer("fiori2", true).then((renderer) => renderer.placeAt("content"));
+        });
+    </script>
+</head>
+<body class="sapUiBody" id="content"></body>
+</html>

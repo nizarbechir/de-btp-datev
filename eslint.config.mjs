@@ -112,7 +112,7 @@ export default defineConfig(
 			"@typescript-eslint/no-unsafe-function-type": "off",
 
 			// These on-by-default rules work well for this repo if configured
-			"@typescript-eslint/no-unused-vars": ["error", { caughtErrors: "all" }],
+			"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", caughtErrors: "all" }],
 			"@typescript-eslint/naming-convention": [
 				"error",
 				{
@@ -121,9 +121,10 @@ export default defineConfig(
 					leadingUnderscore: "forbid",
 				},
 				{
+					// A leading underscore marks a parameter a callback signature requires but the code does not use.
 					selector: "parameter",
 					format: ["camelCase"],
-					leadingUnderscore: "forbid",
+					leadingUnderscore: "allow",
 				},
 				{
 					selector: "objectLiteralProperty",

@@ -1,73 +1,61 @@
 using {swiver as my} from '../../db/schema';
 using from '../../db/sales';
-using from '../../db/settings';
+using from '../../db/finance';
 
 /**
- * Everything a small business needs to invoice its customers and track what it owes its suppliers.
+ * Finance: bank transactions and payment matching, payments, VAT overview, accountant export
+ * and the dashboard. Invoices are read-only here; they are maintained in Sales and Purchasing.
  */
 service FinanceService {
-  // Sales
-
-  entity Customers            as projection on my.Customers {
-    *,
-    balance : redirected to CustomerBalances
-  };
-
-  entity SalesInvoices        as projection on my.SalesInvoices
+  entity BankTransactions  as projection on my.BankTransactions
     actions {
-      action   markAsSent()                       returns SalesInvoices;
-      action   markAsPaid()                       returns SalesInvoices;
-      action   cancelInvoice()                    returns SalesInvoices;
-      action   reopen()                           returns SalesInvoices;
-      /** Copies the invoice into a new draft dated today. */
-      action   duplicate()                        returns SalesInvoices;
-      /** Creates a customer and assigns it to this invoice, without leaving the invoice. */
-      action   createCustomer(companyName : String(120),
-                              name : String(120),
-                              email : String(120),
-                              street : String(200),
-                              postalCode : String(10),
-                              city : String(80),
-                              country : String(3)) returns SalesInvoices;
-      /** The invoice as PDF, inline for the preview or as attachment for download. */
-      function pdf(download : Boolean)            returns LargeBinary @Core.MediaType: 'application/pdf';
+      /** Confirms the suggested invoice: records the payment and marks the transaction as matched. */
+      @title: '{i18n>ConfirmMatch}'
+      action confirmMatch()                                            returns BankTransactions;
+      @title: '{i18n>MatchManually}'
+      action matchManually(salesInvoice : UUID @title: '{i18n>SalesInvoice}',
+                           supplierInvoice : UUID @title: '{i18n>SupplierInvoice}') returns BankTransactions;
+      @title: '{i18n>Ignore}'
+      action ignore()                                                  returns BankTransactions;
+      /** Removes the payment of a matched transaction, so it can be matched again. */
+      @title: '{i18n>Unmatch}'
+      action unmatch()                                                 returns BankTransactions;
     };
 
   @readonly
-  @cds.redirection.target: false
-  entity CustomerBalances     as projection on my.CustomerBalances;
+  entity BankImportBatches as projection on my.BankImportBatches;
 
   @readonly
-  entity SalesInvoiceStatuses as projection on my.SalesInvoiceStatuses;
+  entity Payments          as projection on my.Payments;
 
   @readonly
-  entity Units                as projection on my.Units;
+  entity SalesInvoices     as projection on my.SalesInvoices;
 
-  @Capabilities: {
-    InsertRestrictions.Insertable: false,
-    DeleteRestrictions.Deletable : false
+  @readonly
+  entity SupplierInvoices  as projection on my.SupplierInvoices;
+
+  @readonly
+  entity Customers         as projection on my.Customers;
+
+  @readonly
+  entity Suppliers         as projection on my.Suppliers;
+
+  @readonly
+  entity ExpenseCategories as projection on my.ExpenseCategories;
+
+  @readonly
+  entity BankMatchStatuses as projection on my.BankMatchStatuses;
+
+  type ImportResult {
+    imported   : Integer;
+    duplicates : Integer;
+    suggested  : Integer;
   }
-  entity CompanySettings      as projection on my.CompanySettings;
 
-  // Purchases
-
-  entity Suppliers        as projection on my.Suppliers {
-    *,
-    balance : redirected to SupplierBalances
-  };
-
-  entity SupplierInvoices as projection on my.SupplierInvoices
-    actions {
-      action markInvoicePaid() returns SupplierInvoices;
-      action markInvoiceOpen() returns SupplierInvoices;
-    };
-
-  @readonly
-  @cds.redirection.target: false
-  entity SupplierBalances as projection on my.SupplierBalances;
-
-  @readonly
-  entity PaymentStatuses  as projection on my.PaymentStatuses;
+  /** Imports a bank statement CSV and suggests matching invoices. */
+  action   importBankStatement(fileName : String(255), content : LargeString) returns ImportResult;
+  /** Suggests invoices for all unmatched transactions again. */
+  action   suggestMatches()                                                   returns Integer;
 
   type KpiValue {
     count  : Integer;
@@ -76,31 +64,58 @@ service FinanceService {
 
   /** Money in: what customers owe the business. */
   type Receivables {
-    outstanding   : KpiValue;
-    overdue       : KpiValue;
-    paidThisMonth : KpiValue;
+    outstanding      : KpiValue;
+    overdue          : KpiValue;
+    paidThisMonth    : KpiValue;
+    revenueThisMonth : KpiValue;
   }
 
   /** Money out: what the business owes its suppliers. */
   type Payables {
-    open          : KpiValue;
-    overdue       : KpiValue;
-    dueNext7Days  : KpiValue;
-    paidThisMonth : KpiValue;
+    open              : KpiValue;
+    overdue           : KpiValue;
+    dueNext7Days      : KpiValue;
+    paidThisMonth     : KpiValue;
+    expensesThisMonth : KpiValue;
+  }
+
+  type AttentionItem {
+    id     : String(30);
+    count  : Integer;
+    text   : String(200);
+    target : String(60);
   }
 
   type Dashboard {
-    currency    : String(3);
-    receivables : Receivables;
-    payables    : Payables;
+    currency         : String(3);
+    organizationName : String(120);
+    receivables      : Receivables;
+    payables         : Payables;
+    estimatedVat     : Decimal(15, 2);
+    inboxCount       : Integer;
+    unmatchedCount   : Integer;
+    needsAttention   : many AttentionItem;
   }
 
   /** Key figures for the dashboard tiles. */
-  function dashboard() returns Dashboard;
-}
+  function dashboard()                                     returns Dashboard;
 
-annotate FinanceService.Suppliers with @odata.draft.enabled;
-annotate FinanceService.SupplierInvoices with @odata.draft.enabled;
-annotate FinanceService.Customers with @odata.draft.enabled;
-annotate FinanceService.SalesInvoices with @odata.draft.enabled;
-annotate FinanceService.CompanySettings with @odata.draft.enabled;
+  type VatOverview {
+    fromDate          : Date;
+    toDate            : Date;
+    currency          : String(3);
+    netSales          : Decimal(15, 2);
+    outputVat         : Decimal(15, 2);
+    netExpenses       : Decimal(15, 2);
+    inputVat          : Decimal(15, 2);
+    // Output VAT minus input VAT: positive means VAT payable. An estimate, not a tax return.
+    estimatedVat      : Decimal(15, 2);
+    salesInvoiceCount : Integer;
+    expenseCount      : Integer;
+  }
+
+  /** Estimated VAT of a period, from the sales and supplier invoices. */
+  function vatOverview(fromDate : Date, toDate : Date)     returns VatOverview;
+  /** ZIP with the invoices, documents and CSV lists of a period for the tax adviser. */
+  function accountantExport(fromDate : Date, toDate : Date) returns LargeBinary @Core.MediaType: 'application/zip';
+}

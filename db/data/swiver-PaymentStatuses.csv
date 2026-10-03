@@ -1,3 +1,4 @@
 code;name;descr
 OPEN;Open;Not paid yet
-PAID;Paid;Paid
+PARTIAL;Partially Paid;Part of the amount is paid
+PAID;Paid;Paid in full

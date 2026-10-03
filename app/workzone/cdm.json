@@ -9,8 +9,24 @@
 		"payload": {
 			"viz": [
 				{
-					"appId": "swiver.app",
-					"vizId": "swiver-manage"
+					"appId": "swiver.dashboard",
+					"vizId": "Dashboard-display"
+				},
+				{
+					"appId": "swiver.sales",
+					"vizId": "Sales-manage"
+				},
+				{
+					"appId": "swiver.purchases",
+					"vizId": "Purchases-manage"
+				},
+				{
+					"appId": "swiver.finance",
+					"vizId": "Finance-manage"
+				},
+				{
+					"appId": "swiver.settings",
+					"vizId": "Settings-manage"
 				}
 			]
 		},
@@ -33,8 +49,24 @@
 		"payload": {
 			"viz": [
 				{
-					"appId": "swiver.app",
-					"vizId": "swiver-manage"
+					"appId": "swiver.dashboard",
+					"vizId": "Dashboard-display"
+				},
+				{
+					"appId": "swiver.sales",
+					"vizId": "Sales-manage"
+				},
+				{
+					"appId": "swiver.purchases",
+					"vizId": "Purchases-manage"
+				},
+				{
+					"appId": "swiver.finance",
+					"vizId": "Finance-manage"
+				},
+				{
+					"appId": "swiver.settings",
+					"vizId": "Settings-manage"
 				}
 			]
 		},
@@ -57,7 +89,19 @@
 		"payload": {
 			"apps": [
 				{
-					"id": "swiver.app"
+					"id": "swiver.dashboard"
+				},
+				{
+					"id": "swiver.sales"
+				},
+				{
+					"id": "swiver.purchases"
+				},
+				{
+					"id": "swiver.finance"
+				},
+				{
+					"id": "swiver.settings"
 				}
 			],
 			"catalogs": [
@@ -115,9 +159,29 @@
 					"title": "{{swiverSection}}",
 					"viz": [
 						{
-							"id": "swiverWidget",
-							"appId": "swiver.app",
-							"vizId": "swiver-manage"
+							"id": "swiverdashboardWidget",
+							"appId": "swiver.dashboard",
+							"vizId": "Dashboard-display"
+						},
+						{
+							"id": "swiversalesWidget",
+							"appId": "swiver.sales",
+							"vizId": "Sales-manage"
+						},
+						{
+							"id": "swiverpurchasesWidget",
+							"appId": "swiver.purchases",
+							"vizId": "Purchases-manage"
+						},
+						{
+							"id": "swiverfinanceWidget",
+							"appId": "swiver.finance",
+							"vizId": "Finance-manage"
+						},
+						{
+							"id": "swiversettingsWidget",
+							"appId": "swiver.settings",
+							"vizId": "Settings-manage"
 						}
 					]
 				}
@@ -128,7 +192,7 @@
 				"locale": "",
 				"textDictionary": {
 					"title": "Swiver",
-					"swiverSection": "Supplier Invoices"
+					"swiverSection": "Finance"
 				}
 			}
 		]

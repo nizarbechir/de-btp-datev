@@ -1,0 +1,364 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.purchases",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/purchasing/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Purchases-manage": {
+					"semanticObject": "Purchases",
+					"action": "manage",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://receipt",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {},
+				"sap.f": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.purchases.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"resources": {
+			"css": []
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "SupplierInvoicesList",
+					"target": "SupplierInvoicesList"
+				},
+				{
+					"pattern": "SupplierInvoices:?query:",
+					"name": "SupplierInvoicesListAlias",
+					"target": "SupplierInvoicesList"
+				},
+				{
+					"pattern": "SupplierInvoices({key}):?query:",
+					"name": "SupplierInvoicesObjectPage",
+					"target": "SupplierInvoicesObjectPage"
+				},
+				{
+					"pattern": "IncomingDocuments:?query:",
+					"name": "IncomingDocumentsList",
+					"target": "IncomingDocumentsList"
+				},
+				{
+					"pattern": "IncomingDocuments({key}):?query:",
+					"name": "IncomingDocumentsObjectPage",
+					"target": "IncomingDocumentsObjectPage"
+				},
+				{
+					"pattern": "Suppliers:?query:",
+					"name": "SuppliersList",
+					"target": "SuppliersList"
+				},
+				{
+					"pattern": "Suppliers({key}):?query:",
+					"name": "SuppliersObjectPage",
+					"target": "SuppliersObjectPage"
+				},
+				{
+					"pattern": "ExpenseCategories:?query:",
+					"name": "ExpenseCategoriesList",
+					"target": "ExpenseCategoriesList"
+				},
+				{
+					"pattern": "ExpenseCategories({key}):?query:",
+					"name": "ExpenseCategoriesObjectPage",
+					"target": "ExpenseCategoriesObjectPage"
+				}
+			],
+			"targets": {
+				"SupplierInvoicesList": {
+					"type": "Component",
+					"id": "SupplierInvoicesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/SupplierInvoices",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"SupplierInvoices": {
+									"detail": {
+										"route": "SupplierInvoicesObjectPage"
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									},
+									{
+										"key": "open",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Open"
+									},
+									{
+										"key": "overdue",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Overdue"
+									},
+									{
+										"key": "paid",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Paid"
+									}
+								],
+								"showCounts": true
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"selectionMode": "Multi"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SupplierInvoicesObjectPage": {
+					"type": "Component",
+					"id": "SupplierInvoicesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/SupplierInvoices",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				},
+				"IncomingDocumentsList": {
+					"type": "Component",
+					"id": "IncomingDocumentsList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/IncomingDocuments",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"IncomingDocuments": {
+									"detail": {
+										"route": "IncomingDocumentsObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "todo",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#ToDo"
+									},
+									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									}
+								],
+								"showCounts": true
+							}
+						}
+					}
+				},
+				"IncomingDocumentsObjectPage": {
+					"type": "Component",
+					"id": "IncomingDocumentsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/IncomingDocuments",
+							"enhanceI18n": "i18n/i18n.properties",
+							"navigation": {
+								"linkedSupplierInvoice": {
+									"detail": {
+										"route": "SupplierInvoicesObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SuppliersList": {
+					"type": "Component",
+					"id": "SuppliersList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Suppliers",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Suppliers": {
+									"detail": {
+										"route": "SuppliersObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"SuppliersObjectPage": {
+					"type": "Component",
+					"id": "SuppliersObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Suppliers",
+							"enhanceI18n": "i18n/i18n.properties",
+							"navigation": {
+								"invoices": {
+									"detail": {
+										"route": "SupplierInvoicesObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"ExpenseCategoriesList": {
+					"type": "Component",
+					"id": "ExpenseCategoriesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/ExpenseCategories",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"ExpenseCategories": {
+									"detail": {
+										"route": "ExpenseCategoriesObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"ExpenseCategoriesObjectPage": {
+					"type": "Component",
+					"id": "ExpenseCategoriesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/ExpenseCategories",
+							"enhanceI18n": "i18n/i18n.properties"
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

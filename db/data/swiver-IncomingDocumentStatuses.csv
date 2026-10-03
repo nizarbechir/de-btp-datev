@@ -1,0 +1,5 @@
+code;name;descr
+NEW;New;Waiting to be processed
+PROCESSED;Processed;Supplier invoice created or linked
+IGNORED;Ignored;Not relevant
+ERROR;Error;Could not be processed

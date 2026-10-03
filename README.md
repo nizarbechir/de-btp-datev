@@ -1,96 +1,60 @@
 # Swiver
 
-Swiver helps a small business answer one question: **what do we owe our suppliers, what is paid, what is still open, and what has to be paid soon?**
+Finance administration for freelancers and small companies: quotes and invoices, supplier invoices, payments, bank matching, estimated VAT and an export for the tax adviser. One deployment serves many organizations, each with strictly separated data.
 
-You record suppliers and their invoices, attach the original PDF or image, and mark invoices as paid. A dashboard shows open, overdue and soon-due amounts at a glance.
+Built with SAP CAP (Node.js, TypeScript) and SAP Fiori elements.
 
-## MVP scope
-
-Included:
-
-- **Suppliers**: create, edit, view, search and deactivate (suppliers are deactivated, not deleted, so their invoices stay intact).
-- **Supplier invoices**: create, edit, search and filter, with supplier, dates, net, tax and gross amounts (gross = net + tax).
-- **Invoice document**: one PDF, PNG or JPEG per invoice, stored in the database, viewable and downloadable.
-- **Payment status**: Open or Paid, with "Mark as Paid" (sets today's payment date) and "Mark as Open" (clears it). An unpaid invoice whose due date has passed is shown as **Overdue**.
-- **Dashboard**: open invoices, overdue, due in the next 7 days, paid this month, and a "Payments coming up" list.
-
-Explicitly **not** included (future features): customer invoices, quotes, orders, inventory, bookkeeping, DATEV export, bank integration or reconciliation, payment execution, tax filing, OCR or AI extraction, e-invoicing (XRechnung, ZUGFeRD, Peppol), approval workflows, notifications, multi-company and multi-tenancy, external document storage.
-
-One deployed instance serves one company.
-
-## Architecture
-
-A single SAP CAP (Node.js, TypeScript) application with one Fiori Elements app.
-
-```plaintext
-├── db/
-│   ├── schema.cds              # Suppliers, SupplierInvoices, PaymentStatuses, SupplierBalances view
-│   └── data/                   # Code lists: payment statuses, currencies, countries
-├── srv/
-│   ├── services/
-│   │   ├── finance-service.cds              # FinanceService (OData V4 at /odata/v4/finance)
-│   │   ├── finance-service-annotations.cds  # Labels, search, read-only payment fields
-│   │   └── finance-service.ts               # Mark as Paid/Open, dashboard key figures, document type check
-│   ├── authorization/          # One role: InvoiceManager
-│   ├── core/                   # Date helpers and demo date shifting
-│   └── server.ts               # Development only: moves demo invoice dates to today
-├── app/
-│   ├── swiver/                 # Fiori Elements app: dashboard (custom page), invoices, suppliers
-│   │   └── annotations.cds     # All list, detail, filter and quick view UI annotations
-│   └── workzone/cdm.json       # SAP Build Work Zone launchpad content
-├── test/
-│   ├── data/                   # Demo data: 5 suppliers, 15 invoices
-│   ├── unit/                   # Jest unit tests
-│   └── integration/            # Jest + cds.test against in-memory SQLite
-├── mta.yaml, *.mtaext          # Cloud Foundry deployment per stage
-└── xs-security.json            # XSUAA role InvoiceManager
-```
-
-Key design choices:
-
-- **Annotations first.** The UI is defined by CDS annotations. The only custom UI code is the dashboard page (`app/swiver/webapp/ext/dashboard`).
-- **Overdue is derived, not stored.** `status` (Open / Overdue / Paid) and `grossAmount` are calculated elements, so they are always correct and can be filtered.
-- **Validation is declarative.** Required fields use `@mandatory`, and "amounts cannot be negative" and "due date not before invoice date" use `@assert`.
-- **Payment fields are read-only** in the UI and API. They change only through the Mark as Paid and Mark as Open actions.
-- **Ready for tenants later.** All data lives in one service and model, so a company or tenant key can be added later without restructuring.
+- What the app does and how to try every feature: [docs/FEATURES.md](docs/FEATURES.md)
+- Backend structure: [srv/README.md](srv/README.md)
+- UI apps and navigation: [app/README.md](app/README.md)
+- Missing features and their prerequisites: [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ## Run locally
 
-Requirements: Node.js 24 (see `engines` in `package.json`).
+Requires Node.js 24.
 
 ```bash
 npm ci
 npm run watch
 ```
 
-Open http://localhost:4004/swiver.app/index.html and log in as `alice` / `alice` (a mocked user with the `InvoiceManager` role).
+Open http://localhost:4004/launchpad.html.
 
-Data is kept in memory (SQLite) and reloaded from `db/data` and `test/data` on every restart. In development, demo invoice dates are moved relative to today, so the dashboard always shows overdue and soon-due invoices.
+| User    | Password | Purpose                                   |
+| ------- | -------- | ----------------------------------------- |
+| `alice` | `alice`  | Owner of the demo organization with data  |
+| `bob`   | `bob`    | No organization yet: shows the onboarding |
 
-Example API calls are in `_requests/_service_get_requests.http`.
+Data is in-memory SQLite, reloaded from `db/data` and `test/data` on every start. Demo dates are shifted to today so overdue and due-soon items always exist.
 
-## Test
+## Configuration
+
+| Variable                                                                                      | Needed for                                                                                    |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `MS_GRAPH_TENANT_ID`, `MS_GRAPH_CLIENT_ID`, `MS_GRAPH_CLIENT_SECRET`, `MS_GRAPH_SENDER_EMAIL` | Sending invoices, quotes and reminders (Entra ID app with `Mail.Send` application permission) |
+| `SWIVER_DEFAULT_ORG_OWNER`                                                                    | User ID that becomes owner of organization #1 when an existing installation is migrated       |
+
+Without the Graph variables the app runs normally; e-mail actions answer "Email provider is not configured." Never commit real values (`.env` is ignored).
+
+## Quality checks
 
 ```bash
-npm run build:models     # generate cds-typer types (once, and after model changes)
-npm run test:ci          # unit tests
-npm run test:integration # service tests against in-memory SQLite
 npm run lint
+npm run test:ci
+npx cds compile srv app --to edmx-v4 --service all > /dev/null
 ```
 
 ## Deploy
 
-Deployment uses the MTA and the GitHub Actions workflows in `.github/workflows` (dev, qas, rse, prd stages via `*.mtaext`).
+Cloud Foundry via MTA (`mta.yaml`, one `*.mtaext` per stage) and the GitHub Actions workflows in `.github/workflows`.
 
 ```bash
 npm run build:dev # or build:qas / build:rse / build:prd
-npm run deploy    # cf deploy mta_archives/archive.mtar
+npm run deploy
 ```
 
-Production uses XSUAA (assign the `Swiver_InvoiceManager` role collection) and SAP HANA Cloud (HDI container `swiver-db`). Only SQLite is used locally for now. The workflows expect these repository variables and secrets: `BTP_API`, `BTP_ORIGIN`, `BTP_SUBACCOUNT`, `BTP_SPACE`, `GH_ACTION_NODEJS_VERSION`, `SAP_BTP_DEPLOYMENT_USER`, `SAP_BTP_DEPLOYMENT_PASSWORD`.
-
-If you use SAP Build Work Zone, add the subaccount's launchpad runtime destination to the destination service in `mta.yaml`.
+Production uses XSUAA and SAP HANA Cloud. Any signed-in user can use the app; their organization membership decides what they see. The five UI apps are published to the HTML5 repository and appear in SAP Build Work Zone through `app/workzone/cdm.json`.
 
 ## License
 
-This project is licensed under the MIT License.
+MIT

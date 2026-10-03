@@ -1,0 +1,6 @@
+code;name;descr
+DRAFT;Draft;Not sent to the customer yet
+SENT;Sent;Sent to the customer
+ACCEPTED;Accepted;Accepted by the customer
+REJECTED;Rejected;Rejected by the customer
+EXPIRED;Expired;No longer valid
