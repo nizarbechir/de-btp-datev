@@ -119,4 +119,4 @@ curl -u alice:alice "localhost:4004/odata/v4/finance/dashboard()"
 
 ## Not included yet
 
-Marked in the code as `TODO(feature)`: XRechnung, DATEV export, ELSTER, CAMT.053 and live banking, OCR, automatic reminders, multi-organization switcher, finer roles, per-organization e-mail accounts, subscriptions.
+See [ROADMAP.md](ROADMAP.md) for the missing features and what they need.

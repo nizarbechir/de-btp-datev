@@ -10,8 +10,9 @@ import { findSupplier } from "./supplier-matching";
 /**
  * Document inbox: supplier documents are uploaded first and turned into supplier invoices later.
  * ZUGFeRD PDFs are read automatically and the supplier is matched where it is certain.
- * TODO(feature): Add OCR extraction
  */
+// TODO(feature): Add OCR extraction
+// TODO(feature): external document storage/object storage if needed at scale
 const Documents = "swiver.IncomingDocuments";
 
 export interface SupplierInvoiceInput {

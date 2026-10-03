@@ -7,6 +7,7 @@ Built with SAP CAP (Node.js, TypeScript) and SAP Fiori elements.
 - What the app does and how to try every feature: [docs/FEATURES.md](docs/FEATURES.md)
 - Backend structure: [srv/README.md](srv/README.md)
 - UI apps and navigation: [app/README.md](app/README.md)
+- Missing features and their prerequisites: [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ## Run locally
 
