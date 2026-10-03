@@ -45,6 +45,16 @@ export default class PurchasingService extends cds.ApplicationService {
 			guarded(req, () => removeManualPayments("supplier", key(req))),
 		);
 
+		// Explains the upload while editing
+		this.after("READ", [SupplierInvoices, SupplierInvoices.drafts], (result, req) => {
+			const hint = cds.i18n.labels.at("SupplierInvoiceDocumentHint", req.locale);
+			for (const row of (Array.isArray(result) ? result : [result]) as { documentHint?: string }[]) {
+				if (row) {
+					row.documentHint = hint;
+				}
+			}
+		});
+
 		// An uploaded invoice document proposes the invoice data in the draft
 		this.after("UPDATE", SupplierInvoices.drafts, async (_result, req) => {
 			const ID = (req.data as { ID?: string }).ID ?? key(req);

@@ -153,9 +153,22 @@ annotate service.SupplierInvoices with @(
     {Value: outstandingAmount},
     {Value: paymentDate}
   ]},
-  UI.FieldGroup #Document   : {Data: [{Value: documentContent}]},
+  UI.FieldGroup #Document   : {Data: [
+    {Value: documentContent},
+    {
+      Value        : documentHint,
+      @UI.Hidden: IsActiveEntity
+    }
+  ]},
   UI.FieldGroup #Notes      : {Data: [{Value: notes}]},
   UI.Facets                 : [
+    // Upload first: the document fills in the invoice data below
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Document',
+      Label : '{i18n>Document}',
+      Target: '@UI.FieldGroup#Document'
+    },
     {
       $Type : 'UI.CollectionFacet',
       ID    : 'Details',
@@ -187,12 +200,6 @@ annotate service.SupplierInvoices with @(
       Label     : '{i18n>Payments}',
       Target    : 'payments/@UI.LineItem#Invoice',
       @UI.Hidden: {$edmJson: {$Not: {$Path: 'IsActiveEntity'}}}
-    },
-    {
-      $Type : 'UI.ReferenceFacet',
-      ID    : 'Document',
-      Label : '{i18n>Document}',
-      Target: '@UI.FieldGroup#Document'
     },
     {
       $Type : 'UI.ReferenceFacet',

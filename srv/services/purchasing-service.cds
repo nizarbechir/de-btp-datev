@@ -10,7 +10,11 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
     balance : redirected to SupplierBalances
   };
 
-  entity SupplierInvoices         as projection on my.SupplierInvoices
+  entity SupplierInvoices         as projection on my.SupplierInvoices {
+    *,
+    /** Shown while editing: what happens when a document is uploaded. */
+    virtual null as documentHint : String(300) @title: '{i18n>Note}' @readonly @UI.MultiLineText
+  }
     actions {
       /** Records a payment of the open amount, dated today. */
       @title: '{i18n>MarkPaid}'
