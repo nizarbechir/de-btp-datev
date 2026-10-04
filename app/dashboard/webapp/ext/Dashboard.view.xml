@@ -55,22 +55,22 @@
 						<grid:customLayout>
 							<grid:GridBoxLayout id="kpiLayout" boxesPerRowConfig="XL4 L4 M2 S1" />
 						</grid:customLayout>
-						<GenericTile id="kpiToCollect" width="100%" header="{i18n>kpiToCollect}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
+						<GenericTile id="kpiToCollect" width="100%" header="{i18n>kpiToCollect}" subheader="{i18n>openToday}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
 							<TileContent id="kpiToCollectContent" footer="{parts: [{path: 'kpi>/receivables/overdue/amount'}, 'kpi>/currency'], formatter: '.formatOverdue'}" footerColor="Critical">
 								<ObjectNumber id="kpiToCollectValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/receivables/outstanding/amount', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
 						</GenericTile>
-						<GenericTile id="kpiToPay" width="100%" header="{i18n>kpiToPay}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
+						<GenericTile id="kpiToPay" width="100%" header="{i18n>kpiToPay}" subheader="{i18n>openToday}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
 							<TileContent id="kpiToPayContent" footer="{parts: [{path: 'kpi>/payables/dueNext7Days/amount'}, 'kpi>/currency'], formatter: '.formatDueSoon'}" footerColor="Critical">
 								<ObjectNumber id="kpiToPayValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/payables/open/amount', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
 						</GenericTile>
-						<GenericTile id="kpiProfit" width="100%" header="{i18n>kpiProfitThisMonth}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
+						<GenericTile id="kpiProfit" width="100%" header="{i18n>kpiProfit}" subheader="{view>/month}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
 							<TileContent id="kpiProfitContent" footer="{parts: [{path: 'kpi>/receivables/revenueThisMonth/amount'}, {path: 'kpi>/payables/expensesThisMonth/amount'}, 'kpi>/currency'], formatter: '.formatProfitHint'}">
 								<ObjectNumber id="kpiProfitValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/profitThisMonth', formatter: '.formatAmount'}" unit="{kpi>/currency}" state="{= ${kpi>/profitThisMonth} &lt; 0 ? 'Error' : 'Success' }" emphasized="true" />
 							</TileContent>
 						</GenericTile>
-						<GenericTile id="kpiVat" width="100%" header="{i18n>kpiEstimatedVat}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
+						<GenericTile id="kpiVat" width="100%" header="{i18n>kpiEstimatedVat}" subheader="{view>/month}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
 							<TileContent id="kpiVatContent" footer="{i18n>kpiEstimatedVatSub}">
 								<ObjectNumber id="kpiVatValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/estimatedVat', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
@@ -96,7 +96,7 @@
 						</f:Card>
 						<f:Card id="cashFlowCard" height="100%">
 							<f:content>
-								<macros:Chart id="cashFlowChart" contextPath="/CashFlow" metaPath="@com.sap.vocabularies.UI.v1.Chart" header="{i18n>cashFlow}" personalization="Type" width="100%" height="22rem" />
+								<macros:Chart id="cashFlowChart" contextPath="/CashFlow" metaPath="@com.sap.vocabularies.UI.v1.Chart" header="{view>/cashFlowTitle}" personalization="Type" width="100%" height="22rem" />
 							</f:content>
 						</f:Card>
 					</grid:CSSGrid>

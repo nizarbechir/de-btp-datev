@@ -1,6 +1,7 @@
 import PageController from "sap/fe/core/PageController";
 import MessageBox from "sap/m/MessageBox";
 import Event from "sap/ui/base/Event";
+import DateFormat from "sap/ui/core/format/DateFormat";
 import NumberFormat from "sap/ui/core/format/NumberFormat";
 import Context from "sap/ui/model/Context";
 import JSONModel from "sap/ui/model/json/JSONModel";
@@ -35,7 +36,17 @@ export default class Dashboard extends PageController {
 	public onInit(): void {
 		super.onInit();
 		const view = this.getView();
-		view?.setModel(new JSONModel({ hasOrganization: false, loaded: false, organizationName: "" }), "view");
+		const now = new Date();
+		view?.setModel(
+			new JSONModel({
+				// The period of the monthly figures, shown on the tiles
+				hasOrganization: false,
+				loaded: false,
+				month: DateFormat.getDateInstance({ pattern: "MMMM yyyy" }).format(now),
+				organizationName: "",
+			}),
+			"view",
+		);
 		view?.setModel(new JSONModel({}), "kpi");
 		view?.setModel(
 			new JSONModel({
@@ -112,11 +123,15 @@ export default class Dashboard extends PageController {
 		const result = (await binding.requestObject().catch(() => undefined)) as
 			undefined | { name?: string; organizationID?: string };
 		const model = this.getView()?.getModel("view") as JSONModel;
-		model.setData({
-			hasOrganization: Boolean(result?.organizationID),
-			loaded: true,
-			organizationName: result?.name ?? "",
-		});
+		model.setData(
+			{
+				cashFlowTitle: this.text("cashFlowYear", [new Date().getFullYear()]),
+				hasOrganization: Boolean(result?.organizationID),
+				loaded: true,
+				organizationName: result?.name ?? "",
+			},
+			true,
+		);
 		if (result?.organizationID) {
 			// The figures are one function result; loading it once avoids relative bindings to a function.
 			const figures = await (this.getView()?.getModel() as ODataModel).bindContext("/dashboard()").requestObject();

@@ -40,7 +40,9 @@ service FinanceService {
         substring(paymentDate, 0, 7)                             as month    : String(7),
         case when direction = 'IN' then amount else 0 end        as moneyIn  : Decimal(15, 2),
         case when direction = 'OUT' then amount else 0 end       as moneyOut : Decimal(15, 2)
-  };
+  }
+  // The current calendar year
+  where substring(paymentDate, 0, 4) = substring($now, 0, 4);
 
   @readonly
   entity SalesInvoices     as projection on my.SalesInvoices;
