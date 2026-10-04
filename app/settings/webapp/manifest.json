@@ -76,7 +76,9 @@
 			"i18n": {
 				"type": "sap.ui.model.resource.ResourceModel",
 				"settings": {
-					"bundleName": "swiver.settings.i18n.i18n"
+					"bundleName": "swiver.settings.i18n.i18n",
+					"fallbackLocale": "en",
+					"supportedLocales": ["en", "de", "fr"]
 				}
 			},
 			"": {
@@ -90,7 +92,11 @@
 			},
 			"@i18n": {
 				"type": "sap.ui.model.resource.ResourceModel",
-				"uri": "i18n/i18n.properties"
+				"uri": "i18n/i18n.properties",
+				"settings": {
+					"fallbackLocale": "en",
+					"supportedLocales": ["en", "de", "fr"]
+				}
 			}
 		},
 		"resources": {
