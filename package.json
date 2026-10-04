@@ -125,6 +125,7 @@
 		"app/purchases",
 		"app/finance",
 		"app/settings",
+		"app/configuration",
 		"app/customers",
 		"app/products",
 		"app/suppliers",

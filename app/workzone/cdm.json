@@ -41,6 +41,10 @@
 					"vizId": "Settings-manage"
 				},
 				{
+					"appId": "swiver.configuration",
+					"vizId": "Configuration-display"
+				},
+				{
 					"appId": "swiver.customers",
 					"vizId": "Customer-manage"
 				},
@@ -113,6 +117,10 @@
 					"vizId": "Settings-manage"
 				},
 				{
+					"appId": "swiver.configuration",
+					"vizId": "Configuration-display"
+				},
+				{
 					"appId": "swiver.customers",
 					"vizId": "Customer-manage"
 				},
@@ -169,6 +177,9 @@
 				},
 				{
 					"id": "swiver.settings"
+				},
+				{
+					"id": "swiver.configuration"
 				},
 				{
 					"id": "swiver.customers"
@@ -279,6 +290,11 @@
 							"id": "swiversettingsWidget",
 							"appId": "swiver.settings",
 							"vizId": "Settings-manage"
+						},
+						{
+							"id": "swiverconfigurationWidget",
+							"appId": "swiver.configuration",
+							"vizId": "Configuration-display"
 						},
 						{
 							"id": "swivercustomersWidget",

@@ -109,6 +109,13 @@
             "additionalInformation": "SAPUI5.Component=swiver.settings",
             "applicationType": "URL",
             "url": "/swiver.settings"
+        },
+        "Configuration-display": {
+            "title": "Settings & Configuration",
+            "description": "Organization, master data and support",
+            "additionalInformation": "SAPUI5.Component=swiver.configuration",
+            "applicationType": "URL",
+            "url": "/swiver.configuration"
         }
     },
     "services": {
@@ -299,6 +306,16 @@
                             "isGroupLocked": false,
                             "tiles": [
                                 {
+                                    "id": "configuration",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Settings & Configuration",
+                                        "info": "All settings",
+                                        "icon": "sap-icon://action-settings",
+                                        "targetURL": "#Configuration-display"
+                                    }
+                                },
+                                {
                                     "id": "organization",
                                     "tileType": "sap.ushell.ui.tile.StaticTile",
                                     "properties": {
@@ -333,7 +350,7 @@
         src="https://sapui5.hana.ondemand.com/1.148.4/resources/sap-ui-core.js"
         data-sap-ui-libs="sap.m, sap.ui.core, sap.ushell, sap.fe.templates"
         data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/", "swiver.support": "/swiver.support/"}'
+        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/", "swiver.configuration": "/swiver.configuration/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/", "swiver.support": "/swiver.support/"}'
         data-sap-ui-compatVersion="edge"
         data-sap-ui-async="true"
         data-sap-ui-frameOptions="allow"
