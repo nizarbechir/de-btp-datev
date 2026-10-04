@@ -1,0 +1,73 @@
+---
+import { getContent } from "../../i18n";
+import SectionHeader from "../ui/SectionHeader.astro";
+
+const t = getContent();
+const f = t.features;
+---
+
+<section id="funktionen" class="section" aria-labelledby="funktionen-title">
+	<div class="container">
+		<SectionHeader id="funktionen-title" eyebrow={f.eyebrow} title={f.title} lede={f.lede} />
+		<div class="groups">
+			{
+				f.groups.map((group, i) => (
+					<section class="group" aria-labelledby={`feature-group-${i}`} data-reveal>
+						<h3 id={`feature-group-${i}`}>{group.title}</h3>
+						<dl>
+							{group.items.map((item) => (
+								<div class="item">
+									<dt>{item.name}</dt>
+									<dd>{item.text}</dd>
+								</div>
+							))}
+						</dl>
+					</section>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.groups {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-16) var(--space-16);
+		margin-top: var(--space-16);
+	}
+	.group {
+		border-top: 2px solid var(--color-ink-950);
+		padding-top: var(--space-5);
+	}
+	h3 {
+		margin-bottom: var(--space-3);
+		font-size: var(--text-lg);
+	}
+	.item {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+		gap: var(--space-2) var(--space-6);
+		padding-block: var(--space-4);
+		border-bottom: 1px solid var(--color-line);
+		font-size: 0.9688rem;
+	}
+	dt {
+		font-weight: 550;
+	}
+	dd {
+		color: var(--color-ink-500);
+	}
+	@media (max-width: 64rem) {
+		.groups {
+			grid-template-columns: 1fr;
+			gap: var(--space-12);
+		}
+	}
+	@media (max-width: 36rem) {
+		.item {
+			grid-template-columns: 1fr;
+			gap: var(--space-1);
+		}
+	}
+</style>

@@ -1,0 +1,220 @@
+---
+import { site } from "../../config/site";
+import { getContent } from "../../i18n";
+import AppFrame from "../product/AppFrame.astro";
+import StatusPill from "../product/StatusPill.astro";
+import Button from "../ui/Button.astro";
+import SectionHeader from "../ui/SectionHeader.astro";
+
+const t = getContent();
+const s = t.taxAdvisors;
+---
+
+<section id="steuerkanzleien" class="section tax" aria-labelledby="steuerkanzleien-title">
+	<div class="container grid">
+		<div class="visual" data-reveal>
+			<AppFrame label={`${s.eyebrow}: ${s.cockpit.title}`}>
+				<div class="cockpit">
+					<div class="cockpit-head">
+						<span class="cockpit-title">{s.cockpit.title}</span>
+						<span class="count num">{s.cockpit.rows.length}</span>
+					</div>
+					<table>
+						<thead>
+							<tr>{s.cockpit.columns.map((col) => <th>{col}</th>)}</tr>
+						</thead>
+						<tbody>
+							{s.cockpit.rows.map((row) => (
+								<tr>
+									<td class="name">{row.name}</td>
+									{row.values.map((value) => (
+										<td class:list={["num", { zero: value === 0 }]}>{value}</td>
+									))}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</AppFrame>
+			<div class="comment" aria-hidden="true">
+				<div class="comment-head">
+					<span class="avatar">SK</span>
+					<span>
+						<strong>{s.cockpit.comment.author}</strong>
+						<span class="context">{s.cockpit.comment.context}</span>
+					</span>
+					<StatusPill tone="warning">{s.cockpit.comment.status}</StatusPill>
+				</div>
+				<p>{s.cockpit.comment.text}</p>
+			</div>
+		</div>
+		<div class="copy">
+			<SectionHeader id="steuerkanzleien-title" eyebrow={s.eyebrow} title={s.title} lede={s.lede} />
+			<ul class="points" role="list" data-reveal>
+				{
+					s.points.map((point) => (
+						<li>
+							<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+								<path d="m3.5 8.5 3 3 6-7" />
+							</svg>
+							{point}
+						</li>
+					))
+				}
+			</ul>
+			<Button href={`mailto:${site.contactEmail}`} variant="secondary">{s.cta}</Button>
+		</div>
+	</div>
+</section>
+
+<style>
+	.tax {
+		background: var(--color-paper-deep);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+		gap: var(--space-12) var(--space-16);
+		align-items: center;
+	}
+	.copy {
+		display: grid;
+		gap: var(--space-8);
+		justify-items: start;
+	}
+	.points {
+		display: grid;
+		gap: var(--space-4);
+	}
+	.points li {
+		display: grid;
+		grid-template-columns: 1.25rem 1fr;
+		gap: var(--space-3);
+		color: var(--color-ink-700);
+	}
+	.points svg {
+		margin-top: 0.3rem;
+		fill: none;
+		stroke: var(--color-accent);
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.visual {
+		position: relative;
+		padding-bottom: 5.5rem;
+	}
+	.comment {
+		position: absolute;
+		right: calc(-1 * var(--space-6));
+		bottom: 0;
+		width: min(21rem, 80%);
+		padding: 0.875rem 1rem;
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-frame);
+		font-size: 0.8125rem;
+		line-height: 1.45;
+		user-select: none;
+	}
+	.comment-head {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 0.625rem;
+		margin-bottom: 0.5rem;
+	}
+	.comment-head > span:nth-child(2) {
+		display: grid;
+	}
+	.avatar {
+		display: grid;
+		place-items: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 50%;
+		background: var(--color-accent-soft);
+		color: var(--color-accent-strong);
+		font-size: 0.625rem;
+		font-weight: 650;
+	}
+	.context {
+		color: var(--color-ink-500);
+		font-size: 0.6875rem;
+	}
+	.comment p {
+		color: var(--color-ink-700);
+	}
+	.cockpit {
+		padding: 1.25rem 1.5rem 1.5rem;
+	}
+	.cockpit-head {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+	}
+	.cockpit-title {
+		font-size: 1rem;
+		font-weight: 650;
+	}
+	.count {
+		padding: 0 0.4rem;
+		border-radius: 6px;
+		background: var(--color-paper-deep);
+		color: var(--color-ink-700);
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	th {
+		padding: 0.5rem 0.5rem 0.5rem 0;
+		border-bottom: 1px solid var(--color-line);
+		color: var(--color-ink-500);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		text-align: right;
+		white-space: nowrap;
+	}
+	th:first-child,
+	td.name {
+		text-align: left;
+	}
+	td {
+		padding: 0.625rem 0.5rem 0.625rem 0;
+		border-bottom: 1px solid var(--color-line);
+		font-weight: 600;
+		text-align: right;
+	}
+	td.name {
+		font-weight: 500;
+	}
+	td.zero {
+		color: var(--color-ink-400);
+		font-weight: 400;
+	}
+	tr:last-child td {
+		border-bottom: 0;
+	}
+	@container (max-width: 30rem) {
+		th:nth-child(n + 4),
+		td:nth-child(n + 4) {
+			display: none;
+		}
+	}
+	@media (max-width: 56rem) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+		.visual {
+			order: 2;
+		}
+		.comment {
+			right: var(--space-4);
+		}
+	}
+</style>

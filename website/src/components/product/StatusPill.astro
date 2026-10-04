@@ -1,0 +1,44 @@
+---
+interface Props {
+	tone?: "good" | "warning" | "critical" | "neutral";
+}
+const { tone = "neutral" } = Astro.props;
+---
+
+<span class:list={["pill", `pill-${tone}`]}><span class="dot" aria-hidden="true"></span><slot /></span>
+
+<style>
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375em;
+		padding: 0.125em 0.5em;
+		border-radius: 999px;
+		font-size: 0.75em;
+		font-weight: 550;
+		line-height: 1.5;
+		white-space: nowrap;
+	}
+	.dot {
+		width: 0.45em;
+		height: 0.45em;
+		border-radius: 50%;
+		background: currentColor;
+	}
+	.pill-good {
+		background: var(--color-good-soft);
+		color: var(--color-good);
+	}
+	.pill-warning {
+		background: var(--color-warning-soft);
+		color: var(--color-warning);
+	}
+	.pill-critical {
+		background: var(--color-critical-soft);
+		color: var(--color-critical);
+	}
+	.pill-neutral {
+		background: var(--color-paper-deep);
+		color: var(--color-ink-700);
+	}
+</style>

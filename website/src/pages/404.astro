@@ -1,0 +1,48 @@
+---
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { getContent } from "../i18n";
+import Base from "../layouts/Base.astro";
+
+const t = getContent();
+---
+
+<Base title={`${t.notFound.title} – Swiver`} noindex>
+	<Header />
+	<main id="inhalt" class="container not-found">
+		<p class="code num">404</p>
+		<h1>{t.notFound.title}</h1>
+		<p>{t.notFound.text}</p>
+		<a href="/">{t.notFound.back}</a>
+	</main>
+	<Footer />
+</Base>
+
+<style>
+	.not-found {
+		display: grid;
+		gap: var(--space-4);
+		justify-items: start;
+		min-height: 55vh;
+		padding-block: var(--space-section);
+	}
+	.code {
+		color: var(--color-accent);
+		font-weight: 600;
+	}
+	h1 {
+		font-size: var(--text-2xl);
+		letter-spacing: var(--tracking-tight);
+	}
+	p {
+		color: var(--color-ink-500);
+	}
+	a {
+		font-weight: 500;
+		text-underline-offset: 3px;
+	}
+</style>
+
+<script>
+	import "../scripts/enhance";
+</script>

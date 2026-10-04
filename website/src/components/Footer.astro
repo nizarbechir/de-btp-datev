@@ -1,0 +1,124 @@
+---
+import { site } from "../config/site";
+import { getContent } from "../i18n";
+import Logo from "./ui/Logo.astro";
+
+const t = getContent();
+const year = new Date().getFullYear();
+
+// Footer entries that point outside the page are resolved from the site config.
+const external: Record<string, string> = {
+	contact: `mailto:${site.contactEmail}`,
+	status: site.statusUrl,
+	support: `mailto:${site.supportEmail}`,
+};
+const resolve = (href: string) => external[href] ?? href;
+---
+
+<footer class="site-footer">
+	<div class="container">
+		<div class="top">
+			<div class="brand">
+				<Logo />
+				<p>{t.footer.tagline}</p>
+			</div>
+			<nav class="columns" aria-label="Footer">
+				{
+					t.footer.columns.map((column) => (
+						<div class="column">
+							<h2>{column.title}</h2>
+							<ul role="list">
+								{column.links.map((link) => (
+									<li>
+										<a href={resolve(link.href)}>{link.label}</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					))
+				}
+			</nav>
+		</div>
+		<div class="bottom">
+			<p>© {year} {site.operator}. {t.footer.rights}</p>
+			<p class="hosting">
+				<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+					<path d="M8 1.5c-2.5 0-4.5 2-4.5 4.4C3.5 9.3 8 14.5 8 14.5s4.5-5.2 4.5-8.6C12.5 3.5 10.5 1.5 8 1.5Zm0 6a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2Z"></path>
+				</svg>
+				{t.footer.hosting}
+			</p>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.site-footer {
+		border-top: 1px solid var(--color-line);
+		padding-block: var(--space-16) var(--space-8);
+		font-size: var(--text-sm);
+	}
+	.top {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+		gap: var(--space-12);
+	}
+	.brand p {
+		max-width: 18rem;
+		margin-top: var(--space-4);
+		color: var(--color-ink-500);
+	}
+	.columns {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: var(--space-8);
+	}
+	h2 {
+		margin-bottom: var(--space-4);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		letter-spacing: 0;
+	}
+	.column ul {
+		display: grid;
+		gap: var(--space-3);
+	}
+	.column a {
+		color: var(--color-ink-500);
+		text-decoration: none;
+		transition: color var(--duration-fast) ease;
+	}
+	.column a:hover {
+		color: var(--color-ink-950);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.bottom {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: var(--space-4);
+		margin-top: var(--space-16);
+		padding-top: var(--space-6);
+		border-top: 1px solid var(--color-line);
+		color: var(--color-ink-500);
+	}
+	.hosting {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.hosting svg {
+		fill: var(--color-accent);
+	}
+	@media (max-width: 56rem) {
+		.top {
+			grid-template-columns: 1fr;
+		}
+	}
+	@media (max-width: 36rem) {
+		.columns {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			row-gap: var(--space-10);
+		}
+	}
+</style>

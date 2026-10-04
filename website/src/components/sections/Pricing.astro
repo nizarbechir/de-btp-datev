@@ -1,0 +1,180 @@
+---
+import { site } from "../../config/site";
+import { getContent } from "../../i18n";
+import Button from "../ui/Button.astro";
+import SectionHeader from "../ui/SectionHeader.astro";
+
+const t = getContent();
+const p = t.pricing;
+---
+
+<section id="preise" class="section" aria-labelledby="preise-title">
+	<div class="container">
+		<SectionHeader id="preise-title" eyebrow={p.eyebrow} title={p.title} lede={p.lede} align="center" />
+
+		<div class="plan" data-reveal>
+			<div class="summary">
+				<h3>{p.plan.name}</h3>
+				<p class="price">
+					<span class="amount num">{p.plan.price}</span>
+					<span class="currency">{p.plan.currency}</span>
+					<span class="period">{p.plan.period}</span>
+				</p>
+				<p class="note">{p.plan.note}</p>
+				<Button href={site.signupUrl} size="lg" class="plan-cta">{p.plan.cta}</Button>
+				<p class="trial">{p.plan.trial}</p>
+			</div>
+			<div class="includes">
+				<h4>{p.plan.includesTitle}</h4>
+				<ul role="list">
+					{
+						p.plan.includes.map((item) => (
+							<li>
+								<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+									<path d="m3.5 8.5 3 3 6-7" />
+								</svg>
+								{item}
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+
+		<div class="asides">
+			{
+				p.asides.map((aside) => (
+					<div class="aside">
+						<h3>{aside.title}</h3>
+						<p>
+							{aside.text}
+							{aside.link && (
+								<>
+									{" "}
+									<a href={`mailto:${site.contactEmail}`}>{aside.link}</a>
+								</>
+							)}
+						</p>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.plan {
+		display: grid;
+		grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
+		max-width: 60rem;
+		margin: var(--space-16) auto 0;
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-sm);
+	}
+	.summary {
+		display: grid;
+		align-content: start;
+		gap: var(--space-2);
+		padding: var(--space-10);
+		border-right: 1px solid var(--color-line);
+	}
+	h3 {
+		font-size: var(--text-lg);
+	}
+	.price {
+		display: flex;
+		align-items: baseline;
+		gap: var(--space-2);
+		margin-top: var(--space-4);
+	}
+	.amount {
+		font-size: 3.5rem;
+		font-weight: 620;
+		letter-spacing: -0.04em;
+		line-height: 1;
+	}
+	.currency {
+		font-size: var(--text-xl);
+		font-weight: 600;
+	}
+	.period,
+	.note,
+	.trial {
+		color: var(--color-ink-500);
+		font-size: var(--text-sm);
+	}
+	.summary :global(.plan-cta) {
+		margin-top: var(--space-8);
+	}
+	.trial {
+		margin-top: var(--space-2);
+	}
+	.includes {
+		padding: var(--space-10);
+	}
+	h4 {
+		margin-bottom: var(--space-4);
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+	.includes ul {
+		display: grid;
+		gap: var(--space-3);
+	}
+	.includes li {
+		display: grid;
+		grid-template-columns: 1.25rem 1fr;
+		gap: var(--space-3);
+		color: var(--color-ink-700);
+	}
+	.includes svg {
+		margin-top: 0.3rem;
+		fill: none;
+		stroke: var(--color-accent);
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.asides {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-8);
+		max-width: 60rem;
+		margin: var(--space-10) auto 0;
+	}
+	.aside {
+		padding-top: var(--space-5);
+		border-top: 1px solid var(--color-line);
+	}
+	.aside h3 {
+		margin-bottom: var(--space-2);
+		font-size: var(--text-base);
+	}
+	.aside p {
+		color: var(--color-ink-500);
+		font-size: 0.9688rem;
+	}
+	.aside a {
+		color: var(--color-ink-950);
+		font-weight: 500;
+		text-underline-offset: 3px;
+	}
+	@media (max-width: 48rem) {
+		.plan {
+			grid-template-columns: 1fr;
+		}
+		.summary {
+			border-right: 0;
+			border-bottom: 1px solid var(--color-line);
+		}
+		.summary,
+		.includes {
+			padding: var(--space-8) var(--space-6);
+		}
+		.asides {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

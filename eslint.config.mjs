@@ -31,6 +31,7 @@ export default defineConfig(
 			"srv/external/**",
 			"external-systems-openapi",
 			"external-systems-proxies",
+			"website/**",
 		],
 	},
 	{

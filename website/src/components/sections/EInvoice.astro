@@ -1,0 +1,83 @@
+---
+import { getContent } from "../../i18n";
+import SectionHeader from "../ui/SectionHeader.astro";
+
+const t = getContent();
+const e = t.einvoice;
+---
+
+<section id="e-rechnung" class="einvoice" aria-labelledby="e-rechnung-title">
+	<div class="container grid">
+		<div class="intro">
+			<SectionHeader id="e-rechnung-title" eyebrow={e.eyebrow} title={e.title} lede={e.text} />
+			<p class="note">{e.note}</p>
+		</div>
+		<ol class="timeline" role="list" data-reveal>
+			{
+				e.timeline.map((entry) => (
+					<li>
+						<time>{entry.date}</time>
+						<p>{entry.text}</p>
+					</li>
+				))
+			}
+		</ol>
+	</div>
+</section>
+
+<style>
+	.einvoice {
+		padding-block: clamp(4rem, 3rem + 4vw, 6.5rem);
+		border-block: 1px solid var(--color-line);
+		background: var(--color-surface);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+		gap: var(--space-12) var(--space-16);
+		align-items: start;
+	}
+	.note {
+		margin-top: var(--space-6);
+		color: var(--color-ink-400);
+		font-size: var(--text-sm);
+	}
+	.timeline {
+		position: relative;
+		display: grid;
+	}
+	.timeline li {
+		position: relative;
+		display: grid;
+		gap: var(--space-1);
+		padding: var(--space-5) 0 var(--space-5) var(--space-8);
+		border-left: 1px solid var(--color-line-strong);
+	}
+	.timeline li::before {
+		content: "";
+		position: absolute;
+		top: 1.7rem;
+		left: -5px;
+		width: 9px;
+		height: 9px;
+		border: 1px solid var(--color-ink-950);
+		border-radius: 50%;
+		background: var(--color-surface);
+	}
+	.timeline li:first-child::before {
+		background: var(--color-ink-950);
+	}
+	time {
+		font-size: var(--text-sm);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.timeline p {
+		color: var(--color-ink-500);
+	}
+	@media (max-width: 56rem) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

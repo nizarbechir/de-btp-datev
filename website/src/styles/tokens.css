@@ -1,0 +1,92 @@
+/* Design tokens. Components use these variables only; no raw colors or sizes elsewhere. */
+:root {
+	/* Color: ink (text, primary actions), paper (backgrounds), line (hairlines) */
+	--color-ink-950: #0b1724;
+	--color-ink-900: #13212f;
+	--color-ink-800: #1e2e3e;
+	--color-ink-700: #33445a;
+	--color-ink-500: #556372;
+	--color-ink-400: #626e7b;
+	--color-paper: #f6f4ef;
+	--color-paper-deep: #efece4;
+	--color-surface: #ffffff;
+	--color-surface-muted: #fafaf7;
+	--color-line: #e2ded4;
+	--color-line-strong: #cfcabd;
+
+	/* One accent: deep fir green */
+	--color-accent: #0b6b58;
+	--color-accent-strong: #08574a;
+	--color-accent-soft: #e3efe9;
+	--color-accent-on-dark: #7fd1b7;
+
+	/* Signal colors, used inside the product UI only */
+	--color-good: #0b6b58;
+	--color-good-soft: #e3efe9;
+	--color-warning: #8a5a00;
+	--color-warning-soft: #f7ecd6;
+	--color-critical: #b42318;
+	--color-critical-soft: #fbe7e4;
+
+	/* Chart series (validated for CVD separation and contrast) */
+	--color-series-1: #108a6e;
+	--color-series-2: #5b6fb8;
+
+	/* Dark section */
+	--color-dark-bg: #0b1724;
+	--color-dark-surface: #13212f;
+	--color-dark-line: #263647;
+	--color-dark-text: #e9edf1;
+	--color-dark-muted: #a3afbc;
+
+	--color-focus: #1f6feb;
+
+	/* Typography */
+	--font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--text-xs: 0.75rem;
+	--text-sm: 0.875rem;
+	--text-base: 1.0625rem;
+	--text-lg: 1.1875rem;
+	--text-xl: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+	--text-2xl: clamp(1.75rem, 1.35rem + 1.6vw, 2.625rem);
+	--text-3xl: clamp(2.375rem, 1.6rem + 3.4vw, 4.25rem);
+	--leading-tight: 1.08;
+	--leading-snug: 1.25;
+	--leading-normal: 1.6;
+	--tracking-tight: -0.028em;
+	--tracking-snug: -0.016em;
+	--tracking-eyebrow: 0.08em;
+
+	/* Spacing (4px base) */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.25rem;
+	--space-6: 1.5rem;
+	--space-8: 2rem;
+	--space-10: 2.5rem;
+	--space-12: 3rem;
+	--space-16: 4rem;
+	--space-20: 5rem;
+	--space-section: clamp(5rem, 3.5rem + 6vw, 9rem);
+
+	/* Layout */
+	--container: 75rem;
+	--gutter: clamp(1rem, 0.5rem + 2vw, 1.5rem);
+	--header-height: 4rem;
+
+	/* Shape and depth */
+	--radius-sm: 0.375rem;
+	--radius-md: 0.625rem;
+	--radius-lg: 0.875rem;
+	--shadow-sm: 0 1px 2px rgb(11 23 36 / 0.06);
+	--shadow-frame:
+		0 0 0 1px rgb(11 23 36 / 0.06), 0 2px 4px rgb(11 23 36 / 0.04), 0 12px 24px -6px rgb(11 23 36 / 0.08),
+		0 40px 80px -24px rgb(11 23 36 / 0.18);
+
+	/* Motion */
+	--ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+	--duration-fast: 150ms;
+	--duration-base: 400ms;
+}

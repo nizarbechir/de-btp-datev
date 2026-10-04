@@ -1,0 +1,73 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"a"> {
+	href: string;
+	variant?: "primary" | "secondary" | "ghost" | "inverse";
+	size?: "md" | "lg";
+}
+const { href, variant = "primary", size = "md", class: className, ...rest } = Astro.props;
+---
+
+<a href={href} class:list={["btn", `btn-${variant}`, `btn-${size}`, className]} {...rest}><slot /></a>
+
+<style>
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		min-height: 2.5rem;
+		padding: 0 var(--space-4);
+		border: 1px solid transparent;
+		border-radius: var(--radius-sm);
+		font-size: var(--text-sm);
+		font-weight: 550;
+		line-height: 1;
+		letter-spacing: -0.005em;
+		text-decoration: none;
+		white-space: nowrap;
+		transition:
+			background-color var(--duration-fast) ease,
+			border-color var(--duration-fast) ease,
+			color var(--duration-fast) ease,
+			box-shadow var(--duration-fast) ease;
+	}
+	.btn-lg {
+		min-height: 3rem;
+		padding: 0 var(--space-6);
+		font-size: 0.9688rem;
+	}
+	.btn-primary {
+		background: var(--color-ink-950);
+		color: #ffffff;
+		box-shadow:
+			var(--shadow-sm),
+			inset 0 1px 0 rgb(255 255 255 / 0.08);
+	}
+	.btn-primary:hover {
+		background: var(--color-ink-800);
+	}
+	.btn-secondary {
+		background: var(--color-surface);
+		border-color: var(--color-line-strong);
+		color: var(--color-ink-950);
+	}
+	.btn-secondary:hover {
+		border-color: var(--color-ink-400);
+	}
+	.btn-ghost {
+		color: var(--color-ink-700);
+	}
+	.btn-ghost:hover {
+		color: var(--color-ink-950);
+		background: var(--color-paper-deep);
+	}
+	.btn-inverse {
+		background: #ffffff;
+		color: var(--color-ink-950);
+	}
+	.btn-inverse:hover {
+		background: var(--color-paper);
+	}
+</style>
