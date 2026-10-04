@@ -38,6 +38,10 @@
 					"bob": {
 						"password": "bob",
 						"roles": ["InvoiceManager"]
+					},
+					"steuerberater@example.de": {
+						"password": "steuerberater",
+						"roles": ["InvoiceManager"]
 					}
 				}
 			}

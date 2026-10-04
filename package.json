@@ -36,7 +36,7 @@
 		"test:ci": "jest test/unit",
 		"test:integration": "jest test/integration --runInBand --no-cache",
 		"undeploy": "cf undeploy swiver --delete-services --delete-service-keys --delete-service-brokers",
-		"watch": "cds-ts watch",
+		"watch": "npm run killport && cds-ts watch",
 		"watch-hybrid": "cds-ts watch --profile hybrid",
 		"watch-swiver": "cds-ts watch --open launchpad.html?sap-ui-xx-viewCache=false --livereload false"
 	},

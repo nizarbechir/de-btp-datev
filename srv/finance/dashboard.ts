@@ -47,6 +47,9 @@ export async function dashboard() {
 	});
 	const unmatched = await kpi("swiver.BankTransactions", "amount", { matchStatus_code: "UNMATCHED", organization_ID });
 	const suggested = await kpi("swiver.BankTransactions", "amount", { matchStatus_code: "SUGGESTED", organization_ID });
+	const missingDocument = await kpi("swiver.SupplierInvoices", "0", { documentFileName: null, organization_ID });
+	const uncategorized = await kpi("swiver.SupplierInvoices", "0", { expenseCategory_ID: null, organization_ID });
+	const openQuestions = await kpi("swiver.FinancialComments", "0", { organization_ID, resolved: false });
 	const vat = await vatOverview(monthStart, today);
 	const organization = await SELECT.one.from("swiver.Organizations").columns("name").where({ ID: organization_ID });
 
@@ -72,6 +75,19 @@ export async function dashboard() {
 		{ count: inbox.count, id: "inbox", target: "IncomingDocument", text: "documents waiting in the inbox" },
 		{ count: suggested.count, id: "suggested", target: "BankTransaction", text: "bank matches to confirm" },
 		{ count: unmatched.count, id: "unmatched", target: "BankTransaction", text: "unmatched bank transactions" },
+		{
+			count: missingDocument.count,
+			id: "missingDocument",
+			target: "SupplierInvoice",
+			text: "supplier invoices without document",
+		},
+		{
+			count: uncategorized.count,
+			id: "uncategorized",
+			target: "SupplierInvoice",
+			text: "uncategorized supplier invoices",
+		},
+		{ count: openQuestions.count, id: "openQuestions", target: "", text: "open comments and questions" },
 	].filter((item) => item.count > 0);
 
 	return {

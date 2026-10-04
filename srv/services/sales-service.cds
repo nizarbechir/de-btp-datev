@@ -1,6 +1,7 @@
 using {swiver as my} from '../../db/schema';
 using from '../../db/sales';
 using from '../../db/finance';
+using from '../../db/collaboration';
 
 /**
  * Money in: customers, products and services, quotes and sales invoices.
@@ -15,6 +16,9 @@ service SalesService @(path: '/odata/v4/sales') {
 
   entity SalesInvoices        as projection on my.SalesInvoices
     actions {
+      /** Adds a comment or question, e.g. from the tax advisor. */
+      @title: '{i18n>AddComment}'
+      action   addComment(text : String(1000) @title: '{i18n>Comment}' @UI.MultiLineText) returns SalesInvoices;
       @title: '{i18n>Finalize}'
       action   finalize()                                 returns SalesInvoices;
       @title: '{i18n>MarkAsSent}'
@@ -98,6 +102,13 @@ service SalesService @(path: '/odata/v4/sales') {
 
   @readonly
   entity PaymentStatuses      as projection on my.PaymentStatuses;
+
+  @readonly
+  entity FinancialComments as projection on my.FinancialComments
+    actions {
+      @title: '{i18n>Resolve}'
+      action resolve() returns FinancialComments;
+    };
 
   @readonly
   entity Units                as projection on my.Units;

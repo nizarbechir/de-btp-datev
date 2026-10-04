@@ -102,6 +102,11 @@ annotate service.SupplierInvoices with @(
       $Type : 'UI.DataFieldForAction',
       Action: 'PurchasingService.markInvoiceOpen',
       Label : '{i18n>MarkOpen}'
+    },
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'PurchasingService.addComment',
+      Label : '{i18n>AddComment}'
     }
   ],
   UI.DataPoint #grossAmount : {
@@ -206,6 +211,12 @@ annotate service.SupplierInvoices with @(
       ID    : 'Notes',
       Label : '{i18n>Notes}',
       Target: '@UI.FieldGroup#Notes'
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Comments',
+      Label : '{i18n>Comments}',
+      Target: 'comments/@UI.LineItem'
     }
   ],
   // Recalculate gross amount and status while editing
@@ -296,32 +307,37 @@ annotate service.SupplierInvoices with {
 };
 
 annotate service.SupplierInvoices actions {
+  // Comments and questions, also from the tax advisor
+  addComment @(
+    Core.OperationAvailable: {$edmJson: {$Path: 'in/IsActiveEntity'}},
+    Common.SideEffects     : {TargetEntities: ['in/comments']}
+  );
   markInvoicePaid @(
     // Only on saved invoices, not while editing
-    Core.OperationAvailable: {$edmJson: {$And: [
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [
       {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']},
       {$Path: 'in/IsActiveEntity'}
-    ]}},
+    ]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments']
     }
   );
   recordPayment   @(
-    Core.OperationAvailable: {$edmJson: {$And: [
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [
       {$Ne: [{$Path: 'in/paymentStatus_code'}, 'PAID']},
       {$Path: 'in/IsActiveEntity'}
-    ]}},
+    ]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments']
     }
   )(amount @UI.ParameterDefaultValue: in.outstandingAmount);
   markInvoiceOpen @(
-    Core.OperationAvailable: {$edmJson: {$And: [
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [
       {$Ne: [{$Path: 'in/paymentStatus_code'}, 'OPEN']},
       {$Path: 'in/IsActiveEntity'}
-    ]}},
+    ]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {
       TargetProperties: ['in/*'],
       TargetEntities  : ['in/payments']
@@ -551,6 +567,11 @@ annotate service.IncomingDocuments with @(
       $Type : 'UI.DataFieldForAction',
       Action: 'PurchasingService.ignore',
       Label : '{i18n>Ignore}'
+    },
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'PurchasingService.addComment',
+      Label : '{i18n>AddComment}'
     }
   ],
   UI.DataPoint #status         : {
@@ -604,6 +625,12 @@ annotate service.IncomingDocuments with @(
       Label     : '{i18n>Processing}',
       Target    : '@UI.FieldGroup#Result',
       @UI.Hidden: {$edmJson: {$Not: {$Path: 'IsActiveEntity'}}}
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Comments',
+      Label : '{i18n>Comments}',
+      Target: 'comments/@UI.LineItem'
     }
   ]
 );
@@ -617,16 +644,21 @@ annotate service.IncomingDocuments with {
 };
 
 annotate service.IncomingDocuments actions {
+  // Comments and questions, also from the tax advisor
+  addComment @(
+    Core.OperationAvailable: {$edmJson: {$Path: 'in/IsActiveEntity'}},
+    Common.SideEffects     : {TargetEntities: ['in/comments']}
+  );
   process               @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Ne: [{$Path: 'in/processingStatus_code'}, 'PROCESSED']}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Ne: [{$Path: 'in/processingStatus_code'}, 'PROCESSED']}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   );
   ignore                @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Ne: [{$Path: 'in/processingStatus_code'}, 'PROCESSED']}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Ne: [{$Path: 'in/processingStatus_code'}, 'PROCESSED']}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   );
   createSupplierInvoice @(
-    Core.OperationAvailable: {$edmJson: {$And: [{$Ne: [{$Path: 'in/processingStatus_code'}, 'PROCESSED']}, {$Path: 'in/IsActiveEntity'}]}},
+    Core.OperationAvailable: {$edmJson: {$And: [{$And: [{$Ne: [{$Path: 'in/processingStatus_code'}, 'PROCESSED']}, {$Path: 'in/IsActiveEntity'}]}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}
   )(
     supplier        @(
@@ -705,4 +737,59 @@ annotate service.ExpenseCategories with @(
     Label : '{i18n>General}',
     Target: '@UI.FieldGroup#General'
   }]
+);
+
+// ---------------------------------------------------------------------------
+// Comments and questions (e.g. from the tax advisor), resolved by the team
+// ---------------------------------------------------------------------------
+
+annotate service.FinancialComments with @(UI.LineItem: [
+  {
+    $Type : 'UI.DataFieldForAction',
+    Action: 'PurchasingService.resolve',
+    Label : '{i18n>Resolve}'
+  },
+  {Value: text},
+  {Value: createdBy},
+  {Value: authorRole},
+  {Value: createdAt},
+  {
+    Value      : resolved,
+    Criticality: resolvedCriticality
+  }
+]);
+
+annotate service.FinancialComments actions {
+  resolve @(
+    Core.OperationAvailable: {$edmJson: {$Not: {$Path: 'in/resolved'}}},
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Create, edit and delete are hidden for the read-only tax advisor (the backend enforces it)
+// ---------------------------------------------------------------------------
+
+annotate service.Suppliers with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: readOnly,
+  UI.DeleteHidden: readOnly
+);
+
+annotate service.SupplierInvoices with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: readOnly,
+  UI.DeleteHidden: readOnly
+);
+
+annotate service.IncomingDocuments with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: readOnly,
+  UI.DeleteHidden: readOnly
+);
+
+annotate service.ExpenseCategories with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: readOnly,
+  UI.DeleteHidden: readOnly
 );

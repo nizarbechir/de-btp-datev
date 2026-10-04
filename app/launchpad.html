@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swiver</title>
-    <!-- Local launchpad: one entry point for the Dashboard, Sales, Purchases, Finance and Settings apps.
+    <!-- Local launchpad: one entry point for the Dashboard, Sales, Purchases, Finance, Tax Advisor and Settings apps.
          In production, SAP Build Work Zone takes this role (app/workzone/cdm.json). -->
     <script>
         window["sap-ushell-config"] = {
@@ -46,6 +46,13 @@
             "additionalInformation": "SAPUI5.Component=swiver.finance",
             "applicationType": "URL",
             "url": "/swiver.finance"
+        },
+        "TaxAdvisor-display": {
+            "title": "Tax Advisor",
+            "description": "Workspace for your Steuerberater",
+            "additionalInformation": "SAPUI5.Component=swiver.taxadvisor",
+            "applicationType": "URL",
+            "url": "/swiver.taxadvisor"
         },
         "Settings-manage": {
             "title": "Settings",
@@ -217,6 +224,25 @@
                             ]
                         },
                         {
+                            "id": "taxAdvisor",
+                            "title": "Tax Advisor",
+                            "isPreset": true,
+                            "isVisible": true,
+                            "isGroupLocked": false,
+                            "tiles": [
+                                {
+                                    "id": "taxAdvisorWorkspace",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Tax Advisor Workspace",
+                                        "info": "Steuerberater",
+                                        "icon": "sap-icon://accounting-document-verification",
+                                        "targetURL": "#TaxAdvisor-display"
+                                    }
+                                }
+                            ]
+                        },
+                        {
                             "id": "settings",
                             "title": "Settings",
                             "isPreset": true,
@@ -248,7 +274,7 @@
         src="https://sapui5.hana.ondemand.com/1.148.4/resources/sap-ui-core.js"
         data-sap-ui-libs="sap.m, sap.ui.core, sap.ushell, sap.fe.templates"
         data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/"}'
+        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/", "swiver.taxadvisor": "/swiver.taxadvisor/"}'
         data-sap-ui-compatVersion="edge"
         data-sap-ui-async="true"
         data-sap-ui-frameOptions="allow"

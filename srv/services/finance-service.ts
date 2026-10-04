@@ -1,12 +1,12 @@
 import cds, { Request } from "@sap/cds";
-import { Readable } from "node:stream";
 
-import { isoDate } from "../core/dates";
-import { accountantExport } from "../finance/accountant-export";
+import { registerReadOnlyFlag } from "../authorization/read-only-flag";
+import { auditActions } from "../collaboration/audit";
+import { registerComments } from "../collaboration/comments";
 import { importBankStatement } from "../finance/bank-import";
 import { dashboard } from "../finance/dashboard";
 import { confirmMatch, ignoreTransaction, matchManually, suggestMatches, unmatch } from "../finance/matching";
-import { vatOverview } from "../finance/vat-overview";
+import { registerPeriodReports } from "../finance/period-reports";
 import { currentOrganization } from "../organizations/organization-context";
 import { assertOwned, registerTenantGuard } from "../organizations/tenant-guard";
 import { rejectDomainError } from "../payments/payments";
@@ -18,6 +18,9 @@ export default class FinanceService extends cds.ApplicationService {
 	async init() {
 		const { BankTransactions } = this.entities as Record<string, cds.entity>;
 		registerTenantGuard(this);
+		registerReadOnlyFlag(this);
+		registerComments(this, { BankTransactions: "bankTransaction" });
+		auditActions(this, { BankTransactions: ["confirmMatch", "matchManually", "unmatch", "ignore"] });
 
 		this.on("importBankStatement", (req) =>
 			guarded(req, () => importBankStatement(req.data.fileName ?? "statement.csv", req.data.content ?? "")),
@@ -40,20 +43,7 @@ export default class FinanceService extends cds.ApplicationService {
 
 		// Users without organization see the onboarding instead of figures.
 		this.on("dashboard", () => (currentOrganization() ? dashboard() : { needsAttention: [] }));
-		this.on("vatOverview", (req) => {
-			const { fromDate, toDate } = period(req);
-			return vatOverview(fromDate, toDate);
-		});
-		this.on("accountantExport", async (req) => {
-			const { fromDate, toDate } = period(req);
-			const { content, fileName } = await accountantExport(fromDate, toDate);
-			return {
-				$mediaContentDispositionType: "attachment",
-				filename: fileName,
-				mimetype: "application/zip",
-				value: Readable.from(content),
-			};
-		});
+		registerPeriodReports(this);
 		return super.init();
 	}
 }
@@ -70,17 +60,4 @@ async function guarded(req: Request, operation: () => Promise<unknown>, returnSu
 function key(req: Request): string {
 	const value = req.params.at(-1);
 	return (typeof value === "object" ? (value as { ID: string }).ID : value) as string;
-}
-
-/** The requested period; defaults to the current month. */
-function period(req: Request): { fromDate: string; toDate: string } {
-	const today = new Date();
-	const fromDate =
-		(req.data.fromDate as string | undefined) ||
-		isoDate(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)));
-	const toDate = (req.data.toDate as string | undefined) || isoDate(today);
-	if (toDate < fromDate) {
-		return req.reject(400, "PERIOD_INVALID") as never;
-	}
-	return { fromDate, toDate };
 }

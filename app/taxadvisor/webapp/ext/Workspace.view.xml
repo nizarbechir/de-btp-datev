@@ -1,0 +1,159 @@
+<mvc:View
+	xmlns:core="sap.ui.core"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	xmlns:macros="sap.fe.macros"
+	controllerName="swiver.taxadvisor.ext.Workspace"
+>
+	<f:DynamicPage id="workspacePage" showFooter="false">
+		<f:title>
+			<f:DynamicPageTitle id="workspaceTitle">
+				<f:heading>
+					<Title id="workspaceHeading" text="{i18n>workspaceTitle}" />
+				</f:heading>
+				<f:expandedContent>
+					<Label id="workspaceSubtitle" text="{i18n>workspaceSubtitle}" />
+				</f:expandedContent>
+				<f:actions>
+					<DateRangeSelection id="period" width="16rem" valueFormat="yyyy-MM-dd" dateValue="{period>/from}" secondDateValue="{period>/to}" change=".onPeriodChange" />
+					<Button id="downloadExport" text="{i18n>exportForAccountant}" icon="sap-icon://download" type="Emphasized" press=".onExport" />
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:header>
+			<f:DynamicPageHeader id="workspaceHeader" pinnable="true">
+				<HBox id="kpis" wrap="Wrap" class="sapUiSmallMarginBottom">
+					<VBox id="vatKpi" class="sapUiMediumMarginEnd sapUiSmallMarginBottom">
+						<Label id="vatLabel" text="{i18n>estimatedVat}" />
+						<ObjectNumber id="vatValue" number="{vat>/estimatedVat}" unit="{vat>/currency}" emphasized="true" state="{= ${vat>/estimatedVat} > 0 ? 'Warning' : 'Success' }" />
+					</VBox>
+					<VBox id="outputVatKpi" class="sapUiMediumMarginEnd sapUiSmallMarginBottom">
+						<Label id="outputVatLabel" text="{i18n>outputVat}" />
+						<ObjectNumber id="outputVatValue" number="{vat>/outputVat}" unit="{vat>/currency}" />
+					</VBox>
+					<VBox id="inputVatKpi" class="sapUiMediumMarginEnd sapUiSmallMarginBottom">
+						<Label id="inputVatLabel" text="{i18n>inputVat}" />
+						<ObjectNumber id="inputVatValue" number="{vat>/inputVat}" unit="{vat>/currency}" />
+					</VBox>
+					<VBox id="netSalesKpi" class="sapUiMediumMarginEnd sapUiSmallMarginBottom">
+						<Label id="netSalesLabel" text="{i18n>netSales}" />
+						<ObjectNumber id="netSalesValue" number="{vat>/netSales}" unit="{vat>/currency}" />
+					</VBox>
+					<VBox id="netExpensesKpi" class="sapUiMediumMarginEnd sapUiSmallMarginBottom">
+						<Label id="netExpensesLabel" text="{i18n>netExpenses}" />
+						<ObjectNumber id="netExpensesValue" number="{vat>/netExpenses}" unit="{vat>/currency}" />
+					</VBox>
+				</HBox>
+				<Label id="attentionLabel" text="{i18n>needsAttention}" />
+				<HBox id="attention" wrap="Wrap">
+					<GenericTag id="openQuestionsTag" text="{i18n>openQuestions}" status="{= ${counts>/openQuestions} > 0 ? 'Warning' : 'Success' }" press=".onAttention($event, 'questions', 'resolved', false)" class="sapUiTinyMarginEnd sapUiTinyMarginTop">
+						<ObjectNumber id="openQuestionsCount" number="{counts>/openQuestions}" emphasized="false" />
+					</GenericTag>
+					<GenericTag id="missingDocumentsTag" text="{i18n>missingDocuments}" status="{= ${counts>/missingDocuments} > 0 ? 'Warning' : 'Success' }" press=".onAttention($event, 'supplierInvoices', 'missingDocument', true)" class="sapUiTinyMarginEnd sapUiTinyMarginTop">
+						<ObjectNumber id="missingDocumentsCount" number="{counts>/missingDocuments}" emphasized="false" />
+					</GenericTag>
+					<GenericTag id="uncategorizedTag" text="{i18n>uncategorized}" status="{= ${counts>/uncategorized} > 0 ? 'Warning' : 'Success' }" press=".onAttention($event, 'supplierInvoices', 'uncategorized', true)" class="sapUiTinyMarginEnd sapUiTinyMarginTop">
+						<ObjectNumber id="uncategorizedCount" number="{counts>/uncategorized}" emphasized="false" />
+					</GenericTag>
+					<GenericTag id="unprocessedReceiptsTag" text="{i18n>unprocessedReceipts}" status="{= ${counts>/unprocessedReceipts} > 0 ? 'Warning' : 'Success' }" press=".onAttention($event, 'receipts')" class="sapUiTinyMarginEnd sapUiTinyMarginTop">
+						<ObjectNumber id="unprocessedReceiptsCount" number="{counts>/unprocessedReceipts}" emphasized="false" />
+					</GenericTag>
+					<GenericTag id="unmatchedTag" text="{i18n>unmatchedTransactions}" status="{= ${counts>/unmatchedTransactions} > 0 ? 'Warning' : 'Success' }" press=".onAttention($event, 'bankTransactions', 'matchStatus_code', 'UNMATCHED')" class="sapUiTinyMarginEnd sapUiTinyMarginTop">
+						<ObjectNumber id="unmatchedCount" number="{counts>/unmatchedTransactions}" emphasized="false" />
+					</GenericTag>
+				</HBox>
+			</f:DynamicPageHeader>
+		</f:header>
+		<f:content>
+			<IconTabBar id="tabs" expandable="false" stretchContentHeight="false" selectedKey="{view>/tab}" applyContentPadding="false" class="sapUiResponsiveContentPadding">
+				<items>
+				<IconTabFilter id="questionsTab" key="questions" icon="sap-icon://comment" text="{i18n>questions}" count="{counts>/openQuestions}">
+					<macros:FilterBar id="questionsFilter" contextPath="/Questions" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="questionsTable"
+						contextPath="/Questions"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="questionsFilter"
+						header="{i18n>questions}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="supplierInvoicesTab" key="supplierInvoices" icon="sap-icon://receipt" text="{i18n>supplierInvoices}">
+					<macros:FilterBar id="supplierInvoicesFilter" contextPath="/SupplierInvoices" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="supplierInvoicesTable"
+						contextPath="/SupplierInvoices"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="supplierInvoicesFilter"
+						header="{i18n>supplierInvoices}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="salesInvoicesTab" key="salesInvoices" icon="sap-icon://sales-document" text="{i18n>salesInvoices}">
+					<macros:FilterBar id="salesInvoicesFilter" contextPath="/SalesInvoices" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="salesInvoicesTable"
+						contextPath="/SalesInvoices"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="salesInvoicesFilter"
+						header="{i18n>salesInvoices}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="receiptsTab" key="receipts" icon="sap-icon://inbox" text="{i18n>receipts}">
+					<macros:FilterBar id="receiptsFilter" contextPath="/Receipts" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="receiptsTable"
+						contextPath="/Receipts"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="receiptsFilter"
+						header="{i18n>receipts}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="bankTransactionsTab" key="bankTransactions" icon="sap-icon://loan" text="{i18n>bankTransactions}">
+					<macros:FilterBar id="bankTransactionsFilter" contextPath="/BankTransactions" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="bankTransactionsTable"
+						contextPath="/BankTransactions"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="bankTransactionsFilter"
+						header="{i18n>bankTransactions}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="paymentsTab" key="payments" icon="sap-icon://payment-approval" text="{i18n>payments}">
+					<macros:FilterBar id="paymentsFilter" contextPath="/Payments" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="paymentsTable"
+						contextPath="/Payments"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="paymentsFilter"
+						header="{i18n>payments}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				</items>
+			</IconTabBar>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

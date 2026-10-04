@@ -131,6 +131,8 @@ annotate service.CompanySettings with {
 // ---------------------------------------------------------------------------
 
 annotate service.Organizations with @(
+  // Only owners and admins edit, and only the organization they currently work in.
+  UI.UpdateHidden       : readOnly,
   UI.HeaderInfo         : {
     TypeName      : '{i18n>Organization}',
     TypeNamePlural: '{i18n>Organizations}',
@@ -141,8 +143,20 @@ annotate service.Organizations with @(
   UI.LineItem           : [
     {Value: name},
     {Value: slug},
-    {Value: status}
+    {Value: status},
+    {Value: isCurrent},
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'OrganizationService.switchTo',
+      Label : '{i18n>SwitchOrganization}',
+      Inline: true
+    }
   ],
+  UI.Identification     : [{
+    $Type : 'UI.DataFieldForAction',
+    Action: 'OrganizationService.inviteMember',
+    Label : '{i18n>InviteMember}'
+  }],
   UI.FieldGroup #General: {Data: [
     {Value: name},
     {Value: slug},
@@ -160,9 +174,45 @@ annotate service.Organizations with @(
       ID    : 'Members',
       Label : '{i18n>Members}',
       Target: 'members/@UI.LineItem'
+    },
+    {
+      $Type        : 'UI.ReferenceFacet',
+      ID           : 'Invitations',
+      Label        : '{i18n>Invitations}',
+      Target       : 'invitations/@UI.LineItem',
+      @UI.Hidden: readOnly
+    },
+    {
+      $Type        : 'UI.ReferenceFacet',
+      ID           : 'AuditLog',
+      Label        : '{i18n>AuditLog}',
+      Target       : 'auditLog/@UI.LineItem',
+      @UI.Hidden: readOnly
     }
   ]
 );
+
+annotate service.Organizations actions {
+  inviteMember @(
+    Core.OperationAvailable: {$edmJson: {$And: [{$Path: 'in/IsActiveEntity'}, {$Not: {$Path: 'in/readOnly'}}]}},
+    Common.SideEffects     : {TargetEntities: ['in/invitations', 'in/auditLog']}
+  )(role @(
+    UI.ParameterDefaultValue       : 'TAX_ADVISOR',
+    Common.ValueListWithFixedValues: true,
+    Common.ValueList               : {
+      CollectionPath: 'MembershipRoles',
+      Parameters    : [{
+        $Type            : 'Common.ValueListParameterInOut',
+        LocalDataProperty: role,
+        ValueListProperty: 'code'
+      }]
+    }
+  ));
+  switchTo     @(
+    Core.OperationAvailable: {$edmJson: {$Not: {$Path: 'in/isCurrent'}}},
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+};
 
 annotate service.Memberships with @(
   UI.HeaderInfo: {
@@ -172,9 +222,49 @@ annotate service.Memberships with @(
   },
   UI.LineItem  : [
     {Value: userId},
-    {Value: role}
+    {Value: role},
+    {Value: createdAt}
   ]
 );
+
+annotate service.Invitations with @(UI.LineItem: [
+  {
+    $Type : 'UI.DataFieldForAction',
+    Action: 'OrganizationService.resend',
+    Label : '{i18n>ResendInvitation}'
+  },
+  {
+    $Type : 'UI.DataFieldForAction',
+    Action: 'OrganizationService.revoke',
+    Label : '{i18n>RevokeInvitation}'
+  },
+  {Value: email},
+  {Value: role},
+  {Value: state},
+  {Value: expiresAt},
+  {Value: invitedBy},
+  {Value: acceptedAt}
+]);
+
+annotate service.Invitations actions {
+  resend @(
+    Core.OperationAvailable: {$edmJson: {$Or: [{$Eq: [{$Path: 'in/state'}, 'PENDING']}, {$Eq: [{$Path: 'in/state'}, 'EXPIRED']}]}},
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+  revoke @(
+    Core.OperationAvailable: {$edmJson: {$Eq: [{$Path: 'in/state'}, 'PENDING']}},
+    Common.IsActionCritical: true,
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+};
+
+annotate service.AuditLogEntries with @(UI.LineItem: [
+  {Value: at},
+  {Value: actor},
+  {Value: action},
+  {Value: targetType},
+  {Value: details}
+]);
 
 annotate service.Memberships with {
   role @(
