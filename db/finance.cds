@@ -117,3 +117,9 @@ entity ReminderRecords : cuid, managed, OrganizationOwned {
   subject   : String(255);
   message   : LargeString;
 }
+
+// Importing the same statement twice, even in parallel, never stores a booking twice.
+annotate BankTransactions with @assert.unique: {fingerprint: [
+  organization,
+  fingerprint
+]};

@@ -14,10 +14,16 @@ export async function nextCustomerNumber(): Promise<string> {
  */
 export async function nextNumber(name: string): Promise<number> {
 	const range = `${requireOrganization()}:${name}`;
-	const updated = await UPDATE(NumberRanges).set`lastNumber = lastNumber + 1`.where({ range });
-	if (!updated) {
-		await INSERT.into(NumberRanges).entries({ lastNumber: 1, range });
-		return 1;
+	if (!(await increment(range))) {
+		try {
+			await INSERT.into(NumberRanges).entries({ lastNumber: 1, range });
+			return 1;
+		} catch (error) {
+			// A parallel save created the range first (unique key): continue with its next number.
+			if (!(await increment(range))) {
+				throw error;
+			}
+		}
 	}
 	const { lastNumber } = (await SELECT.one.from(NumberRanges).columns("lastNumber").where({ range })) as {
 		lastNumber: number;
@@ -37,4 +43,8 @@ export async function nextSalesInvoiceNumber(prefix: string, invoiceDate: string
 	const year = invoiceDate.slice(0, 4);
 	const number = await nextNumber(`SalesInvoice-${year}`);
 	return `${prefix}-${year}-${String(number).padStart(4, "0")}`;
+}
+
+async function increment(range: string): Promise<number> {
+	return UPDATE(NumberRanges).set`lastNumber = lastNumber + 1`.where({ range });
 }
