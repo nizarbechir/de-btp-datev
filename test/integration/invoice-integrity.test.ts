@@ -223,3 +223,26 @@ describe("Invoice footer", () => {
 		expect((await POST(action(invoice.ID, "finalize"), {})).status).toBe(200);
 	});
 });
+
+describe("Invoice items", () => {
+	const product = "99999999-0000-4000-8000-000000000001";
+
+	it("take description, unit, price and VAT rate from the product, also when it comes with the new line", async () => {
+		const draft = await POST(`${SALES}/SalesInvoices`, { customer_ID: customerID });
+		const items = `${SALES}/SalesInvoices(ID=${draft.data.ID},IsActiveEntity=false)/items`;
+
+		const created = await POST(items, { productService_ID: product });
+		expect(created.data).toMatchObject({
+			description: "SAP BTP Consulting",
+			taxRate: "19",
+			unit: "day",
+			unitPrice: "1000.00",
+		});
+
+		const empty = await POST(items, {});
+		const picked = await PATCH(`${SALES}/SalesInvoiceItems(ID=${empty.data.ID},IsActiveEntity=false)`, {
+			productService_ID: product,
+		});
+		expect(picked.data).toMatchObject({ description: "SAP BTP Consulting", unitPrice: "1000.00" });
+	});
+});

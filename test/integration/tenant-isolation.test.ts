@@ -182,8 +182,9 @@ describe("Reading", () => {
 
 		const vat = await GET(`${FINANCE}/vatOverview(fromDate=2026-01-01,toDate=2026-12-31)`, bob);
 		expect(vat.status).toBe(200);
-		expect(Number(vat.data.outputTax ?? 0)).toBe(0);
-		expect(Number(vat.data.inputTax ?? 0)).toBe(0);
+		expect(vat.data).toMatchObject({ expenseCount: 0, salesInvoiceCount: 0 });
+		expect(Number(vat.data.outputVat)).toBe(0);
+		expect(Number(vat.data.inputVat)).toBe(0);
 
 		const exported = await GET(`${FINANCE}/accountantExport(fromDate=2026-01-01,toDate=2026-12-31)`, {
 			...bob,

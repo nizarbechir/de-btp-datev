@@ -26,7 +26,10 @@ cds.on("served", async () => {
 	await migrateToOrganizations();
 	// The demo invoices in test/data are dated around demoDataDate. In development, move them to today
 	// so the dashboard always shows open, overdue and due-soon invoices.
-	if (cds.env.profiles.includes("development")) {
+	// Only for the in-memory development database: a persistent database (e.g. HANA in hybrid mode) would be
+	// shifted again on every start, including real data.
+	const db = cds.env.requires.db as { credentials?: { url?: string }; kind?: string };
+	if (cds.env.profiles.includes("development") && db.kind === "sqlite" && db.credentials?.url === ":memory:") {
 		await shiftDemoDates();
 	}
 });
