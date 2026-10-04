@@ -425,8 +425,8 @@ annotate swiver.BankTransactions with @(
   importBatch              @title: '{i18n>BankImport}'               @Common.Text: importBatch.fileName;
   matchStatus              @title: '{i18n>MatchStatus}';
   fingerprint              @UI.Hidden;
-  suggestedSalesInvoice    @title: '{i18n>SuggestedSalesInvoice}'    @Common.Text: suggestedSalesInvoice.invoiceNumber;
-  suggestedSupplierInvoice @title: '{i18n>SuggestedSupplierInvoice}' @Common.Text: suggestedSupplierInvoice.invoiceNumber;
+  suggestedSalesInvoice    @title: '{i18n>SuggestedSalesInvoice}'    @Common.Text: suggestedSalesInvoice.invoiceNumber  @Common.TextArrangement: #TextOnly;
+  suggestedSupplierInvoice @title: '{i18n>SuggestedSupplierInvoice}' @Common.Text: suggestedSupplierInvoice.invoiceNumber  @Common.TextArrangement: #TextOnly;
   suggestionReason         @title: '{i18n>SuggestionReason}';
   payment                  @title: '{i18n>Payment}'                  @UI.Hidden;
   direction                @title: '{i18n>Direction}';

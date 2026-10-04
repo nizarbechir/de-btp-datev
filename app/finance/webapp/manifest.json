@@ -207,7 +207,18 @@
 						"settings": {
 							"editableHeaderContent": false,
 							"contextPath": "/BankTransactions",
-							"enhanceI18n": "i18n/i18n.properties"
+							"enhanceI18n": "i18n/i18n.properties",
+							"content": {
+								"header": {
+									"actions": {
+										"openInvoicePdf": {
+											"press": "swiver.finance.ext.bank.BankImport.openInvoicePdf",
+											"text": "{i18n>openInvoicePdf}",
+											"visible": "{= !!${suggestedSalesInvoice_ID} }"
+										}
+									}
+								}
+							}
 						}
 					}
 				},

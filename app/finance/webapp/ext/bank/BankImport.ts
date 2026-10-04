@@ -4,6 +4,7 @@ import Button from "sap/m/Button";
 import Dialog from "sap/m/Dialog";
 import MessageBox from "sap/m/MessageBox";
 import MessageToast from "sap/m/MessageToast";
+import Context from "sap/ui/model/odata/v4/Context";
 import ODataModel from "sap/ui/model/odata/v4/ODataModel";
 import ResourceModel from "sap/ui/model/resource/ResourceModel";
 import FileUploader from "sap/ui/unified/FileUploader";
@@ -27,6 +28,7 @@ function text(api: ExtensionAPI, key: string, args: unknown[] = []): string {
 }
 
 const BankImport = {
+	/** Opens the generated PDF of the suggested customer invoice (they have no uploaded file). */
 	importCsv(this: ExtensionAPI): void {
 		const uploader = new FileUploader({
 			fileType: ["csv", "txt"],
@@ -65,6 +67,12 @@ const BankImport = {
 		});
 		dialog.addStyleClass("sapUiContentPadding");
 		dialog.open();
+	},
+
+	openInvoicePdf(this: ExtensionAPI, context: Context): void {
+		const id = context.getProperty("suggestedSalesInvoice_ID") as string;
+		const sales = (this.getModel() as ODataModel).getServiceUrl().replace(/finance\/$/, "sales/");
+		window.open(`${sales}SalesInvoices(ID=${id},IsActiveEntity=true)/SalesService.pdf(download=false)`, "_blank");
 	},
 
 	async suggestMatches(this: ExtensionAPI): Promise<void> {
