@@ -39,8 +39,10 @@ annotate service.BankTransactions with @(
     },
     {Value: reference},
     {
-      Value         : amount,
-      @UI.Importance: #High
+      Value                    : amount,
+      Criticality              : amountCriticality,
+      CriticalityRepresentation: #WithoutIcon,
+      @UI.Importance           : #High
     },
     {
       Value         : matchStatus_code,
@@ -124,8 +126,9 @@ annotate service.BankTransactions with @(
     }
   ],
   UI.DataPoint #amount           : {
-    Value: amount,
-    Title: '{i18n>Amount}'
+    Value      : amount,
+    Title      : '{i18n>Amount}',
+    Criticality: amountCriticality
   },
   UI.DataPoint #status           : {
     Value      : matchStatus_code,
@@ -191,10 +194,7 @@ annotate service.BankTransactions with {
 
 annotate service.BankTransactions actions {
   // Comments and questions, also from the tax advisor
-  addComment @(
-    Core.OperationAvailable: {$edmJson: {$Path: 'in/IsActiveEntity'}},
-    Common.SideEffects     : {TargetEntities: ['in/comments']}
-  );
+  addComment @(Common.SideEffects: {TargetEntities: ['in/comments']});
   confirmMatch  @(
     Core.OperationAvailable: {$edmJson: {$And: [{$Eq: [{$Path: 'in/matchStatus_code'}, 'SUGGESTED']}, {$Not: {$Path: 'in/readOnly'}}]}},
     Common.SideEffects     : {TargetProperties: ['in/*']}

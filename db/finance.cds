@@ -74,6 +74,12 @@ entity BankTransactions : cuid, managed, OrganizationOwned {
                                           then 'OUT'
                                           else 'IN'
                                         end);
+  // Money in green, money out red.
+  amountCriticality      : Integer = (case
+                                        when amount < 0
+                                        then 1
+                                        else 3
+                                      end);
   matchStatusCriticality : Integer = (case
                                         when matchStatus.code = 'MATCHED'
                                         then 3
