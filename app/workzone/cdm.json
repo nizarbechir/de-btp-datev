@@ -25,6 +25,10 @@
 					"vizId": "Finance-manage"
 				},
 				{
+					"appId": "swiver.taxadvisor",
+					"vizId": "TaxAdvisor-display"
+				},
+				{
 					"appId": "swiver.settings",
 					"vizId": "Settings-manage"
 				}
@@ -65,6 +69,10 @@
 					"vizId": "Finance-manage"
 				},
 				{
+					"appId": "swiver.taxadvisor",
+					"vizId": "TaxAdvisor-display"
+				},
+				{
 					"appId": "swiver.settings",
 					"vizId": "Settings-manage"
 				}
@@ -99,6 +107,9 @@
 				},
 				{
 					"id": "swiver.finance"
+				},
+				{
+					"id": "swiver.taxadvisor"
 				},
 				{
 					"id": "swiver.settings"
@@ -177,6 +188,11 @@
 							"id": "swiverfinanceWidget",
 							"appId": "swiver.finance",
 							"vizId": "Finance-manage"
+						},
+						{
+							"id": "swivertaxadvisorWidget",
+							"appId": "swiver.taxadvisor",
+							"vizId": "TaxAdvisor-display"
 						},
 						{
 							"id": "swiversettingsWidget",

@@ -2,6 +2,7 @@ using from '../services/sales-service';
 using from '../services/purchasing-service';
 using from '../services/finance-service';
 using from '../services/organization-service';
+using from '../services/tax-advisor-service';
 
 // Any signed-in user may use Swiver; what they see is decided by their organization membership.
 // Every record is restricted to the organization of the signed-in user ($user.organization),
@@ -440,3 +441,90 @@ annotate OrganizationService.AuditLogEntries with @(restrict: [
     where: 'organization_ID = $user.organization and actor = $user'
   }
 ]);
+
+// Tax advisor workspace: read-only, for tax advisors and for owners and admins.
+annotate TaxAdvisorService with @(requires: [
+  'TaxAdvisor',
+  'OrganizationAdmin'
+]);
+
+annotate TaxAdvisorService.Questions with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.SupplierInvoices with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.SalesInvoices with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.Receipts with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.BankTransactions with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.Payments with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.Suppliers with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.Customers with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate TaxAdvisorService.ExpenseCategories with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'TaxAdvisor',
+    'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);

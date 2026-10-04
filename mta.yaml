@@ -137,6 +137,10 @@ modules:
           artifacts:
             - swiversettings.zip
           target-path: resources/
+        - name: swivertaxadvisor
+          artifacts:
+            - swivertaxadvisor.zip
+          target-path: resources/
   - name: swiver-destination-content
     type: com.sap.application.content
     requires:
@@ -200,6 +204,16 @@ modules:
   - name: swiverfinance
     type: html5
     path: app/finance
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swivertaxadvisor
+    type: html5
+    path: app/taxadvisor
     build-parameters:
       build-result: dist
       builder: custom
