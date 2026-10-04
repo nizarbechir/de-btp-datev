@@ -4,6 +4,8 @@ import Button from "sap/m/Button";
 import Dialog from "sap/m/Dialog";
 import MessageBox from "sap/m/MessageBox";
 import MessageToast from "sap/m/MessageToast";
+import Event from "sap/ui/base/Event";
+import Control from "sap/ui/core/Control";
 import Context from "sap/ui/model/odata/v4/Context";
 import ODataModel from "sap/ui/model/odata/v4/ODataModel";
 import ResourceModel from "sap/ui/model/resource/ResourceModel";
@@ -69,9 +71,10 @@ const BankImport = {
 		dialog.open();
 	},
 
-	openInvoicePdf(this: ExtensionAPI, context: Context): void {
+	openInvoicePdf(event: Event): void {
+		const context = (event.getSource() as Control).getBindingContext() as Context;
 		const id = context.getProperty("suggestedSalesInvoice_ID") as string;
-		const sales = (this.getModel() as ODataModel).getServiceUrl().replace(/finance\/$/, "sales/");
+		const sales = (context.getModel() as ODataModel).getServiceUrl().replace(/finance\/$/, "sales/");
 		window.open(`${sales}SalesInvoices(ID=${id},IsActiveEntity=true)/SalesService.pdf(download=false)`, "_blank");
 	},
 

@@ -208,13 +208,16 @@
 							"editableHeaderContent": false,
 							"contextPath": "/BankTransactions",
 							"enhanceI18n": "i18n/i18n.properties",
-							"content": {
-								"header": {
-									"actions": {
-										"openInvoicePdf": {
-											"press": "swiver.finance.ext.bank.BankImport.openInvoicePdf",
-											"text": "{i18n>openInvoicePdf}",
-											"visible": "{= !!${suggestedSalesInvoice_ID} }"
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.FieldGroup#Match": {
+									"fields": {
+										"invoicePdf": {
+											"template": "swiver.finance.ext.bank.InvoicePdf",
+											"label": "{i18n>invoicePdf}",
+											"position": {
+												"placement": "After",
+												"anchor": "DataField::suggestedSalesInvoice_ID"
+											}
 										}
 									}
 								}

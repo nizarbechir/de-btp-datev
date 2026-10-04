@@ -1,0 +1,9 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+	<!-- Customer invoices have no uploaded file: this opens their generated PDF -->
+	<Link
+		core:require="{BankImport: 'swiver/finance/ext/bank/BankImport'}"
+		text="{= ${suggestedSalesInvoice_ID} ? ${i18n>openPdf} : '–' }"
+		enabled="{= !!${suggestedSalesInvoice_ID} }"
+		press="BankImport.openInvoicePdf"
+	/>
+</core:FragmentDefinition>
