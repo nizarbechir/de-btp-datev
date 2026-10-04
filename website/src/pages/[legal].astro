@@ -1,0 +1,50 @@
+---
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { getContent } from "../i18n";
+import Base from "../layouts/Base.astro";
+
+export function getStaticPaths() {
+	return Object.keys(getContent().legal.pages).map((legal) => ({ params: { legal } }));
+}
+
+const t = getContent();
+const key = Astro.params.legal as keyof typeof t.legal.pages;
+const page = t.legal.pages[key];
+---
+
+<!-- TODO: replace the placeholder with the reviewed legal text before going live. -->
+<Base title={`${page.title} – Swiver`} noindex>
+	<Header />
+	<main id="inhalt" class="container legal">
+		<h1>{page.title}</h1>
+		<p>{t.legal.placeholder}</p>
+		<a href="/">{t.legal.back}</a>
+	</main>
+	<Footer />
+</Base>
+
+<style>
+	.legal {
+		display: grid;
+		gap: var(--space-6);
+		justify-items: start;
+		min-height: 50vh;
+		padding-block: var(--space-section);
+	}
+	h1 {
+		font-size: var(--text-2xl);
+		letter-spacing: var(--tracking-tight);
+	}
+	p {
+		color: var(--color-ink-500);
+	}
+	a {
+		font-weight: 500;
+		text-underline-offset: 3px;
+	}
+</style>
+
+<script>
+	import "../scripts/enhance";
+</script>

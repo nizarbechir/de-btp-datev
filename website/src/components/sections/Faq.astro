@@ -1,0 +1,96 @@
+---
+import { getContent } from "../../i18n";
+import SectionHeader from "../ui/SectionHeader.astro";
+
+const t = getContent();
+const f = t.faq;
+---
+
+<section id="fragen" class="section faq" aria-labelledby="fragen-title">
+	<div class="container grid">
+		<div class="intro">
+			<SectionHeader id="fragen-title" eyebrow={f.eyebrow} title={f.title} />
+		</div>
+		<div class="list">
+			{
+				f.items.map((item, i) => (
+					<details open={i === 0}>
+						<summary>
+							<h3>{item.q}</h3>
+							<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+								<path d="M8 3v10M3 8h10" class="v" />
+							</svg>
+						</summary>
+						<p>{item.a}</p>
+					</details>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.faq {
+		border-top: 1px solid var(--color-line);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+		gap: var(--space-12) var(--space-16);
+		align-items: start;
+	}
+	.intro {
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-8));
+	}
+	.list {
+		border-top: 1px solid var(--color-line);
+	}
+	details {
+		border-bottom: 1px solid var(--color-line);
+	}
+	summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-6);
+		padding-block: var(--space-5);
+		cursor: pointer;
+		list-style: none;
+	}
+	summary::-webkit-details-marker {
+		display: none;
+	}
+	summary:focus-visible {
+		outline-offset: 0;
+	}
+	h3 {
+		font-size: var(--text-base);
+		font-weight: 550;
+		letter-spacing: -0.01em;
+	}
+	svg {
+		flex: none;
+		fill: none;
+		stroke: var(--color-ink-500);
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		transition: transform var(--duration-fast) ease;
+	}
+	details[open] svg {
+		transform: rotate(45deg);
+	}
+	details p {
+		max-width: 40rem;
+		padding-bottom: var(--space-6);
+		color: var(--color-ink-500);
+	}
+	@media (max-width: 56rem) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+		.intro {
+			position: static;
+		}
+	}
+</style>

@@ -1,0 +1,333 @@
+---
+import { formatMoney, getContent } from "../../i18n";
+import CashflowChart from "./CashflowChart.astro";
+import StatusPill from "./StatusPill.astro";
+
+const t = getContent();
+const a = t.app;
+const year = new Date().getFullYear();
+type Tone = "good" | "warning" | "critical" | "neutral";
+---
+
+<div class="app">
+	<aside class="sidebar">
+		<div class="org">
+			<span class="org-badge">HD</span>
+			<span class="org-name">{a.org}</span>
+		</div>
+		<ul class="side-nav">
+			{
+				a.nav.map((item, i) => (
+					<li class:list={{ active: i === 0 }}>
+						<i />
+						{item}
+					</li>
+				))
+			}
+		</ul>
+	</aside>
+
+	<div class="main">
+		<div class="page-head">
+			<span class="page-title">{a.title}</span>
+			<span class="period">{a.period}</span>
+		</div>
+
+		<div class="kpis">
+			{
+				a.kpis.map((kpi) => (
+					<div class:list={["kpi", kpi.tone && `kpi-${kpi.tone}`]}>
+						<span class="kpi-label">{kpi.label}</span>
+						<span class="kpi-value num" data-count={kpi.value}>
+							{formatMoney(t.lang, kpi.value)}
+						</span>
+						<span class="kpi-meta">{kpi.meta}</span>
+					</div>
+				))
+			}
+		</div>
+
+		<div class="panels">
+			<section class="panel chart-panel">
+				<CashflowChart />
+			</section>
+			<section class="panel attention">
+				<span class="panel-title">{a.attention.title}</span>
+				<ul>
+					{
+						a.attention.items.map((item) => (
+							<li>
+								<span class:list={["count num", `count-${item.tone}`]}>{item.count}</span>
+								<span>{item.text}</span>
+								<svg viewBox="0 0 16 16" width="12" height="12">
+									<path d="m6 3 5 5-5 5" />
+								</svg>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+		</div>
+
+		<section class="panel invoices">
+			<span class="panel-title">{a.invoices.title}</span>
+			<table>
+				<thead>
+					<tr>{a.invoices.columns.map((col) => <th>{col}</th>)}</tr>
+				</thead>
+				<tbody>
+					{
+						a.invoices.rows.map((row) => (
+							<tr>
+								<td class="num mono">{`RE-${year}-${row.number}`}</td>
+								<td>{row.customer}</td>
+								<td class="num amount">{formatMoney(t.lang, row.amount)}</td>
+								<td>
+									<StatusPill tone={row.tone as Tone}>{row.status}</StatusPill>
+								</td>
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+		</section>
+	</div>
+</div>
+
+<style>
+	.app {
+		display: grid;
+		grid-template-columns: 12.5rem minmax(0, 1fr);
+		min-height: 100%;
+		background: var(--color-surface-muted);
+	}
+	.sidebar {
+		padding: 1rem 0.75rem;
+		border-right: 1px solid var(--color-line);
+		background: var(--color-surface);
+	}
+	.org {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.375rem 0.5rem 1rem;
+		font-weight: 600;
+	}
+	.org-badge {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 6px;
+		background: var(--color-ink-950);
+		color: #fff;
+		font-size: 0.625rem;
+		letter-spacing: 0.02em;
+	}
+	.org-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.side-nav {
+		display: grid;
+		gap: 2px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.side-nav li {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.4375rem 0.5rem;
+		border-radius: 6px;
+		color: var(--color-ink-500);
+	}
+	.side-nav i {
+		width: 0.875rem;
+		height: 0.875rem;
+		border: 1.5px solid currentColor;
+		border-radius: 4px;
+		opacity: 0.7;
+	}
+	.side-nav .active {
+		background: var(--color-paper);
+		color: var(--color-ink-950);
+		font-weight: 550;
+	}
+	.side-nav .active i {
+		border-color: var(--color-accent);
+		background: var(--color-accent-soft);
+		opacity: 1;
+	}
+	.main {
+		display: grid;
+		gap: 0.875rem;
+		padding: 1.25rem 1.5rem 1.5rem;
+		align-content: start;
+	}
+	.page-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+	}
+	.page-title {
+		font-size: 1.125rem;
+		font-weight: 650;
+		letter-spacing: -0.015em;
+	}
+	.period {
+		padding: 0.1875rem 0.625rem;
+		border: 1px solid var(--color-line);
+		border-radius: 6px;
+		background: var(--color-surface);
+		color: var(--color-ink-700);
+		font-size: 0.75rem;
+	}
+	.kpis {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+	}
+	.kpi {
+		display: grid;
+		gap: 0.25rem;
+		padding: 0.875rem 1rem;
+	}
+	.kpi + .kpi {
+		border-left: 1px solid var(--color-line);
+	}
+	.kpi-label {
+		color: var(--color-ink-500);
+		font-size: 0.75rem;
+	}
+	.kpi-value {
+		font-size: 1.25rem;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		white-space: nowrap;
+	}
+	.kpi-critical .kpi-value {
+		color: var(--color-critical);
+	}
+	.kpi-meta {
+		color: var(--color-ink-400);
+		font-size: 0.6875rem;
+	}
+	.panels {
+		display: grid;
+		grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+		gap: 0.875rem;
+	}
+	.panel {
+		padding: 1rem;
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+	}
+	.panel-title {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+	}
+	.attention ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.attention li {
+		display: grid;
+		grid-template-columns: 1.75rem 1fr auto;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5625rem 0;
+		color: var(--color-ink-700);
+	}
+	.attention li + li {
+		border-top: 1px solid var(--color-line);
+	}
+	.attention svg {
+		fill: none;
+		stroke: var(--color-ink-400);
+		stroke-width: 1.6;
+	}
+	.count {
+		display: grid;
+		place-items: center;
+		height: 1.375rem;
+		border-radius: 6px;
+		background: var(--color-paper-deep);
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+	.count-critical {
+		background: var(--color-critical-soft);
+		color: var(--color-critical);
+	}
+	.count-warning {
+		background: var(--color-warning-soft);
+		color: var(--color-warning);
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	th {
+		padding: 0.375rem 0;
+		border-bottom: 1px solid var(--color-line);
+		color: var(--color-ink-500);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		text-align: left;
+	}
+	td {
+		padding: 0.5625rem 0;
+		border-bottom: 1px solid var(--color-line);
+	}
+	tr:last-child td {
+		border-bottom: 0;
+	}
+	th:nth-child(3),
+	.amount {
+		padding-right: 1.5rem;
+		text-align: right;
+	}
+	.mono {
+		color: var(--color-ink-500);
+	}
+
+	/* The frame is a container: adapt the composition, not just the scale. */
+	@container (max-width: 52rem) {
+		.app {
+			grid-template-columns: 1fr;
+		}
+		.sidebar {
+			display: none;
+		}
+	}
+	@container (max-width: 40rem) {
+		.main {
+			padding: 1rem;
+		}
+		.kpis {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.kpi:nth-child(3) {
+			border-left: 0;
+		}
+		.kpi:nth-child(n + 3) {
+			border-top: 1px solid var(--color-line);
+		}
+		.panels {
+			grid-template-columns: 1fr;
+		}
+		.chart-panel,
+		.invoices {
+			display: none;
+		}
+	}
+</style>

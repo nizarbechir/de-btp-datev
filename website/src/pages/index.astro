@@ -1,0 +1,62 @@
+---
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import EInvoice from "../components/sections/EInvoice.astro";
+import Faq from "../components/sections/Faq.astro";
+import Features from "../components/sections/Features.astro";
+import FinalCta from "../components/sections/FinalCta.astro";
+import Hero from "../components/sections/Hero.astro";
+import Pricing from "../components/sections/Pricing.astro";
+import Security from "../components/sections/Security.astro";
+import SocialProof from "../components/sections/SocialProof.astro";
+import TaxAdvisors from "../components/sections/TaxAdvisors.astro";
+import Workflow from "../components/sections/Workflow.astro";
+import { site } from "../config/site";
+import { getContent } from "../i18n";
+import Base from "../layouts/Base.astro";
+
+const t = getContent();
+const structuredData = [
+	{
+		"@context": "https://schema.org",
+		"@type": "SoftwareApplication",
+		name: site.name,
+		applicationCategory: "BusinessApplication",
+		operatingSystem: "Web",
+		description: t.meta.description,
+		inLanguage: t.lang,
+		url: Astro.site?.href,
+		publisher: { "@type": "Organization", name: site.operator },
+	},
+	{
+		"@context": "https://schema.org",
+		"@type": "FAQPage",
+		mainEntity: t.faq.items.map((item) => ({
+			"@type": "Question",
+			name: item.q,
+			acceptedAnswer: { "@type": "Answer", text: item.a },
+		})),
+	},
+];
+---
+
+<Base structuredData={structuredData}>
+	<Header />
+	<main id="inhalt">
+		<Hero />
+		<Workflow />
+		<SocialProof />
+		<EInvoice />
+		<Features />
+		<TaxAdvisors />
+		<Security />
+		<Pricing />
+		<Faq />
+		<FinalCta />
+	</main>
+	<Footer />
+</Base>
+
+<script>
+	import "../scripts/enhance";
+</script>

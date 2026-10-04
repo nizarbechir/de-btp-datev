@@ -1,0 +1,156 @@
+---
+import { site } from "../../config/site";
+import { getContent } from "../../i18n";
+import AppFrame from "../product/AppFrame.astro";
+import Dashboard from "../product/Dashboard.astro";
+import Button from "../ui/Button.astro";
+
+const t = getContent();
+const h = t.hero;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+	<div class="container">
+		<div class="intro">
+			<div class="headline">
+				<p class="eyebrow">{h.eyebrow}</p>
+				<h1 id="hero-title">
+					<span>{h.titleLead}</span>
+					<span class="rest">{h.titleRest}</span>
+				</h1>
+			</div>
+			<div class="support">
+				<p class="lede">{h.lede}</p>
+				<div class="ctas">
+					<Button href={site.signupUrl} size="lg">{h.primary}</Button>
+					<Button href="#ablauf" variant="secondary" size="lg">{h.secondary}</Button>
+				</div>
+			</div>
+		</div>
+		<ul class="facts" role="list">
+			{
+				h.facts.map((fact) => (
+					<li>
+						<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+							<path d="m3.5 8.5 3 3 6-7" />
+						</svg>
+						{fact}
+					</li>
+				))
+			}
+		</ul>
+	</div>
+
+	<div class="stage">
+		<div class="container">
+			<div class="frame-wrap">
+				<AppFrame label={t.a11y.productPreview}>
+					<Dashboard />
+				</AppFrame>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		position: relative;
+		padding-top: clamp(3rem, 2rem + 5vw, 6.5rem);
+		overflow: hidden;
+	}
+	.intro {
+		display: grid;
+		gap: var(--space-10);
+	}
+	h1 {
+		max-width: 17em;
+	}
+	.support {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-8) var(--space-12);
+	}
+	.lede {
+		max-width: 36rem;
+	}
+	.eyebrow {
+		margin-bottom: var(--space-6);
+		color: var(--color-ink-500);
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+	h1 {
+		font-size: var(--text-3xl);
+		font-weight: 620;
+		letter-spacing: -0.035em;
+		line-height: var(--leading-tight);
+	}
+	h1 span {
+		display: block;
+	}
+	.rest {
+		color: var(--color-ink-500);
+	}
+	.lede {
+		color: var(--color-ink-700);
+		font-size: var(--text-lg);
+		line-height: 1.55;
+	}
+	.ctas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+	}
+	.facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3) var(--space-8);
+		margin-top: var(--space-12);
+		padding-top: var(--space-6);
+		border-top: 1px solid var(--color-line);
+		color: var(--color-ink-700);
+		font-size: var(--text-sm);
+	}
+	.facts li {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.facts svg {
+		fill: none;
+		stroke: var(--color-accent);
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.stage {
+		position: relative;
+		margin-top: var(--space-16);
+		padding-bottom: var(--space-section);
+	}
+	/* A warm plinth under the product frame, starting halfway down. */
+	.stage::before {
+		content: "";
+		position: absolute;
+		inset: 38% 0 0;
+		background: var(--color-paper-deep);
+		border-top: 1px solid var(--color-line);
+	}
+	.frame-wrap {
+		position: relative;
+	}
+	@media (max-width: 36rem) {
+		.ctas {
+			display: grid;
+		}
+		.facts {
+			display: grid;
+			margin-top: var(--space-10);
+		}
+		.stage {
+			margin-top: var(--space-10);
+		}
+	}
+</style>

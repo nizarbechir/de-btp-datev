@@ -1,0 +1,58 @@
+---
+interface Props {
+	id?: string;
+	eyebrow: string;
+	title: string;
+	lede?: string;
+	align?: "start" | "center";
+	tone?: "light" | "dark";
+}
+const { id, eyebrow, title, lede, align = "start", tone = "light" } = Astro.props;
+---
+
+<header class:list={["section-header", `align-${align}`, `tone-${tone}`]} data-reveal>
+	<p class="eyebrow">{eyebrow}</p>
+	<h2 id={id}>{title}</h2>
+	{lede && <p class="lede">{lede}</p>}
+</header>
+
+<style>
+	.section-header {
+		display: grid;
+		gap: var(--space-4);
+		max-width: 46rem;
+	}
+	.align-center {
+		margin-inline: auto;
+		text-align: center;
+	}
+	.eyebrow {
+		color: var(--color-accent);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		letter-spacing: 0.01em;
+	}
+	h2 {
+		font-size: var(--text-2xl);
+		letter-spacing: var(--tracking-tight);
+		line-height: 1.12;
+	}
+	.lede {
+		max-width: 38rem;
+		color: var(--color-ink-500);
+		font-size: var(--text-lg);
+		line-height: 1.55;
+	}
+	.align-center .lede {
+		margin-inline: auto;
+	}
+	.tone-dark .eyebrow {
+		color: var(--color-accent-on-dark);
+	}
+	.tone-dark h2 {
+		color: var(--color-dark-text);
+	}
+	.tone-dark .lede {
+		color: var(--color-dark-muted);
+	}
+</style>

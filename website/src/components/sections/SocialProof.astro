@@ -1,0 +1,86 @@
+---
+import { socialProof } from "../../config/socialProof";
+import { getContent } from "../../i18n";
+
+const t = getContent();
+const { enabled, statement, logos, testimonials } = socialProof;
+const visible = enabled && (logos.length > 0 || testimonials.length > 0);
+---
+
+{
+	visible && (
+		<section class="proof" aria-labelledby="proof-title">
+			<div class="container">
+				<h2 id="proof-title" class="visually-hidden">
+					{t.socialProof.title}
+				</h2>
+				{statement && <p class="statement">{statement}</p>}
+				{logos.length > 0 && (
+					<ul class="logos" role="list">
+						{logos.map((logo) => (
+							<li>
+								<img src={logo.src} alt={logo.name} height="28" loading="lazy" decoding="async" />
+							</li>
+						))}
+					</ul>
+				)}
+				{testimonials.length > 0 && (
+					<div class="quotes">
+						{testimonials.map((item) => (
+							<figure>
+								<blockquote>
+									<p>{item.quote}</p>
+								</blockquote>
+								<figcaption>
+									<strong>{item.name}</strong>
+									<span>
+										{item.role}, {item.company}
+									</span>
+								</figcaption>
+							</figure>
+						))}
+					</div>
+				)}
+			</div>
+		</section>
+	)
+}
+
+<style>
+	.proof {
+		padding-block: var(--space-16);
+		border-top: 1px solid var(--color-line);
+	}
+	.statement {
+		color: var(--color-ink-500);
+		font-size: var(--text-sm);
+		text-align: center;
+	}
+	.logos {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: var(--space-8) var(--space-12);
+		margin-top: var(--space-8);
+		opacity: 0.7;
+	}
+	.quotes {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+		gap: var(--space-10);
+		margin-top: var(--space-12);
+	}
+	blockquote {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: 1.5;
+	}
+	figcaption {
+		display: grid;
+		margin-top: var(--space-4);
+		font-size: var(--text-sm);
+	}
+	figcaption span {
+		color: var(--color-ink-500);
+	}
+</style>

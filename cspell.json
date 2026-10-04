@@ -27,7 +27,8 @@
 		"Makefile*.mta",
 		"scripts/**",
 		"test/**",
-		"db/data/**"
+		"db/data/**",
+		"website/**"
 	],
 	"words": [
 		"approuter",

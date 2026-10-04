@@ -1,0 +1,70 @@
+---
+interface Props {
+	/** Accessible description of what the frame shows. */
+	label: string;
+	title?: string;
+	class?: string;
+}
+const { label, title = "Swiver", class: className } = Astro.props;
+---
+
+<figure class:list={["frame", className]} role="img" aria-label={label}>
+	<div class="chrome" aria-hidden="true">
+		<span class="lights"><i></i><i></i><i></i></span>
+		<span class="address">
+			<svg viewBox="0 0 16 16" width="11" height="11"><path d="M4.5 7V5.5a3.5 3.5 0 0 1 7 0V7h.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h.5Zm1.5 0h4V5.5a2 2 0 1 0-4 0V7Z"></path></svg>
+			{title}
+		</span>
+		<span class="spacer"></span>
+	</div>
+	<div class="viewport" aria-hidden="true"><slot /></div>
+</figure>
+
+<style>
+	.frame {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-frame);
+		container-type: inline-size;
+		font-size: 0.8125rem;
+		line-height: 1.4;
+		color: var(--color-ink-950);
+	}
+	.chrome {
+		display: grid;
+		grid-template-columns: 4rem 1fr 4rem;
+		align-items: center;
+		height: 2.25rem;
+		padding-inline: var(--space-3);
+		border-bottom: 1px solid var(--color-line);
+		background: var(--color-surface-muted);
+	}
+	.lights {
+		display: flex;
+		gap: 6px;
+	}
+	.lights i {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: var(--color-line-strong);
+	}
+	.address {
+		display: inline-flex;
+		align-items: center;
+		justify-self: center;
+		gap: 6px;
+		padding: 2px 12px;
+		border-radius: var(--radius-sm);
+		background: var(--color-paper-deep);
+		color: var(--color-ink-500);
+		font-size: 0.6875rem;
+	}
+	.address svg {
+		fill: currentColor;
+	}
+	.viewport {
+		user-select: none;
+	}
+</style>
