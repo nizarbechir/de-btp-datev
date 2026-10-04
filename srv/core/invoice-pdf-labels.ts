@@ -1,9 +1,3 @@
-/**
- * Texts and number/date formats of the invoice PDF. A document is printed in exactly one
- * language, chosen in the company settings (German by default).
- */
-export type DocumentLanguage = "de" | "en";
-
 export interface PdfLabels {
 	amount: string;
 	assignedWhenSaved: string;
@@ -44,6 +38,10 @@ export interface PdfLabels {
 /** What an invoice supplies: services, goods or both. Decides the wording of the service date. */
 export type SupplyKind = "goods" | "mixed" | "services";
 
+/**
+ * Texts and number/date formats of the invoice PDF. A document is printed in exactly one
+ * language, chosen in the company settings (German by default).
+ */
 const german: PdfLabels = {
 	amount: "Betrag",
 	assignedWhenSaved: "Wird beim Speichern vergeben",

@@ -1,8 +1,9 @@
 import cds from "@sap/cds";
 
+import { boundID } from "../core/requests";
 import { currentOrganization, requireOrganization } from "../organizations/organization-context";
 import { assertOwned } from "../organizations/tenant-guard";
-import { audit, boundKey } from "./audit";
+import { audit } from "./audit";
 import { notifyTaxAdvisorQuestion } from "./comment-email";
 
 /**
@@ -19,7 +20,7 @@ export function registerComments(srv: cds.ApplicationService, targets: Record<st
 			if (!text) {
 				return req.reject(400, "COMMENT_TEXT_MISSING");
 			}
-			const recordID = boundKey(req);
+			const recordID = boundID(req);
 			await assertOwned(req, (req.target as cds.entity).name, recordID);
 			const ID = cds.utils.uuid();
 			await INSERT.into("swiver.FinancialComments").entries({
@@ -37,7 +38,7 @@ export function registerComments(srv: cds.ApplicationService, targets: Record<st
 		});
 	}
 	srv.on("resolve", "FinancialComments", async (req) => {
-		const ID = boundKey(req);
+		const ID = boundID(req);
 		await assertOwned(req, "swiver.FinancialComments", ID);
 		await UPDATE("swiver.FinancialComments", ID).with({
 			resolved: true,

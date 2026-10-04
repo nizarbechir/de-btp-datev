@@ -1,6 +1,8 @@
 import cds from "@sap/cds";
 
-import { DomainError } from "../payments/payments";
+import { DomainError } from "./requests";
+
+
 
 /**
  * Failure logging for operations that run in the background of a user action (bank import and

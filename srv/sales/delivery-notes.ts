@@ -2,10 +2,10 @@ import cds, { Request } from "@sap/cds";
 
 import { isoDate } from "../core/dates";
 import { nextDeliveryNoteNumber } from "../core/numbering";
+import { boundID, DomainError, guarded } from "../core/requests";
 import { getCompanySettings } from "../core/settings";
 import { bookMovements, isStockTracked, positiveQuantity, quantity, units } from "../inventory/stock";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError, rejectDomainError } from "../payments/payments";
 import { recalculateDraft, sortByPosition } from "./document-items";
 import { convertQuote } from "./quotes";
 import { invoiceDocument } from "./sales-invoices";
@@ -22,9 +22,6 @@ const Items = "SalesService.DeliveryNoteItems";
 const ItemDrafts = "SalesService.DeliveryNoteItems.drafts";
 
 type Data = Record<string, unknown>;
-interface Key {
-	ID: string;
-}
 interface Note {
 	customer_ID: string;
 	deliveryDate: string;
@@ -65,7 +62,7 @@ export function registerDeliveryNotes(srv: cds.ApplicationService) {
 			Reflect.deleteProperty(data, field);
 		}
 		if (req.event === "UPDATE") {
-			const note = await loadNote(key(req).ID);
+			const note = await loadNote(boundID(req));
 			if (note && note.status_code !== "DRAFT") {
 				return req.reject(409, "DELIVERY_NOTE_LOCKED");
 			}
@@ -88,7 +85,7 @@ export function registerDeliveryNotes(srv: cds.ApplicationService) {
 		}
 	});
 	srv.before(["EDIT", "DELETE"], Notes, async (req) => {
-		const note = await loadNote(key(req).ID);
+		const note = await loadNote(boundID(req));
 		if (note && note.status_code !== "DRAFT") {
 			return req.reject(409, "DELIVERY_NOTE_LOCKED");
 		}
@@ -103,7 +100,7 @@ export function registerDeliveryNotes(srv: cds.ApplicationService) {
 
 /** Confirms the delivery and books the stock-tracked goods out of stock, once. */
 async function confirm(req: Request) {
-	const note = await requireNote(key(req).ID);
+	const note = await requireNote(boundID(req));
 	if (note.status_code === "CONFIRMED") {
 		return reload(note.ID);
 	}
@@ -134,7 +131,7 @@ async function createFromQuote(srv: cds.ApplicationService, req: Request) {
 	const quote = (await SELECT.one
 		.from("SalesService.Quotes")
 		.columns("ID", "customer_ID", "status_code", "HasDraftEntity")
-		.where({ ID: key(req).ID, organization_ID: requireOrganization(req) })) as null | {
+		.where({ ID: boundID(req), organization_ID: requireOrganization(req) })) as null | {
 		customer_ID: string;
 		HasDraftEntity: boolean;
 		ID: string;
@@ -172,7 +169,7 @@ async function createFromQuote(srv: cds.ApplicationService, req: Request) {
  * Lieferdatum.
  */
 async function createInvoice(srv: cds.ApplicationService, req: Request) {
-	const note = await requireNote(key(req).ID);
+	const note = await requireNote(boundID(req));
 	if (note.status_code !== "CONFIRMED") {
 		throw new DomainError("DELIVERY_NOTE_NOT_CONFIRMED");
 	}
@@ -242,14 +239,6 @@ async function deliveryAddress(customerID: string): Promise<Data> {
 	};
 }
 
-async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T> {
-	try {
-		return await operation();
-	} catch (error) {
-		return rejectDomainError(req, error);
-	}
-}
-
 async function invoiceExists(invoiceID: string): Promise<boolean> {
 	return Boolean(
 		(await SELECT.one.from(invoiceDocument.documentDrafts).columns("ID").where({ ID: invoiceID })) ||
@@ -277,11 +266,6 @@ async function itemsWithProducts(noteID: string) {
 			type_code: null | string;
 		}[]
 	>;
-}
-
-function key(req: Request): Key {
-	const value = req.params.at(-1);
-	return (typeof value === "object" ? value : { ID: value }) as Key;
 }
 
 async function loadNote(noteID: string) {
@@ -336,7 +320,7 @@ async function returnGoods(req: Request) {
 	const line = (await SELECT.one
 		.from("swiver.DeliveryNoteItems")
 		.columns("deliveryNote_ID")
-		.where({ ID: key(req).ID })) as null | { deliveryNote_ID: string };
+		.where({ ID: boundID(req) })) as null | { deliveryNote_ID: string };
 	if (!line) {
 		throw new DomainError("RECORD_NOT_FOUND", 404);
 	}
@@ -344,7 +328,7 @@ async function returnGoods(req: Request) {
 	if (note.status_code !== "CONFIRMED") {
 		throw new DomainError("DELIVERY_NOTE_NOT_CONFIRMED");
 	}
-	const item = (await itemsWithProducts(note.ID)).find((entry) => entry.ID === key(req).ID);
+	const item = (await itemsWithProducts(note.ID)).find((entry) => entry.ID === boundID(req));
 	if (!item || !isStockTracked(item)) {
 		throw new DomainError("PRODUCT_NOT_STOCK_TRACKED", 400);
 	}

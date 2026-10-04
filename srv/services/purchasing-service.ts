@@ -1,13 +1,14 @@
-import cds, { Request } from "@sap/cds";
+import cds from "@sap/cds";
 
 import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
 import { invoiceDocumentTypes, validateUpload } from "../core/document-upload";
+import { boundID, guardedSubject, rejectDomainError } from "../core/requests";
 import { requireOrganization } from "../organizations/organization-context";
 import { registerTenantGuard } from "../organizations/tenant-guard";
-import { recordPayment, refreshInvoicePayments, rejectDomainError, removeManualPayments } from "../payments/payments";
+import { recordPayment, refreshInvoicePayments, removeManualPayments } from "../payments/payments";
 import { bookGoodsReceipt, registerSupplierInvoiceItems } from "../purchases/goods-receipt";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
 import { prefillInvoiceDraft } from "../purchases/supplier-invoice-prefill";
@@ -57,7 +58,7 @@ export default class PurchasingService extends cds.ApplicationService {
 
 		// Changed amounts of a saved invoice change its payment status (e.g. a corrected total after a payment)
 		this.after("UPDATE", SupplierInvoices, async (_result, req) => {
-			const ID = (req.data as { ID?: string }).ID ?? key(req);
+			const ID = (req.data as { ID?: string }).ID ?? boundID(req);
 			if (ID && ("netAmount" in req.data || "taxAmount" in req.data)) {
 				await refreshInvoicePayments("supplier", ID);
 			}
@@ -65,22 +66,22 @@ export default class PurchasingService extends cds.ApplicationService {
 
 		// Payments
 		this.on("markInvoicePaid", SupplierInvoices, (req) =>
-			guarded(req, () => recordPayment({ invoiceID: key(req), kind: "supplier" })),
+			guardedSubject(req, () => recordPayment({ invoiceID: boundID(req), kind: "supplier" })),
 		);
 		this.on("recordPayment", SupplierInvoices, (req) => {
 			const { amount, paymentDate, reference } = req.data;
-			return guarded(req, () =>
-				recordPayment({ amount, invoiceID: key(req), kind: "supplier", paymentDate, reference }),
+			return guardedSubject(req, () =>
+				recordPayment({ amount, invoiceID: boundID(req), kind: "supplier", paymentDate, reference }),
 			);
 		});
 		this.on("markInvoiceOpen", SupplierInvoices, (req) =>
-			guarded(req, () => removeManualPayments("supplier", key(req))),
+			guardedSubject(req, () => removeManualPayments("supplier", boundID(req))),
 		);
 
 		// Goods receipt: of all open items, or of a part of one item
 		this.on("bookGoodsReceipt", SupplierInvoices, (req) =>
-			guarded(req, async () => {
-				if (!(await bookGoodsReceipt(key(req)))) {
+			guardedSubject(req, async () => {
+				if (!(await bookGoodsReceipt(boundID(req)))) {
 					req.info("NOTHING_TO_RECEIVE");
 				}
 			}),
@@ -89,11 +90,11 @@ export default class PurchasingService extends cds.ApplicationService {
 			const item = await SELECT.one
 				.from("swiver.SupplierInvoiceItems")
 				.columns("supplierInvoice_ID")
-				.where({ ID: key(req) });
+				.where({ ID: boundID(req) });
 			if (!item) {
 				return req.reject(404, "RECORD_NOT_FOUND");
 			}
-			return guarded(req, () => bookGoodsReceipt(item.supplierInvoice_ID, key(req), req.data.quantity));
+			return guardedSubject(req, () => bookGoodsReceipt(item.supplierInvoice_ID, boundID(req), req.data.quantity));
 		});
 
 		// Explains the upload while editing
@@ -108,7 +109,7 @@ export default class PurchasingService extends cds.ApplicationService {
 
 		// An uploaded invoice document proposes the invoice data in the draft
 		this.after("UPDATE", SupplierInvoices.drafts, async (_result, req) => {
-			const ID = (req.data as { ID?: string }).ID ?? key(req);
+			const ID = (req.data as { ID?: string }).ID ?? boundID(req);
 			if (ID && "documentContent" in req.data) {
 				await prefillInvoiceDraft(ID);
 			}
@@ -122,12 +123,12 @@ export default class PurchasingService extends cds.ApplicationService {
 			}
 		});
 		this.on("process", IncomingDocuments, async (req) => {
-			await processDocument(key(req));
+			await processDocument(boundID(req));
 			return SELECT.one.from(req.subject);
 		});
 		this.on("createSupplierInvoice", IncomingDocuments, async (req) => {
 			try {
-				const invoiceID = await createSupplierInvoice(req, key(req), req.data);
+				const invoiceID = await createSupplierInvoice(req, boundID(req), req.data);
 				return SELECT.one.from(SupplierInvoices).where({ ID: invoiceID });
 			} catch (error) {
 				return rejectDomainError(req, error);
@@ -161,23 +162,9 @@ export default class PurchasingService extends cds.ApplicationService {
 				.where({ ID });
 		});
 		this.on("ignore", IncomingDocuments, async (req) => {
-			await UPDATE("swiver.IncomingDocuments", key(req)).with({ processingStatus_code: "IGNORED" });
+			await UPDATE("swiver.IncomingDocuments", boundID(req)).with({ processingStatus_code: "IGNORED" });
 			return SELECT.one.from(req.subject);
 		});
 		return super.init();
 	}
-}
-
-async function guarded(req: Request, operation: () => Promise<unknown>) {
-	try {
-		await operation();
-		return await SELECT.one.from(req.subject);
-	} catch (error) {
-		return rejectDomainError(req, error);
-	}
-}
-
-function key(req: Request): string {
-	const value = req.params.at(-1);
-	return (typeof value === "object" ? (value as { ID: string }).ID : value) as string;
 }

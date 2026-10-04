@@ -3,10 +3,9 @@ import cds, { Request } from "@sap/cds";
 import { addDays, isoDate } from "../core/dates";
 import { renderSalesInvoicePdf } from "../core/invoice-pdf";
 import { nextQuoteNumber } from "../core/numbering";
+import { boundID, boundKey, DomainError, guarded } from "../core/requests";
 import { getCompanySettings } from "../core/settings";
-import { EmailNotConfiguredError } from "../integrations/email/email-provider";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError, rejectDomainError } from "../payments/payments";
 import { sendQuote } from "./document-emails";
 import { applyTotals, DocumentConfig, recalculateDraft, registerItemCalculation } from "./document-items";
 import { DocumentData, loadQuoteDocument, pdfResponse } from "./sales-documents";
@@ -102,7 +101,7 @@ export function registerQuotes(srv: cds.ApplicationService) {
 		}
 	});
 	srv.before("EDIT", Quotes, async (req) => {
-		const quote = await loadQuote(key(req));
+		const quote = await loadQuote(boundKey(req));
 		if (quote && !["DRAFT", "SENT"].includes(quote.status_code)) {
 			return req.reject(409, "QUOTE_CLOSED");
 		}
@@ -112,36 +111,20 @@ export function registerQuotes(srv: cds.ApplicationService) {
 		srv.on(action, Quotes, (req) => guarded(req, () => changeStatus(req, action)));
 	}
 	srv.on("convertToInvoice", Quotes, (req) =>
-		guarded(req, () => convertQuote(srv, key(req).ID, Boolean(req.data.force))),
+		guarded(req, () => convertQuote(srv, boundID(req), Boolean(req.data.force))),
 	);
 	srv.on("sendByEmail", Quotes, (req) => guarded(req, () => sendByEmail(req)));
 	srv.on("pdf", [Quotes, QuoteDrafts], (req) => pdf(req));
 }
 
 async function changeStatus(req: Request, action: string) {
-	const quote = await requireQuote(key(req));
+	const quote = await requireQuote(boundKey(req));
 	const { from, to } = transitions[action];
 	if (!from.includes(quote.status_code)) {
 		throw new DomainError("QUOTE_STATUS_CHANGE_NOT_ALLOWED");
 	}
 	await UPDATE(Quotes).set({ status_code: to }).where({ ID: quote.ID });
 	return SELECT.one.from(Quotes).where({ ID: quote.ID });
-}
-
-async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T> {
-	try {
-		return await operation();
-	} catch (error) {
-		if (error instanceof EmailNotConfiguredError) {
-			return req.reject(503, "EMAIL_NOT_CONFIGURED") as never;
-		}
-		return rejectDomainError(req, error);
-	}
-}
-
-function key(req: Request): { ID: string; IsActiveEntity?: boolean | string } {
-	const value = req.params.at(-1);
-	return (typeof value === "object" ? value : { ID: value }) as { ID: string };
 }
 
 async function loadQuote({ ID: id }: { ID: string }) {
@@ -157,7 +140,7 @@ async function loadQuote({ ID: id }: { ID: string }) {
 }
 
 async function pdf(req: Request) {
-	const { ID, IsActiveEntity } = key(req);
+	const { ID, IsActiveEntity } = boundKey(req);
 	const active = IsActiveEntity === undefined || IsActiveEntity === true || IsActiveEntity === "true";
 	const document = await loadQuoteDocument(ID, active);
 	if (!document) {
@@ -179,7 +162,7 @@ async function requireQuote(quoteKey: { ID: string }) {
 }
 
 async function sendByEmail(req: Request) {
-	const quote = await requireQuote(key(req));
+	const quote = await requireQuote(boundKey(req));
 	if (!["ACCEPTED", "DRAFT", "SENT"].includes(quote.status_code)) {
 		throw new DomainError("QUOTE_STATUS_CHANGE_NOT_ALLOWED");
 	}

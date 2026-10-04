@@ -1,6 +1,6 @@
 import cds from "@sap/cds";
 
-import { boundKey } from "../collaboration/audit";
+import { boundID } from "../core/requests";
 import { createTaxFirm, syncFirmMemberships, validateTaxFirm } from "../organizations/tax-firms";
 
 /**
@@ -15,7 +15,7 @@ export default class ClientService extends cds.ApplicationService {
 		this.on("open", "Clients", async (req) => {
 			await UPDATE("swiver.Memberships")
 				.set({ lastUsedAt: new Date().toISOString() })
-				.where({ organization_ID: boundKey(req), userId: req.user.id });
+				.where({ organization_ID: boundID(req), userId: req.user.id });
 		});
 
 		this.on("createTaxFirm", createTaxFirm);

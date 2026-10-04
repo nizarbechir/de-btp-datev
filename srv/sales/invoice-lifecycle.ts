@@ -1,4 +1,5 @@
-import { DomainError } from "../payments/payments";
+import { DomainError } from "../core/requests";
+
 
 /**
  * Document lifecycle of a sales invoice, separate from its payment status:

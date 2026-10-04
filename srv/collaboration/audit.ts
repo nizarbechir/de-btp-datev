@@ -1,5 +1,6 @@
 import cds from "@sap/cds";
 
+import { boundID } from "../core/requests";
 import { currentOrganization } from "../organizations/organization-context";
 
 /**
@@ -34,13 +35,7 @@ export async function audit(entry: AuditEntry): Promise<void> {
 export function auditActions(srv: cds.ApplicationService, actions: Record<string, string[]>) {
 	for (const [entity, events] of Object.entries(actions)) {
 		srv.after(events, entity, (_result, req) =>
-			audit({ action: req.event, targetID: boundKey(req), targetType: entity }),
+			audit({ action: req.event, targetID: boundID(req), targetType: entity }),
 		);
 	}
-}
-
-/** The ID of the record a bound action was called on. */
-export function boundKey(req: cds.Request): string {
-	const value = req.params.at(-1);
-	return (typeof value === "object" ? (value as { ID: string }).ID : value) as string;
 }

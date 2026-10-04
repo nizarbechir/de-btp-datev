@@ -1,9 +1,9 @@
-import cds, { Request } from "@sap/cds";
+import cds from "@sap/cds";
 
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
+import { boundID, guardedSubject } from "../core/requests";
 import { adjustStock, returnToSupplier } from "../inventory/manual-bookings";
-import { rejectDomainError } from "../payments/payments";
 
 /**
  * Stock of the goods with stock tracking: corrections and supplier returns. The actions only reach
@@ -15,25 +15,11 @@ export default class InventoryService extends cds.ApplicationService {
 		registerReadOnlyFlag(this);
 		auditActions(this, { Products: ["adjustStock", "returnToSupplier"] });
 		this.on("adjustStock", Products, (req) =>
-			guarded(req, () => adjustStock(key(req), req.data.quantity, req.data.reason)),
+			guardedSubject(req, () => adjustStock(boundID(req), req.data.quantity, req.data.reason)),
 		);
 		this.on("returnToSupplier", Products, (req) =>
-			guarded(req, () => returnToSupplier(key(req), req.data.quantity, req.data.reason)),
+			guardedSubject(req, () => returnToSupplier(boundID(req), req.data.quantity, req.data.reason)),
 		);
 		return super.init();
 	}
-}
-
-async function guarded(req: Request, operation: () => Promise<unknown>) {
-	try {
-		await operation();
-		return await SELECT.one.from(req.subject);
-	} catch (error) {
-		return rejectDomainError(req, error);
-	}
-}
-
-function key(req: Request): string {
-	const value = req.params.at(-1);
-	return (typeof value === "object" ? (value as { ID: string }).ID : value) as string;
 }

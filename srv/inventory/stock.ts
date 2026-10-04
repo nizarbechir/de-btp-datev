@@ -2,8 +2,9 @@ import cds from "@sap/cds";
 
 import { isoDate } from "../core/dates";
 import { fromUnits, toUnits } from "../core/money";
+import { boundID, DomainError } from "../core/requests";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError } from "../payments/payments";
+
 
 export interface Movement {
 	deliveryNote_ID?: string;
@@ -40,9 +41,7 @@ const scale = 3;
 
 /** Rejects deleting a product that has stock movements. */
 export async function assertNoStockMovements(req: cds.Request) {
-	const value = req.params.at(-1);
-	const ID = typeof value === "object" ? (value as { ID: string }).ID : value;
-	if (await SELECT.one.from(Movements).columns("ID").where({ product_ID: ID })) {
+	if (await SELECT.one.from(Movements).columns("ID").where({ product_ID: boundID(req) })) {
 		req.reject(409, "PRODUCT_HAS_STOCK_MOVEMENTS");
 	}
 }

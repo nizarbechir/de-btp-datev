@@ -2,6 +2,7 @@ import cds from "@sap/cds";
 
 import { isoDate } from "../core/dates";
 import { toUnits } from "../core/money";
+import { DomainError } from "../core/requests";
 import { requireOrganization } from "../organizations/organization-context";
 import { calculateOutstanding, determinePaymentStatus, sumAmounts } from "./payment-status";
 
@@ -31,17 +32,6 @@ const config = {
 		numberField: "invoiceNumber",
 	},
 } as const;
-
-/** Thrown for business rule violations; handlers turn it into a 4xx response with the message. */
-export class DomainError extends Error {
-	constructor(
-		public code: string,
-		public status = 409,
-		public args: unknown[] = [],
-	) {
-		super(code);
-	}
-}
 
 /** The invoice in the current organization with its gross and open amount. */
 export async function loadInvoice(kind: InvoiceKind, invoiceID: string) {
@@ -123,14 +113,6 @@ export async function refreshInvoicePayments(kind: InvoiceKind, invoiceID: strin
 		paymentDate: lastPayment,
 		paymentStatus_code: determinePaymentStatus(invoice.grossAmount, paidAmount),
 	});
-}
-
-/** Rejects the request with the domain error's message, or rethrows anything else. */
-export function rejectDomainError(req: cds.Request, error: unknown): never {
-	if (error instanceof DomainError) {
-		return req.reject(error.status, error.code, undefined, error.args) as never;
-	}
-	throw error;
 }
 
 /** Removes the manually recorded payments (bank matches stay) and updates the invoice. */

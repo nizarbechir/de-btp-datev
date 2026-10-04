@@ -22,10 +22,6 @@ export function determinePaymentStatus(grossAmount: Decimal, paidAmount: Decimal
 	return paid >= toUnits(grossAmount, 2) ? "PAID" : "PARTIAL";
 }
 
-export function isOverdue(status: PaymentStatus, dueDate: null | string | undefined, today: string): boolean {
-	return status !== "PAID" && Boolean(dueDate) && String(dueDate) < today;
-}
-
 /** Sum of decimal amounts, exact to the cent. */
 export function sumAmounts(amounts: Decimal[]): string {
 	return fromUnits(

@@ -1,4 +1,5 @@
-import { DomainError } from "../payments/payments";
+
+import { DomainError } from "../core/requests";
 import { bookMovements, positiveQuantity, quantity, units } from "./stock";
 
 /**

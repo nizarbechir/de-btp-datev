@@ -1,7 +1,8 @@
 import cds from "@sap/cds";
 import { createHash, randomBytes } from "node:crypto";
 
-import { audit, boundKey } from "../collaboration/audit";
+import { audit } from "../collaboration/audit";
+import { boundID } from "../core/requests";
 import { EmailNotConfiguredError } from "../integrations/email/email-provider";
 import { sendMembershipInvitation } from "./invitation-email";
 import { MembershipRole, requireAdmin, resolveOrganization } from "./organization-context";
@@ -160,7 +161,7 @@ function newToken(): string {
 /** The invitation the action was called on, if it has one of the given statuses. */
 async function openInvitation(req: cds.Request, statuses: string[]): Promise<Invitation> {
 	requireAdmin(req);
-	const ID = boundKey(req);
+	const ID = boundID(req);
 	await assertOwned(req, Invitations, ID);
 	const invitation = (await SELECT.one.from(Invitations, ID)) as Invitation;
 	if (!statuses.includes(invitation.status)) {

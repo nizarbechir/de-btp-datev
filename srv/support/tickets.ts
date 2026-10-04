@@ -1,7 +1,7 @@
 import cds from "@sap/cds";
 
-import { boundKey } from "../collaboration/audit";
 import { nextSupportTicketNumber } from "../core/numbering";
+import { boundID } from "../core/requests";
 import { currentOrganization } from "../organizations/organization-context";
 import {
 	sendCustomerReply,
@@ -104,7 +104,7 @@ async function readTicket(req: cds.Request): Promise<Ticket> {
 	const ticket = (await SELECT.one
 		.from(Tickets)
 		.columns("ID", "organization_ID", "status_code")
-		.where({ ID: boundKey(req) })) as Ticket | undefined;
+		.where({ ID: boundID(req) })) as Ticket | undefined;
 	if (!ticket || (!isSupportAgent(req.user) && ticket.organization_ID !== currentOrganization()?.organizationId)) {
 		return req.reject(404, "RECORD_NOT_FOUND") as never;
 	}

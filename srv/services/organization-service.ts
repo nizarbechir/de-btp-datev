@@ -2,8 +2,9 @@ import cds from "@sap/cds";
 import { Readable } from "node:stream";
 
 import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
-import { audit, boundKey } from "../collaboration/audit";
+import { audit } from "../collaboration/audit";
 import { logoTypes, validateUpload } from "../core/document-upload";
+import { boundID } from "../core/requests";
 import { acceptInvitation, inviteMember, resendInvitation, revokeInvitation } from "../organizations/invitations";
 import { createOrganization } from "../organizations/onboarding";
 import { currentOrganization, requireAdmin } from "../organizations/organization-context";
@@ -84,7 +85,7 @@ export default class OrganizationService extends cds.ApplicationService {
 
 		// Users with several memberships (e.g. a tax advisor) pick the organization they work in.
 		this.on("switchTo", Organizations, async (req) => {
-			const organizationId = boundKey(req);
+			const organizationId = boundID(req);
 			await UPDATE("swiver.Memberships")
 				.set({ lastUsedAt: new Date().toISOString() })
 				.where({ organization_ID: organizationId, userId: req.user.id });

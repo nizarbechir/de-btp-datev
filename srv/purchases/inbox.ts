@@ -1,8 +1,8 @@
 import cds, { Request } from "@sap/cds";
 
+import { DomainError } from "../core/requests";
 import { requireOrganization } from "../organizations/organization-context";
 import { assertOwned } from "../organizations/tenant-guard";
-import { DomainError } from "../payments/payments";
 import { toBuffer } from "../sales/sales-documents";
 import { extractInvoice } from "./extraction";
 import { findSupplier } from "./supplier-matching";

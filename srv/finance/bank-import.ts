@@ -1,9 +1,9 @@
 import cds from "@sap/cds";
 import { createHash } from "node:crypto";
 
+import { DomainError } from "../core/requests";
 import { parseBankCsv, ParsedTransaction } from "../integrations/bank/bank-csv";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError } from "../payments/payments";
 import { suggestMatches } from "./matching";
 
 /**

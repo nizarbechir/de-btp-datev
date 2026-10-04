@@ -1,10 +1,10 @@
 import cds, { Request } from "@sap/cds";
 
 import { calculateInvoice, calculateItem } from "../core/money";
+import { boundID, DomainError } from "../core/requests";
 import { getCompanySettings } from "../core/settings";
 import { bookMovements, isStockTracked, positiveQuantity, quantity, units } from "../inventory/stock";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError } from "../payments/payments";
 import { DocumentConfig, Item, registerItemCalculation, sortByPosition } from "../sales/document-items";
 
 /**
@@ -134,8 +134,7 @@ export function registerSupplierInvoiceItems(srv: cds.ApplicationService) {
 
 /** The items of the saved invoice that already have received quantities, by item ID. */
 async function receivedQuantities(req: Request): Promise<Map<string, string>> {
-	const value = req.params.at(-1);
-	const ID = (req.data as Data)?.ID ?? (typeof value === "object" ? (value as { ID: string }).ID : value);
+	const ID = (req.data as Data)?.ID ?? boundID(req);
 	if (req.event === "CREATE" || !ID) {
 		return new Map();
 	}

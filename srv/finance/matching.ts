@@ -1,6 +1,7 @@
 import { toUnits } from "../core/money";
+import { DomainError } from "../core/requests";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError, InvoiceKind, loadInvoice, recordPayment, refreshInvoicePayments } from "../payments/payments";
+import { InvoiceKind, loadInvoice, recordPayment, refreshInvoicePayments } from "../payments/payments";
 
 /**
  * Deterministic matching of bank transactions to open invoices of the same organization.

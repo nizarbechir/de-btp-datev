@@ -4,11 +4,11 @@ import { addDays, isoDate } from "../core/dates";
 import { renderSalesInvoicePdf } from "../core/invoice-pdf";
 import { nextCustomerNumber, nextSalesInvoiceNumber } from "../core/numbering";
 import { logFailure } from "../core/operation-log";
+import { boundID, boundKey, DomainError, rejectDomainError } from "../core/requests";
 import { getCompanySettings, missingFooterFields } from "../core/settings";
 import { ZugferdValidationError } from "../integrations/einvoice/zugferd";
-import { EmailNotConfiguredError } from "../integrations/email/email-provider";
 import { requireOrganization } from "../organizations/organization-context";
-import { DomainError, recordPayment, rejectDomainError, removeManualPayments } from "../payments/payments";
+import { recordPayment, removeManualPayments } from "../payments/payments";
 import { sendInvoice, sendReminder } from "./document-emails";
 import { applyTotals, DocumentConfig, recalculateDraft, registerItemCalculation } from "./document-items";
 import { renderZugferdPdf } from "./einvoice-context";
@@ -31,10 +31,6 @@ export const invoiceDocument: DocumentConfig = {
 };
 
 type Data = Record<string, unknown>;
-interface Key {
-	ID: string;
-	IsActiveEntity?: boolean | string;
-}
 
 /** Fields only the backend sets: number on first save, status, payments and e-mail through the actions. */
 const backendFields = [
@@ -93,7 +89,7 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 		}
 	});
 	srv.before("EDIT", Invoices, async (req) => {
-		const invoice = await loadInvoice(key(req).ID);
+		const invoice = await loadInvoice(boundID(req));
 		if (invoice && invoice.status_code !== "DRAFT") {
 			return req.reject(409, "INVOICE_LOCKED");
 		}
@@ -102,7 +98,7 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 	// Issued invoices are locked, also against direct OData requests that bypass the draft:
 	// the invoice itself only changes while it is a draft, its items and taxes only through the draft.
 	srv.before("UPDATE", Invoices, async (req) => {
-		const invoice = await loadInvoice(key(req).ID);
+		const invoice = await loadInvoice(boundID(req));
 		if (invoice && invoice.status_code !== "DRAFT") {
 			return req.reject(409, "INVOICE_LOCKED");
 		}
@@ -121,20 +117,20 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 	// Payments
 	srv.on("markAsPaid", Invoices, (req) =>
 		guarded(req, async () => {
-			await recordPayment({ invoiceID: key(req).ID, kind: "sales" });
+			await recordPayment({ invoiceID: boundID(req), kind: "sales" });
 			return reload(req);
 		}),
 	);
 	srv.on("recordPayment", Invoices, (req) =>
 		guarded(req, async () => {
 			const { amount, paymentDate, reference } = req.data;
-			await recordPayment({ amount, invoiceID: key(req).ID, kind: "sales", paymentDate, reference });
+			await recordPayment({ amount, invoiceID: boundID(req), kind: "sales", paymentDate, reference });
 			return reload(req);
 		}),
 	);
 	srv.on("reopen", Invoices, (req) =>
 		guarded(req, async () => {
-			await removeManualPayments("sales", key(req).ID);
+			await removeManualPayments("sales", boundID(req));
 			return reload(req);
 		}),
 	);
@@ -173,7 +169,7 @@ async function attachmentFor(req: Request, document: DocumentData) {
 }
 
 async function changeStatus(req: Request, action: LifecycleAction, status: string) {
-	const invoice = await requireInvoice(key(req).ID, true);
+	const invoice = await requireInvoice(boundID(req), true);
 	assertTransition(action, invoice.status_code);
 	if (action === "cancel" && Number(invoice.paidAmount ?? 0) > 0) {
 		throw new DomainError("INVOICE_HAS_PAYMENTS");
@@ -208,7 +204,7 @@ async function copyToDraft(srv: cds.ApplicationService, id: string, extra: Data 
 
 /** Cancels the issued invoice (if not yet cancelled) and opens a corrected copy that replaces it. */
 async function correct(srv: cds.ApplicationService, req: Request) {
-	const invoice = await requireInvoice(key(req).ID, true);
+	const invoice = await requireInvoice(boundID(req), true);
 	assertTransition("correct", invoice.status_code);
 	// Also a correction that is still an unsaved draft counts: an invoice is corrected only once.
 	const replacement = { replacesInvoice_ID: invoice.ID };
@@ -231,7 +227,7 @@ async function correct(srv: cds.ApplicationService, req: Request) {
 
 /** Creates a customer from the invoice editor and assigns it to the invoice. */
 async function createCustomer(req: Request) {
-	const { ID } = key(req);
+	const ID = boundID(req);
 	const { city, companyName, country, email, name, postalCode, street } = req.data;
 	if (!companyName && !name) {
 		return req.reject(400, "CUSTOMER_NAME_MISSING");
@@ -254,7 +250,7 @@ async function createCustomer(req: Request) {
 }
 
 async function duplicate(srv: cds.ApplicationService, req: Request) {
-	const invoice = await requireInvoice(key(req).ID);
+	const invoice = await requireInvoice(boundID(req));
 	const copyID = await copyToDraft(srv, invoice.ID);
 	return SELECT.one.from(InvoiceDrafts).where({ ID: copyID });
 }
@@ -265,10 +261,7 @@ async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T>
 		return await operation();
 	} catch (error) {
 		if (!(error instanceof ZugferdValidationError)) {
-			logFailure("sales", req.event, error, { invoice: req.params.length ? key(req).ID : undefined });
-		}
-		if (error instanceof EmailNotConfiguredError) {
-			return req.reject(503, "EMAIL_NOT_CONFIGURED") as never;
+			logFailure("sales", req.event, error, { invoice: req.params.length ? boundID(req) : undefined });
 		}
 		if (error instanceof ZugferdValidationError) {
 			return req.reject(400, "ZUGFERD_INCOMPLETE", undefined, [error.problems.join(", ")]) as never;
@@ -290,17 +283,12 @@ async function keepPaymentTerm(req: Request) {
 	const current = await SELECT.one
 		.from(InvoiceDrafts)
 		.columns("invoiceDate", "dueDate")
-		.where({ ID: req.data.ID ?? key(req).ID });
+		.where({ ID: req.data.ID ?? boundID(req) });
 	if (!current?.invoiceDate || !current.dueDate) {
 		return;
 	}
 	const term = (Date.parse(current.dueDate) - Date.parse(current.invoiceDate)) / (24 * 60 * 60 * 1000);
 	req.data.dueDate = isoDate(addDays(new Date(req.data.invoiceDate), term));
-}
-
-function key(req: Request): Key {
-	const value = req.params.at(-1);
-	return (typeof value === "object" ? value : { ID: value }) as Key;
 }
 
 async function loadInvoice(id: string) {
@@ -331,7 +319,7 @@ function mailDocument(document: DocumentData) {
 }
 
 async function pdf(req: Request) {
-	const { ID, IsActiveEntity } = key(req);
+	const { ID, IsActiveEntity } = boundKey(req);
 	const active = IsActiveEntity === undefined || IsActiveEntity === true || IsActiveEntity === "true";
 	const document = await loadInvoiceDocument(ID, active);
 	if (!document) {
@@ -351,12 +339,12 @@ function recipientOf(req: Request, document: DocumentData): string {
 }
 
 async function reload(req: Request) {
-	return SELECT.one.from(Invoices).where({ ID: key(req).ID });
+	return SELECT.one.from(Invoices).where({ ID: boundID(req) });
 }
 
 /** Sends a payment reminder for an overdue invoice and records it. */
 async function remind(req: Request) {
-	const invoice = await requireInvoice(key(req).ID);
+	const invoice = await requireInvoice(boundID(req));
 	const today = isoDate(new Date());
 	if (!isIssued(invoice.status_code) || invoice.paymentStatus_code === "PAID" || !(invoice.dueDate < today)) {
 		throw new DomainError("INVOICE_NOT_OVERDUE");
@@ -413,7 +401,7 @@ async function requireInvoice(id: string, lock = false) {
 
 /** Finalizes a draft if needed, e-mails the invoice with its ZUGFeRD PDF and marks it as sent. */
 async function sendByEmail(req: Request) {
-	const invoice = await requireInvoice(key(req).ID, true);
+	const invoice = await requireInvoice(boundID(req), true);
 	assertTransition("send", invoice.status_code);
 	if (invoice.status_code === "DRAFT") {
 		await assertCanIssue(invoice);
@@ -443,7 +431,7 @@ async function setStatus(invoice: { ID: string; status_code: string }, status: s
 
 /** The ZUGFeRD PDF of an issued invoice. */
 async function zugferd(req: Request) {
-	const invoice = await requireInvoice(key(req).ID);
+	const invoice = await requireInvoice(boundID(req));
 	if (!isIssued(invoice.status_code)) {
 		throw new DomainError("ZUGFERD_REQUIRES_FINALIZED");
 	}

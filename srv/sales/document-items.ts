@@ -1,6 +1,7 @@
 import cds, { Request } from "@sap/cds";
 
 import { calculateInvoice, calculateItem, ItemInput } from "../core/money";
+import { boundID } from "../core/requests";
 
 /**
  * Item and total calculation shared by sales invoices and quotes, while editing (drafts) and when
@@ -131,11 +132,7 @@ export function sortByPosition<T extends Item>(items: T[]): T[] {
 }
 
 function itemKey(req: Request): string {
-	if (req.data?.ID) {
-		return req.data.ID;
-	}
-	const key = req.params.at(-1);
-	return (typeof key === "object" ? (key as { ID: string }).ID : key) as string;
+	return req.data?.ID ?? boundID(req);
 }
 
 /** The user can still override the values afterwards. The tenant guard has checked the product's organization. */

@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 
-import { renderSalesInvoicePdf, SalesInvoicePdfData } from "../core/invoice-pdf";
+import { SalesInvoicePdfData } from "../core/invoice-pdf";
 import { supplyKind } from "../core/invoice-pdf-labels";
 import { calculateInvoice } from "../core/money";
 import { getCompany, getCompanyLogo } from "../core/settings";
@@ -69,10 +69,6 @@ export function pdfResponse(content: Buffer, filename: string, download: boolean
 		mimetype: "application/pdf",
 		value: Readable.from(content),
 	};
-}
-
-export async function renderDocument(document: DocumentData): Promise<Buffer> {
-	return renderSalesInvoicePdf(document);
 }
 
 export async function toBuffer(stream: unknown): Promise<Buffer | undefined> {
