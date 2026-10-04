@@ -1,5 +1,6 @@
 import cds from "@sap/cds";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { audit, boundKey } from "../collaboration/audit";
 import { logoTypes, validateUpload } from "../core/document-upload";
 import { acceptInvitation, inviteMember, resendInvitation, revokeInvitation } from "../organizations/invitations";
@@ -19,6 +20,7 @@ export default class OrganizationService extends cds.ApplicationService {
 			cds.entity & { drafts: cds.entity }
 		>;
 		registerTenantGuard(this);
+		registerChangeHistoryGuard(this);
 
 		this.on("myOrganization", async (req) => {
 			const context = currentOrganization();

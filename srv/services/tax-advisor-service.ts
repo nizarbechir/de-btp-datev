@@ -1,5 +1,6 @@
 import cds from "@sap/cds";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { registerPeriodReports } from "../finance/period-reports";
 
 /**
@@ -8,6 +9,7 @@ import { registerPeriodReports } from "../finance/period-reports";
  */
 export default class TaxAdvisorService extends cds.ApplicationService {
 	async init() {
+		registerChangeHistoryGuard(this);
 		registerPeriodReports(this);
 		return super.init();
 	}

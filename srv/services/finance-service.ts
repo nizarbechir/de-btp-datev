@@ -1,5 +1,6 @@
 import cds, { Request } from "@sap/cds";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
@@ -18,6 +19,7 @@ export default class FinanceService extends cds.ApplicationService {
 	async init() {
 		const { BankTransactions } = this.entities as Record<string, cds.entity>;
 		registerTenantGuard(this);
+		registerChangeHistoryGuard(this);
 		registerReadOnlyFlag(this);
 		registerComments(this, { BankTransactions: "bankTransaction" });
 		auditActions(this, { BankTransactions: ["confirmMatch", "matchManually", "unmatch", "ignore"] });

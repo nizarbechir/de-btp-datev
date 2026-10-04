@@ -154,6 +154,17 @@ describe("Reading", () => {
 		}
 	});
 
+	it("cannot read the change history of alice's records", async () => {
+		for (const url of [
+			`${salesInvoice}/changes`,
+			`${ORGANIZATION}/CompanySettings(ID=1,IsActiveEntity=true)/changes`,
+		]) {
+			const response = await GET(url, bob);
+			expectDenied(response.status);
+			expect(response.data?.value).toBeUndefined();
+		}
+	});
+
 	it("cannot reach alice's data through $expand or $filter on own records", async () => {
 		const expanded = await GET(`${SALES}/Customers?$expand=balance`, bob);
 		expect(expanded.status).toBe(200);

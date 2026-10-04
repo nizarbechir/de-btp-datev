@@ -1,5 +1,6 @@
 import cds, { Request } from "@sap/cds";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
@@ -20,6 +21,7 @@ export default class PurchasingService extends cds.ApplicationService {
 			cds.entity & { drafts: cds.entity }
 		>;
 		registerTenantGuard(this);
+		registerChangeHistoryGuard(this);
 		registerReadOnlyFlag(this);
 		registerComments(this, { IncomingDocuments: "incomingDocument", SupplierInvoices: "supplierInvoice" });
 		auditActions(this, { SupplierInvoices: ["markInvoicePaid", "markInvoiceOpen", "recordPayment"] });
