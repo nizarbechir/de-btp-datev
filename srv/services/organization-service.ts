@@ -1,4 +1,5 @@
 import cds from "@sap/cds";
+import { Readable } from "node:stream";
 
 import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { audit, boundKey } from "../collaboration/audit";
@@ -6,6 +7,7 @@ import { logoTypes, validateUpload } from "../core/document-upload";
 import { acceptInvitation, inviteMember, resendInvitation, revokeInvitation } from "../organizations/invitations";
 import { createOrganization } from "../organizations/onboarding";
 import { currentOrganization, requireAdmin } from "../organizations/organization-context";
+import { exportOrganizationData } from "../organizations/organization-data";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 
 /**
@@ -50,6 +52,18 @@ export default class OrganizationService extends cds.ApplicationService {
 				organizationID: context.organizationId,
 				role: context.role,
 				userId: req.user.id,
+			};
+		});
+
+		this.on("exportOrganizationData", async (req) => {
+			const organizationId = requireAdmin(req);
+			const content = await exportOrganizationData(organizationId);
+			await audit({ action: "exportOrganizationData", targetType: "Organization" });
+			return {
+				$mediaContentDispositionType: "attachment",
+				filename: `swiver-data-export-${new Date().toISOString().slice(0, 10)}.zip`,
+				mimetype: "application/zip",
+				value: Readable.from(content),
 			};
 		});
 

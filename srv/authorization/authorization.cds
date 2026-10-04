@@ -539,3 +539,6 @@ annotate TaxAdvisorService.ExpenseCategories with @(restrict: [{
 // Everybody else gets access by invitation only (members and tax advisors need no role collection),
 // so logging in with an arbitrary account of the identity provider does not open Swiver for sign-up.
 annotate OrganizationService.createOrganization with @(requires: 'InvoiceManager');
+
+// The complete data export of an organization is for its owners and admins only.
+annotate OrganizationService.exportOrganizationData with @(requires: 'OrganizationAdmin');

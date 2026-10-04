@@ -27,7 +27,8 @@ async function backup(directory: string) {
 	const files: Record<string, Uint8Array> = {};
 	const manifest: Manifest = { createdAt: new Date().toISOString(), format: 1, tables: {} };
 	for (const table of tables) {
-		const rows = (await SELECT.from(table.name)) as Record<string, unknown>[];
+		// LargeBinary columns are not part of "*" and must be selected explicitly
+		const rows = (await SELECT.from(table.name).columns("*", ...table.binaryColumns)) as Record<string, unknown>[];
 		for (const row of rows) {
 			for (const column of table.binaryColumns) {
 				row[column] = await encodeBinary(row[column]);
