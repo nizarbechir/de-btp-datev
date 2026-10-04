@@ -2,7 +2,7 @@
 	"name": "swiver",
 	"version": "1.0.0",
 	"private": true,
-	"description": "Swiver: track supplier invoices, what is paid, what is open and what is due soon.",
+	"description": "Swiver: finance administration for freelancers and small companies (sales, purchases, banking, VAT, stock and tax advisor collaboration).",
 	"type": "commonjs",
 	"imports": {
 		"#cds-models/*": "./@cds-models/*/index.js"
@@ -54,7 +54,6 @@
 	"dependencies": {
 		"@cap-js/change-tracking": "~2.0.1",
 		"@cap-js/hana": "^3.0.1",
-		"@sap-cloud-sdk/openapi": "~4.7.0",
 		"@sap/cds": "~10.0.3",
 		"@sap/xssec": "^4",
 		"dejavu-fonts-ttf": "^2.37.3",

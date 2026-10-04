@@ -1,7 +1,7 @@
 {
 	"name": "swiver-settings",
 	"version": "0.0.1",
-	"description": "Swiver: supplier invoices for small businesses.",
+	"description": "Swiver: organization, members and company settings.",
 	"keywords": [
 		"ui5",
 		"openui5",

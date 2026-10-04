@@ -1,7 +1,7 @@
 {
 	"name": "swiver-sales",
 	"version": "0.0.1",
-	"description": "Swiver: supplier invoices for small businesses.",
+	"description": "Swiver: invoices, quotes and delivery notes.",
 	"keywords": [
 		"ui5",
 		"openui5",
