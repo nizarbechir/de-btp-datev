@@ -198,4 +198,23 @@ describe("PurchasingService", () => {
 		expect(own.status).toBe(403);
 		expect([403, 404]).toContain(foreign.status);
 	});
+
+	it("updates the payment status when the amounts of a paid invoice are corrected", async () => {
+		const { data } = await createActive("SupplierInvoices", {
+			dueDate: isoDate(addDays(today, 14)),
+			invoiceDate: isoDate(today),
+			invoiceNumber: "T-CORRECTED",
+			netAmount: 100,
+			supplier_ID: supplierID,
+			taxAmount: 19,
+		});
+		await POST(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=true)/PurchasingService.markInvoicePaid`, {});
+		expect(await readInvoice(data.ID)).toMatchObject({ paymentStatus_code: "PAID" });
+
+		await POST(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=true)/PurchasingService.draftEdit`, {});
+		await PATCH(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=false)`, { netAmount: 200, taxAmount: 38 });
+		await POST(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=false)/PurchasingService.draftActivate`, {});
+
+		expect(await readInvoice(data.ID)).toMatchObject({ paymentStatus_code: "PARTIAL" });
+	});
 });

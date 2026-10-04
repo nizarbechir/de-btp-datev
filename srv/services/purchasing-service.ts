@@ -6,7 +6,7 @@ import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
 import { invoiceDocumentTypes, validateUpload } from "../core/document-upload";
 import { registerTenantGuard } from "../organizations/tenant-guard";
-import { recordPayment, rejectDomainError, removeManualPayments } from "../payments/payments";
+import { recordPayment, refreshInvoicePayments, rejectDomainError, removeManualPayments } from "../payments/payments";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
 import { prefillInvoiceDraft } from "../purchases/supplier-invoice-prefill";
 
@@ -47,6 +47,14 @@ export default class PurchasingService extends cds.ApplicationService {
 			delete req.data.paymentStatus_code;
 			delete req.data.paymentDate;
 			delete req.data.paidAmount;
+		});
+
+		// Changed amounts of a saved invoice change its payment status (e.g. a corrected total after a payment)
+		this.after("UPDATE", SupplierInvoices, async (_result, req) => {
+			const ID = (req.data as { ID?: string }).ID ?? key(req);
+			if (ID && ("netAmount" in req.data || "taxAmount" in req.data)) {
+				await refreshInvoicePayments("supplier", ID);
+			}
 		});
 
 		// Payments
