@@ -76,5 +76,10 @@
 		"documents": {
 			"maxSizeMB": 10
 		}
+	},
+	"[production]": {
+		"log": {
+			"format": "json"
+		}
 	}
 }

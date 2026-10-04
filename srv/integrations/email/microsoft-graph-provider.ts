@@ -49,7 +49,8 @@ export class MicrosoftGraphEmailProvider implements EmailProvider {
 			method: "POST",
 		});
 		if (!response.ok) {
-			log.error("Microsoft Graph sendMail failed", response.status, await response.text());
+			// The error body has Graph's error code and message; cut it so no large payload ends up in the logs.
+			log.error("Microsoft Graph sendMail failed", response.status, (await response.text()).slice(0, 500));
 			throw new Error(`The e-mail could not be sent (Microsoft Graph status ${response.status}).`);
 		}
 		return { messageId, provider: this.name, sentAt: new Date().toISOString() };
@@ -72,7 +73,7 @@ export class MicrosoftGraphEmailProvider implements EmailProvider {
 			method: "POST",
 		});
 		if (!response.ok) {
-			log.error("Microsoft Graph token request failed", response.status, await response.text());
+			log.error("Microsoft Graph token request failed", response.status, (await response.text()).slice(0, 500));
 			throw new Error("The e-mail provider rejected the credentials.");
 		}
 		const { access_token: value, expires_in: expiresIn } = (await response.json()) as {

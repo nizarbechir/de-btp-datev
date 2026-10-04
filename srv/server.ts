@@ -4,6 +4,20 @@ import { shiftDemoDates } from "./core/demo-data";
 import { migrateToOrganizations } from "./organizations/migration";
 import { organizationMiddleware } from "./organizations/organization-context";
 
+// Readiness for monitoring (no authentication, no data): the process is up and the database answers.
+// Liveness is CAP's built-in /health.
+cds.on("bootstrap", (app) => {
+	app.get("/health/ready", async (_req, res) => {
+		try {
+			await SELECT.one.from("sap.common.Currencies").columns("code");
+			res.json({ database: "UP", status: "UP" });
+		} catch (error) {
+			cds.log("health").error("Database readiness check failed", error instanceof Error ? error.message : error);
+			res.status(503).json({ database: "DOWN", status: "DOWN" });
+		}
+	});
+});
+
 // Resolves the signed-in user's organization for every request, right after authentication.
 cds.middlewares.add(organizationMiddleware, { after: "auth" });
 

@@ -3,6 +3,7 @@ import cds, { Request } from "@sap/cds";
 import { addDays, isoDate } from "../core/dates";
 import { renderSalesInvoicePdf } from "../core/invoice-pdf";
 import { nextCustomerNumber, nextSalesInvoiceNumber } from "../core/numbering";
+import { logFailure } from "../core/operation-log";
 import { getCompanySettings, missingFooterFields } from "../core/settings";
 import { ZugferdValidationError } from "../integrations/einvoice/zugferd";
 import { EmailNotConfiguredError } from "../integrations/email/email-provider";
@@ -263,6 +264,9 @@ async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T>
 	try {
 		return await operation();
 	} catch (error) {
+		if (!(error instanceof ZugferdValidationError)) {
+			logFailure("sales", req.event, error, { invoice: req.params.length ? key(req).ID : undefined });
+		}
 		if (error instanceof EmailNotConfiguredError) {
 			return req.reject(503, "EMAIL_NOT_CONFIGURED") as never;
 		}

@@ -4,6 +4,7 @@ import { registerChangeHistoryGuard } from "../authorization/change-history-guar
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
+import { logFailure } from "../core/operation-log";
 import { importBankStatement } from "../finance/bank-import";
 import { dashboard } from "../finance/dashboard";
 import { confirmMatch, ignoreTransaction, matchManually, suggestMatches, unmatch } from "../finance/matching";
@@ -55,6 +56,7 @@ async function guarded(req: Request, operation: () => Promise<unknown>, returnSu
 		const result = await operation();
 		return returnSubject ? await SELECT.one.from(req.subject) : result;
 	} catch (error) {
+		logFailure("bank", req.event, error, { target: req.params.length ? key(req) : undefined });
 		return rejectDomainError(req, error);
 	}
 }

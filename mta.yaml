@@ -96,6 +96,8 @@ modules:
           srv-url: ${default-url}
     parameters:
       buildpack: nodejs_buildpack
+      health-check-type: http
+      health-check-http-endpoint: /health
     build-parameters:
       builder: npm
   - name: swiver-db-deployer
