@@ -81,3 +81,40 @@ annotate service.SupplierInvoices with @(
     Common.TextArrangement: #TextOnly
   );
 };
+
+// Dashboard chart: money in and out per month.
+annotate service.CashFlow with @(
+  Aggregation.ApplySupported         : {
+    GroupableProperties   : [month],
+    AggregatableProperties: [
+      {Property: moneyIn},
+      {Property: moneyOut}
+    ]
+  },
+  Analytics.AggregatedProperty #moneyIn : {
+    Name                : 'totalIn',
+    AggregationMethod   : 'sum',
+    AggregatableProperty: moneyIn,
+    @Common.Label       : '{i18n>MoneyIn}'
+  },
+  Analytics.AggregatedProperty #moneyOut: {
+    Name                : 'totalOut',
+    AggregationMethod   : 'sum',
+    AggregatableProperty: moneyOut,
+    @Common.Label       : '{i18n>MoneyOut}'
+  },
+  UI.Chart                           : {
+    ChartType      : #Column,
+    Dimensions     : [month],
+    DynamicMeasures: [
+      '@Analytics.AggregatedProperty#moneyIn',
+      '@Analytics.AggregatedProperty#moneyOut'
+    ]
+  },
+  UI.PresentationVariant             : {
+    SortOrder     : [{Property: month}],
+    Visualizations: ['@UI.Chart']
+  }
+) {
+  month @title: '{i18n>Month}';
+};

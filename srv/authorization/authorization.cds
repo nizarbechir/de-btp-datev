@@ -266,6 +266,12 @@ annotate FinanceService.BankImportBatches with @(restrict: [
   }
 ]);
 
+annotate FinanceService.CashFlow with @(restrict: [{
+  grant: 'READ',
+  to   : ['OrganizationMember', 'TaxAdvisor'],
+  where: 'organization_ID = $user.organization'
+}]);
+
 annotate FinanceService.Payments with @(restrict: [
   {
     grant: '*',

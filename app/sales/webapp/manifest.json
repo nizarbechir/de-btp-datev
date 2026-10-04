@@ -127,26 +127,6 @@
 					"pattern": "Quotes({key}):?query:",
 					"name": "QuotesObjectPage",
 					"target": "QuotesObjectPage"
-				},
-				{
-					"pattern": "Customers:?query:",
-					"name": "CustomersList",
-					"target": "CustomersList"
-				},
-				{
-					"pattern": "Customers({key}):?query:",
-					"name": "CustomersObjectPage",
-					"target": "CustomersObjectPage"
-				},
-				{
-					"pattern": "ProductServices:?query:",
-					"name": "ProductServicesList",
-					"target": "ProductServicesList"
-				},
-				{
-					"pattern": "ProductServices({key}):?query:",
-					"name": "ProductServicesObjectPage",
-					"target": "ProductServicesObjectPage"
 				}
 			],
 			"targets": {
@@ -402,89 +382,6 @@
 									}
 								}
 							}
-						}
-					}
-				},
-				"CustomersList": {
-					"type": "Component",
-					"id": "CustomersList",
-					"name": "sap.fe.templates.ListReport",
-					"options": {
-						"settings": {
-							"contextPath": "/Customers",
-							"variantManagement": "Page",
-							"initialLoad": "Enabled",
-							"navigation": {
-								"Customers": {
-									"detail": {
-										"route": "CustomersObjectPage"
-									}
-								}
-							},
-							"controlConfiguration": {
-								"@com.sap.vocabularies.UI.v1.LineItem": {
-									"tableSettings": {
-										"type": "ResponsiveTable"
-									}
-								}
-							}
-						}
-					}
-				},
-				"CustomersObjectPage": {
-					"type": "Component",
-					"id": "CustomersObjectPage",
-					"name": "sap.fe.templates.ObjectPage",
-					"options": {
-						"settings": {
-							"editableHeaderContent": false,
-							"contextPath": "/Customers",
-							"enhanceI18n": "i18n/i18n.properties",
-							"navigation": {
-								"invoices": {
-									"detail": {
-										"route": "SalesInvoicesObjectPage"
-									}
-								}
-							}
-						}
-					}
-				},
-				"ProductServicesList": {
-					"type": "Component",
-					"id": "ProductServicesList",
-					"name": "sap.fe.templates.ListReport",
-					"options": {
-						"settings": {
-							"contextPath": "/ProductServices",
-							"variantManagement": "Page",
-							"initialLoad": "Enabled",
-							"navigation": {
-								"ProductServices": {
-									"detail": {
-										"route": "ProductServicesObjectPage"
-									}
-								}
-							},
-							"controlConfiguration": {
-								"@com.sap.vocabularies.UI.v1.LineItem": {
-									"tableSettings": {
-										"type": "ResponsiveTable"
-									}
-								}
-							}
-						}
-					}
-				},
-				"ProductServicesObjectPage": {
-					"type": "Component",
-					"id": "ProductServicesObjectPage",
-					"name": "sap.fe.templates.ObjectPage",
-					"options": {
-						"settings": {
-							"editableHeaderContent": false,
-							"contextPath": "/ProductServices",
-							"enhanceI18n": "i18n/i18n.properties"
 						}
 					}
 				}

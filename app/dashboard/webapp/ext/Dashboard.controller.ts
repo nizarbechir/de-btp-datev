@@ -1,6 +1,7 @@
 import PageController from "sap/fe/core/PageController";
 import MessageBox from "sap/m/MessageBox";
 import Event from "sap/ui/base/Event";
+import NumberFormat from "sap/ui/core/format/NumberFormat";
 import JSONModel from "sap/ui/model/json/JSONModel";
 import Context from "sap/ui/model/odata/v4/Context";
 import ODataModel from "sap/ui/model/odata/v4/ODataModel";
@@ -84,12 +85,16 @@ export default class Dashboard extends PageController {
 		}
 	}
 
-	public formatCount(count: null | number): string {
-		return this.text(count === 1 ? "invoiceCountOne" : "invoiceCount", [count ?? 0]);
+	public formatOverdue(amount: null | number, currency: string): string {
+		return amount ? this.text("kpiOverdueHint", [this.money(amount, currency)]) : this.text("kpiNothingOverdue", []);
 	}
 
-	public formatPayments(count: null | number): string {
-		return this.text(count === 1 ? "paymentCountOne" : "paymentCount", [count ?? 0]);
+	public formatDueSoon(amount: null | number, currency: string): string {
+		return this.text("kpiDueSoonHint", [this.money(amount, currency)]);
+	}
+
+	public formatProfitHint(revenue: null | number, expenses: null | number, currency: string): string {
+		return this.text("kpiProfitHint", [this.money(revenue, currency), this.money(expenses, currency)]);
 	}
 
 	private async loadOrganization(): Promise<void> {
@@ -102,6 +107,10 @@ export default class Dashboard extends PageController {
 			loaded: true,
 			organizationName: result?.name ?? "",
 		});
+	}
+
+	private money(amount: null | number, currency: string): string {
+		return NumberFormat.getCurrencyInstance().format(Number(amount ?? 0), currency);
 	}
 
 	private navigate(shellHash: string): void {

@@ -1,0 +1,177 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.customers",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/sales/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Customer-manage": {
+					"semanticObject": "Customer",
+					"action": "manage",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://customer",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			},
+			"outbounds": {
+				"invoices": {
+					"semanticObject": "Sales",
+					"action": "manage",
+					"parameters": {}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {},
+				"sap.f": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.customers.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "CustomersList",
+					"target": "CustomersList"
+				},
+				{
+					"pattern": "Customers({key}):?query:",
+					"name": "CustomersObjectPage",
+					"target": "CustomersObjectPage"
+				}
+			],
+			"targets": {
+				"CustomersList": {
+					"type": "Component",
+					"id": "CustomersList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Customers",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"Customers": {
+									"detail": {
+										"route": "CustomersObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"CustomersObjectPage": {
+					"type": "Component",
+					"id": "CustomersObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/Customers",
+							"enhanceI18n": "i18n/i18n.properties",
+							"navigation": {
+								"invoices": {
+									"detail": {
+										"outbound": "invoices"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

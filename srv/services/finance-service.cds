@@ -32,6 +32,16 @@ service FinanceService {
   @readonly
   entity Payments          as projection on my.Payments;
 
+  /** Payments per month, money in and out, for the dashboard chart. */
+  @readonly @cds.redirection.target: false
+  entity CashFlow          as projection on my.Payments {
+    key ID,
+        organization,
+        substring(paymentDate, 0, 7)                             as month    : String(7),
+        case when direction = 'IN' then amount else 0 end        as moneyIn  : Decimal(15, 2),
+        case when direction = 'OUT' then amount else 0 end       as moneyOut : Decimal(15, 2)
+  };
+
   @readonly
   entity SalesInvoices     as projection on my.SalesInvoices;
 

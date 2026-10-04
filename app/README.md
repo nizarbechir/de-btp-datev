@@ -1,14 +1,18 @@
 # UI apps
 
-Five Fiori elements apps share one backend. Pages are defined by annotations in each app's `annotations.cds`; labels common to all apps come from `srv/services/labels.cds`.
+Fiori elements apps share one backend. Pages are defined by annotations in each app's `annotations.cds`; labels common to all apps come from `srv/services/labels.cds`.
 
-| App       | Intent              | Service      | Pages                                                            |
-| --------- | ------------------- | ------------ | ---------------------------------------------------------------- |
-| Dashboard | `Dashboard-display` | Finance      | Key figures, needs attention, onboarding (custom page)           |
-| Sales     | `Sales-manage`      | Sales        | Invoices, Quotes, Customers, Products & Services                 |
-| Purchases | `Purchases-manage`  | Purchasing   | Supplier Invoices, Document Inbox, Suppliers, Expense Categories |
-| Finance   | `Finance-manage`    | Finance      | Bank Transactions (matching), Payments, VAT & Accountant Export  |
-| Settings  | `Settings-manage`   | Organization | Organization & members, Company Settings                         |
+| App                 | Intent                   | Service      | Pages                                                                        |
+| ------------------- | ------------------------ | ------------ | ---------------------------------------------------------------------------- |
+| Dashboard           | `Dashboard-display`      | Finance      | Key figures, to do, cash flow chart, open invoices, onboarding (custom page) |
+| Sales               | `Sales-manage`           | Sales        | Invoices, Quotes                                                             |
+| Purchases           | `Purchases-manage`       | Purchasing   | Supplier Invoices, Document Inbox                                            |
+| Customers           | `Customer-manage`        | Sales        | Customers                                                                    |
+| Products & Services | `ProductService-manage`  | Sales        | Products & Services                                                          |
+| Suppliers           | `Supplier-manage`        | Purchasing   | Suppliers                                                                    |
+| Expense Categories  | `ExpenseCategory-manage` | Purchasing   | Expense Categories                                                           |
+| Finance             | `Finance-manage`         | Finance      | Bank Transactions (matching), Payments, VAT & Accountant Export              |
+| Settings            | `Settings-manage`        | Organization | Organization & members, Company Settings                                     |
 
 ## Navigation
 

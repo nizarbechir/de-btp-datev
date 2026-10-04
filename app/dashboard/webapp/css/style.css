@@ -21,8 +21,3 @@
 .swiverTotalsGrand .sapMObjectNumberLarge .sapMObjectNumberText {
 	font-size: 1.75rem;
 }
-
-/* Dashboard: section headings above the key figure tiles */
-.swiverSectionTitle {
-	margin: 1rem 0 0.5rem;
-}

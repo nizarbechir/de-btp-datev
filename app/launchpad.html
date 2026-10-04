@@ -47,6 +47,34 @@
             "applicationType": "URL",
             "url": "/swiver.finance"
         },
+        "Customer-manage": {
+            "title": "Customers",
+            "description": "Sales",
+            "additionalInformation": "SAPUI5.Component=swiver.customers",
+            "applicationType": "URL",
+            "url": "/swiver.customers"
+        },
+        "ProductService-manage": {
+            "title": "Products & Services",
+            "description": "Sales",
+            "additionalInformation": "SAPUI5.Component=swiver.products",
+            "applicationType": "URL",
+            "url": "/swiver.products"
+        },
+        "Supplier-manage": {
+            "title": "Suppliers",
+            "description": "Purchases",
+            "additionalInformation": "SAPUI5.Component=swiver.suppliers",
+            "applicationType": "URL",
+            "url": "/swiver.suppliers"
+        },
+        "ExpenseCategory-manage": {
+            "title": "Expense Categories",
+            "description": "Purchases",
+            "additionalInformation": "SAPUI5.Component=swiver.expensecategories",
+            "applicationType": "URL",
+            "url": "/swiver.expensecategories"
+        },
         "TaxAdvisor-display": {
             "title": "Tax Advisor",
             "description": "Workspace for your Steuerberater",
@@ -120,7 +148,7 @@
                                         "title": "Customers",
                                         "info": "Sales",
                                         "icon": "sap-icon://customer",
-                                        "targetURL": "#Sales-manage&/Customers"
+                                        "targetURL": "#Customer-manage"
                                     }
                                 },
                                 {
@@ -130,7 +158,7 @@
                                         "title": "Products & Services",
                                         "info": "Sales",
                                         "icon": "sap-icon://product",
-                                        "targetURL": "#Sales-manage&/ProductServices"
+                                        "targetURL": "#ProductService-manage"
                                     }
                                 }
                             ]
@@ -169,7 +197,7 @@
                                         "title": "Suppliers",
                                         "info": "Purchases",
                                         "icon": "sap-icon://supplier",
-                                        "targetURL": "#Purchases-manage&/Suppliers"
+                                        "targetURL": "#Supplier-manage"
                                     }
                                 },
                                 {
@@ -179,7 +207,7 @@
                                         "title": "Expense Categories",
                                         "info": "Purchases",
                                         "icon": "sap-icon://expense-report",
-                                        "targetURL": "#Purchases-manage&/ExpenseCategories"
+                                        "targetURL": "#ExpenseCategory-manage"
                                     }
                                 }
                             ]
@@ -274,7 +302,7 @@
         src="https://sapui5.hana.ondemand.com/1.148.4/resources/sap-ui-core.js"
         data-sap-ui-libs="sap.m, sap.ui.core, sap.ushell, sap.fe.templates"
         data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/", "swiver.taxadvisor": "/swiver.taxadvisor/"}'
+        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.settings": "/swiver.settings/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/"}'
         data-sap-ui-compatVersion="edge"
         data-sap-ui-async="true"
         data-sap-ui-frameOptions="allow"

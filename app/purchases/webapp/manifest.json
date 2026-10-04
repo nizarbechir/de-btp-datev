@@ -123,26 +123,6 @@
 					"pattern": "IncomingDocuments({key}):?query:",
 					"name": "IncomingDocumentsObjectPage",
 					"target": "IncomingDocumentsObjectPage"
-				},
-				{
-					"pattern": "Suppliers:?query:",
-					"name": "SuppliersList",
-					"target": "SuppliersList"
-				},
-				{
-					"pattern": "Suppliers({key}):?query:",
-					"name": "SuppliersObjectPage",
-					"target": "SuppliersObjectPage"
-				},
-				{
-					"pattern": "ExpenseCategories:?query:",
-					"name": "ExpenseCategoriesList",
-					"target": "ExpenseCategoriesList"
-				},
-				{
-					"pattern": "ExpenseCategories({key}):?query:",
-					"name": "ExpenseCategoriesObjectPage",
-					"target": "ExpenseCategoriesObjectPage"
 				}
 			],
 			"targets": {
@@ -261,89 +241,6 @@
 									}
 								}
 							}
-						}
-					}
-				},
-				"SuppliersList": {
-					"type": "Component",
-					"id": "SuppliersList",
-					"name": "sap.fe.templates.ListReport",
-					"options": {
-						"settings": {
-							"contextPath": "/Suppliers",
-							"variantManagement": "Page",
-							"initialLoad": "Enabled",
-							"navigation": {
-								"Suppliers": {
-									"detail": {
-										"route": "SuppliersObjectPage"
-									}
-								}
-							},
-							"controlConfiguration": {
-								"@com.sap.vocabularies.UI.v1.LineItem": {
-									"tableSettings": {
-										"type": "ResponsiveTable"
-									}
-								}
-							}
-						}
-					}
-				},
-				"SuppliersObjectPage": {
-					"type": "Component",
-					"id": "SuppliersObjectPage",
-					"name": "sap.fe.templates.ObjectPage",
-					"options": {
-						"settings": {
-							"editableHeaderContent": false,
-							"contextPath": "/Suppliers",
-							"enhanceI18n": "i18n/i18n.properties",
-							"navigation": {
-								"invoices": {
-									"detail": {
-										"route": "SupplierInvoicesObjectPage"
-									}
-								}
-							}
-						}
-					}
-				},
-				"ExpenseCategoriesList": {
-					"type": "Component",
-					"id": "ExpenseCategoriesList",
-					"name": "sap.fe.templates.ListReport",
-					"options": {
-						"settings": {
-							"contextPath": "/ExpenseCategories",
-							"variantManagement": "Page",
-							"initialLoad": "Enabled",
-							"navigation": {
-								"ExpenseCategories": {
-									"detail": {
-										"route": "ExpenseCategoriesObjectPage"
-									}
-								}
-							},
-							"controlConfiguration": {
-								"@com.sap.vocabularies.UI.v1.LineItem": {
-									"tableSettings": {
-										"type": "ResponsiveTable"
-									}
-								}
-							}
-						}
-					}
-				},
-				"ExpenseCategoriesObjectPage": {
-					"type": "Component",
-					"id": "ExpenseCategoriesObjectPage",
-					"name": "sap.fe.templates.ObjectPage",
-					"options": {
-						"settings": {
-							"editableHeaderContent": false,
-							"contextPath": "/ExpenseCategories",
-							"enhanceI18n": "i18n/i18n.properties"
 						}
 					}
 				}

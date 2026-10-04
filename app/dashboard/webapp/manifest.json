@@ -94,7 +94,10 @@
 				"sap.fe.templates": {},
 				"sap.fe.macros": {},
 				"sap.f": {},
-				"sap.ui.layout": {}
+				"sap.ui.layout": {},
+				"sap.viz": {
+					"lazy": true
+				}
 			}
 		},
 		"contentDensities": {

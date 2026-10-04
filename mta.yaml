@@ -112,8 +112,8 @@ modules:
       - name: swiver-repo-host
         parameters:
           content-target: true
-      - name: swiver-auth 
-      - name: swiver-destination 
+      - name: swiver-auth
+      - name: swiver-destination
     build-parameters:
       build-result: resources
       requires:
@@ -132,6 +132,22 @@ modules:
         - name: swiverfinance
           artifacts:
             - swiverfinance.zip
+          target-path: resources/
+        - name: swivercustomers
+          artifacts:
+            - swivercustomers.zip
+          target-path: resources/
+        - name: swiverproducts
+          artifacts:
+            - swiverproducts.zip
+          target-path: resources/
+        - name: swiversuppliers
+          artifacts:
+            - swiversuppliers.zip
+          target-path: resources/
+        - name: swiverexpensecategories
+          artifacts:
+            - swiverexpensecategories.zip
           target-path: resources/
         - name: swiversettings
           artifacts:
@@ -184,6 +200,46 @@ modules:
   - name: swiversales
     type: html5
     path: app/sales
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swivercustomers
+    type: html5
+    path: app/customers
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverproducts
+    type: html5
+    path: app/products
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiversuppliers
+    type: html5
+    path: app/suppliers
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverexpensecategories
+    type: html5
+    path: app/expensecategories
     build-parameters:
       build-result: dist
       builder: custom

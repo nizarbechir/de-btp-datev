@@ -31,6 +31,22 @@
 				{
 					"appId": "swiver.settings",
 					"vizId": "Settings-manage"
+				},
+				{
+					"appId": "swiver.customers",
+					"vizId": "Customer-manage"
+				},
+				{
+					"appId": "swiver.products",
+					"vizId": "ProductService-manage"
+				},
+				{
+					"appId": "swiver.suppliers",
+					"vizId": "Supplier-manage"
+				},
+				{
+					"appId": "swiver.expensecategories",
+					"vizId": "ExpenseCategory-manage"
 				}
 			]
 		},
@@ -75,6 +91,22 @@
 				{
 					"appId": "swiver.settings",
 					"vizId": "Settings-manage"
+				},
+				{
+					"appId": "swiver.customers",
+					"vizId": "Customer-manage"
+				},
+				{
+					"appId": "swiver.products",
+					"vizId": "ProductService-manage"
+				},
+				{
+					"appId": "swiver.suppliers",
+					"vizId": "Supplier-manage"
+				},
+				{
+					"appId": "swiver.expensecategories",
+					"vizId": "ExpenseCategory-manage"
 				}
 			]
 		},
@@ -113,6 +145,18 @@
 				},
 				{
 					"id": "swiver.settings"
+				},
+				{
+					"id": "swiver.customers"
+				},
+				{
+					"id": "swiver.products"
+				},
+				{
+					"id": "swiver.suppliers"
+				},
+				{
+					"id": "swiver.expensecategories"
 				}
 			],
 			"catalogs": [
@@ -198,6 +242,26 @@
 							"id": "swiversettingsWidget",
 							"appId": "swiver.settings",
 							"vizId": "Settings-manage"
+						},
+						{
+							"id": "swivercustomersWidget",
+							"appId": "swiver.customers",
+							"vizId": "Customer-manage"
+						},
+						{
+							"id": "swiverproductsWidget",
+							"appId": "swiver.products",
+							"vizId": "ProductService-manage"
+						},
+						{
+							"id": "swiversuppliersWidget",
+							"appId": "swiver.suppliers",
+							"vizId": "Supplier-manage"
+						},
+						{
+							"id": "swiverexpensecategoriesWidget",
+							"appId": "swiver.expensecategories",
+							"vizId": "ExpenseCategory-manage"
 						}
 					]
 				}

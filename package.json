@@ -122,6 +122,10 @@
 		"app/sales",
 		"app/purchases",
 		"app/finance",
-		"app/settings"
+		"app/settings",
+		"app/customers",
+		"app/products",
+		"app/suppliers",
+		"app/expensecategories"
 	]
 }
