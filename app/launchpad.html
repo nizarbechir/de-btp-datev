@@ -28,14 +28,28 @@
         },
         "Sales-manage": {
             "title": "Sales",
-            "description": "Invoices and quotes",
+            "description": "Customer invoices",
             "additionalInformation": "SAPUI5.Component=swiver.sales",
             "applicationType": "URL",
             "url": "/swiver.sales"
         },
+        "Quote-manage": {
+            "title": "Quotes",
+            "description": "Offers to customers",
+            "additionalInformation": "SAPUI5.Component=swiver.sales",
+            "applicationType": "URL",
+            "url": "/swiver.sales"
+        },
+        "Inbox-manage": {
+            "title": "Inbox",
+            "description": "Received documents",
+            "additionalInformation": "SAPUI5.Component=swiver.purchases",
+            "applicationType": "URL",
+            "url": "/swiver.purchases"
+        },
         "Purchases-manage": {
             "title": "Purchases",
-            "description": "Supplier invoices and inbox",
+            "description": "Supplier invoices",
             "additionalInformation": "SAPUI5.Component=swiver.purchases",
             "applicationType": "URL",
             "url": "/swiver.purchases"
@@ -138,7 +152,7 @@
                                         "title": "Quotes",
                                         "info": "Sales",
                                         "icon": "sap-icon://sales-quote",
-                                        "targetURL": "#Sales-manage&/Quotes"
+                                        "targetURL": "#Quote-manage"
                                     }
                                 },
                                 {
@@ -187,7 +201,7 @@
                                         "title": "Document Inbox",
                                         "info": "Purchases",
                                         "icon": "sap-icon://inbox",
-                                        "targetURL": "#Purchases-manage&/IncomingDocuments"
+                                        "targetURL": "#Inbox-manage"
                                     }
                                 },
                                 {

@@ -36,6 +36,17 @@
 						"parameters": {},
 						"additionalParameters": "allowed"
 					}
+				},
+				"Inbox-manage": {
+					"semanticObject": "Inbox",
+					"action": "manage",
+					"title": "{{inboxTitle}}",
+					"subTitle": "{{inboxSubtitle}}",
+					"icon": "sap-icon://inbox",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
 				}
 			}
 		}

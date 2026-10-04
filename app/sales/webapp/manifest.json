@@ -36,6 +36,17 @@
 						"parameters": {},
 						"additionalParameters": "allowed"
 					}
+				},
+				"Quote-manage": {
+					"semanticObject": "Quote",
+					"action": "manage",
+					"title": "{{quotesTitle}}",
+					"subTitle": "{{quotesSubtitle}}",
+					"icon": "sap-icon://sales-quote",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
 				}
 			}
 		}
