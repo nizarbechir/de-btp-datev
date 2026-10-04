@@ -170,3 +170,14 @@ view OpenItems as
     }
     where
       paymentStatus.code != 'PAID';
+
+// The union starts with the sales invoices, whose entity annotations (editability, search) refer to
+// elements the open items do not have.
+annotate OpenItems with @(
+  Capabilities.UpdateRestrictions: {Updatable: false},
+  UI.UpdateHidden                : true,
+  cds.search                     : {
+    invoiceNumber,
+    partnerName
+  }
+);
