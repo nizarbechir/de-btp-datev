@@ -43,3 +43,28 @@ export async function getCompanySettings(): Promise<InvoiceDefaults> {
 		quotePrefix: settings?.quotePrefix || fallback.quotePrefix,
 	};
 }
+
+/** Company details printed in the invoice footer; an invoice can only be issued when all are filled. */
+const requiredFooterFields: Record<string, string> = {
+	bankName: "bank name",
+	bic: "BIC",
+	city: "city",
+	companyName: "company name",
+	email: "e-mail",
+	iban: "IBAN",
+	postalCode: "postal code",
+	street: "street",
+	vatId: "VAT ID",
+	website: "website",
+};
+
+/** The labels of the required footer fields that are still empty in Settings. */
+export async function missingFooterFields(): Promise<string[]> {
+	const settings = (await SELECT.one
+		.from(CompanySettings)
+		.columns(Object.keys(requiredFooterFields))
+		.where({ organization_ID: requireOrganization() })) as Record<string, null | string> | undefined;
+	return Object.entries(requiredFooterFields)
+		.filter(([field]) => !settings?.[field]?.trim())
+		.map(([, label]) => label);
+}

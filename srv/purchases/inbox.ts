@@ -36,7 +36,8 @@ export async function createSupplierInvoice(
 	input: SupplierInvoiceInput,
 ): Promise<string> {
 	const organization_ID = requireOrganization(req);
-	const document = await SELECT.one.from(Documents).where({ ID: documentID, organization_ID });
+	// Locked until the transaction ends: a second, parallel request waits and then finds it processed.
+	const document = await SELECT.one.from(Documents).where({ ID: documentID, organization_ID }).forUpdate();
 	if (!document) {
 		throw new DomainError("DOCUMENT_NOT_FOUND", 404);
 	}

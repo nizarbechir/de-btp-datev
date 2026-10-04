@@ -109,6 +109,16 @@ const DocumentActions = {
 		await openNewInvoice(this, context, "correct");
 	},
 
+	/** Switches from the invoice list to the quote list (both live in this app). */
+	showQuotes(this: ExtensionAPI): void {
+		this.routing.navigateToRoute("QuotesList");
+	},
+
+	/** Switches from the quote list back to the invoice list. */
+	showInvoices(this: ExtensionAPI): void {
+		this.routing.navigateToRoute("SalesInvoicesList");
+	},
+
 	/** Creates the draft invoice from the quote and opens it. */
 	async convertToInvoice(this: ExtensionAPI, context: Context): Promise<void> {
 		await openNewInvoice(this, context, "convertToInvoice");

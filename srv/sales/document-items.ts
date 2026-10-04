@@ -97,6 +97,12 @@ export function registerItemCalculation(srv: cds.ApplicationService, itemDrafts:
 			await recalculateDraft(config, documentID);
 		}
 	});
+	// Also when the product comes with the new line, e.g. from an inline creation row of the item table
+	srv.before("NEW", itemDrafts, async (req) => {
+		if (req.data.productService_ID) {
+			await prefillFromProduct(req.data as Data);
+		}
+	});
 	srv.after("NEW", itemDrafts, async (_results, req) => {
 		const documentID = (req.data as Data)[config.itemKey] as string | undefined;
 		if (documentID) {

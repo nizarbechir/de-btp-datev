@@ -1,5 +1,6 @@
 import cds from "@sap/cds";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
@@ -13,6 +14,7 @@ import { registerSalesInvoices } from "../sales/sales-invoices";
 export default class SalesService extends cds.ApplicationService {
 	async init() {
 		registerTenantGuard(this);
+		registerChangeHistoryGuard(this);
 		registerSalesInvoices(this);
 		registerQuotes(this);
 		registerReadOnlyFlag(this);

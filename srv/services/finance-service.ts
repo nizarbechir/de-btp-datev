@@ -1,8 +1,10 @@
 import cds, { Request } from "@sap/cds";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
+import { logFailure } from "../core/operation-log";
 import { importBankStatement } from "../finance/bank-import";
 import { dashboard } from "../finance/dashboard";
 import { confirmMatch, ignoreTransaction, matchManually, suggestMatches, unmatch } from "../finance/matching";
@@ -18,6 +20,7 @@ export default class FinanceService extends cds.ApplicationService {
 	async init() {
 		const { BankTransactions } = this.entities as Record<string, cds.entity>;
 		registerTenantGuard(this);
+		registerChangeHistoryGuard(this);
 		registerReadOnlyFlag(this);
 		registerComments(this, { BankTransactions: "bankTransaction" });
 		auditActions(this, { BankTransactions: ["confirmMatch", "matchManually", "unmatch", "ignore"] });
@@ -53,6 +56,7 @@ async function guarded(req: Request, operation: () => Promise<unknown>, returnSu
 		const result = await operation();
 		return returnSubject ? await SELECT.one.from(req.subject) : result;
 	} catch (error) {
+		logFailure("bank", req.event, error, { target: req.params.length ? key(req) : undefined });
 		return rejectDomainError(req, error);
 	}
 }

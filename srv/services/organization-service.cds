@@ -74,6 +74,10 @@ service OrganizationService @(path: '/odata/v4/organization') {
                               defaultPaymentTermDays : Integer,
                               invoicePrefix : String(10)) returns CurrentOrganization;
 
+  /** All data and documents of the organization as zip, for owners and admins (data export, offboarding). */
+  @title: '{i18n>ExportOrganizationData}'
+  function exportOrganizationData()        returns LargeBinary @Core.MediaType: 'application/zip';
+
   /** Accepts an invitation with the token from the e-mail link and creates the membership. */
   action   acceptInvitation(token : String(100)) returns CurrentOrganization;
 }

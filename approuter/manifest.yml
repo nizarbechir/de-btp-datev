@@ -1,0 +1,13 @@
+# Dev-only: cf push from this folder after deploying the MTA with free.mtaext.
+applications:
+  - name: swiver-approuter
+    memory: 256M
+    disk_quota: 512M
+    instances: 1
+    buildpacks:
+      - nodejs_buildpack
+    random-route: false
+    services:
+      - swiver-auth
+      - swiver-html5-rt
+      - swiver-destination

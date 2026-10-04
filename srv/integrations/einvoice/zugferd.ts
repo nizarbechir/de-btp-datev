@@ -13,7 +13,7 @@ import { facturXXmp } from "./xmp";
  * - extract: the invoice data of a received ZUGFeRD PDF
  * - validate: the EN 16931 fields this application must provide
  * TODO(feature): XRechnung support
- * TODO(feature): full schema and schematron validation (e.g. KoSIT validator)
+ * Full XSD, Schematron and PDF/A-3 validation: npm run validate:zugferd (docs/zugferd-validation.md)
  */
 export const xmlFileName = "factur-x.xml";
 const knownXmlNames = [xmlFileName, "zugferd-invoice.xml", "ZUGFeRD-invoice.xml", "xrechnung.xml"];

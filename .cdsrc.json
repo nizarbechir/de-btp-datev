@@ -11,9 +11,6 @@
 	},
 	"requires": {
 		"db": {
-			"credentials": {
-				"url": ":memory:"
-			},
 			"[development]": {
 				"data": ["db/data", "test/data"]
 			},
@@ -41,7 +38,11 @@
 					},
 					"steuerberater@example.de": {
 						"password": "steuerberater",
-						"roles": ["InvoiceManager"]
+						"roles": []
+					},
+					"carol": {
+						"password": "carol",
+						"roles": []
 					}
 				}
 			}
@@ -70,5 +71,15 @@
 	},
 	"i18n": {
 		"folders": ["i18n"]
+	},
+	"swiver": {
+		"documents": {
+			"maxSizeMB": 10
+		}
+	},
+	"[production]": {
+		"log": {
+			"format": "json"
+		}
 	}
 }

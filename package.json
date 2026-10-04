@@ -11,6 +11,7 @@
 		"app/*"
 	],
 	"scripts": {
+		"backup": "cds bind --exec --profile hybrid -- ts-node scripts/backup.ts backups",
 		"bind-to-services": "./scripts/bind-to-services.sh",
 		"build": "rimraf resources mta_archives && mbt build --mtar archive",
 		"build:dev": "rimraf resources mta_archives gen && mbt build --extensions dev.mtaext --mtar archive",
@@ -36,6 +37,7 @@
 		"test:ci": "jest test/unit",
 		"test:integration": "jest test/integration --runInBand --no-cache",
 		"undeploy": "cf undeploy swiver --delete-services --delete-service-keys --delete-service-brokers",
+		"validate:zugferd": "rimraf target/zugferd && ZUGFERD_OUT=target/zugferd jest test/integration/zugferd.test.ts --coverage=false && ./scripts/validate-zugferd.sh target/zugferd/*.pdf",
 		"watch": "npm run killport && cds-ts watch",
 		"watch-hybrid": "cds-ts watch --profile hybrid",
 		"watch-swiver": "cds-ts watch --open launchpad.html?sap-ui-xx-viewCache=false --livereload false"

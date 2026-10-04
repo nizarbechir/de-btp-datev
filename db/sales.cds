@@ -335,3 +335,20 @@ entity QuoteStatuses : CodeList {
         expired  = 'EXPIRED';
       };
 }
+
+// Document numbers are unique per organization, enforced by the database as the last line of defense
+// behind the number ranges (see srv/core/numbering.ts).
+annotate SalesInvoices with @assert.unique: {invoiceNumber: [
+  organization,
+  invoiceNumber
+]};
+
+annotate Quotes with @assert.unique: {quoteNumber: [
+  organization,
+  quoteNumber
+]};
+
+annotate Customers with @assert.unique: {customerNumber: [
+  organization,
+  customerNumber
+]};

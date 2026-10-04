@@ -1,16 +1,19 @@
 import cds from "@sap/cds";
+import { Readable } from "node:stream";
 
+import { registerChangeHistoryGuard } from "../authorization/change-history-guard";
 import { audit, boundKey } from "../collaboration/audit";
+import { logoTypes, validateUpload } from "../core/document-upload";
 import { acceptInvitation, inviteMember, resendInvitation, revokeInvitation } from "../organizations/invitations";
 import { createOrganization } from "../organizations/onboarding";
 import { currentOrganization, requireAdmin } from "../organizations/organization-context";
+import { exportOrganizationData } from "../organizations/organization-data";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 
 /**
  * The signed-in user's organization: onboarding, company settings, members and invitations.
  * Only owners and admins change settings and members.
  */
-const logoMediaTypes = ["image/png", "image/jpeg"];
 
 export default class OrganizationService extends cds.ApplicationService {
 	async init() {
@@ -19,6 +22,7 @@ export default class OrganizationService extends cds.ApplicationService {
 			cds.entity & { drafts: cds.entity }
 		>;
 		registerTenantGuard(this);
+		registerChangeHistoryGuard(this);
 
 		this.on("myOrganization", async (req) => {
 			const context = currentOrganization();
@@ -51,6 +55,18 @@ export default class OrganizationService extends cds.ApplicationService {
 			};
 		});
 
+		this.on("exportOrganizationData", async (req) => {
+			const organizationId = requireAdmin(req);
+			const content = await exportOrganizationData(organizationId);
+			await audit({ action: "exportOrganizationData", targetType: "Organization" });
+			return {
+				$mediaContentDispositionType: "attachment",
+				filename: `swiver-data-export-${new Date().toISOString().slice(0, 10)}.zip`,
+				mimetype: "application/zip",
+				value: Readable.from(content),
+			};
+		});
+
 		// Invitations
 		this.on("inviteMember", Organizations, inviteMember);
 		this.on("resend", "Invitations", resendInvitation);
@@ -79,12 +95,9 @@ export default class OrganizationService extends cds.ApplicationService {
 		this.before(["EDIT", "UPDATE", "CREATE", "DELETE", "NEW"], [Organizations, CompanySettings, Memberships], (req) => {
 			requireAdmin(req);
 		});
-		this.before("UPDATE", [CompanySettings, CompanySettings.drafts], (req) => {
-			const mediaType = (req.data as { logoMediaType?: string }).logoMediaType;
-			if (mediaType && !logoMediaTypes.includes(mediaType)) {
-				req.reject(415, "UNSUPPORTED_DOCUMENT_TYPE", "logo", [mediaType]);
-			}
-		});
+		this.before("UPDATE", [CompanySettings, CompanySettings.drafts], (req) =>
+			validateUpload(req, { allowed: logoTypes, content: "logo", mediaType: "logoMediaType" }),
+		);
 		// The organization keeps at least one owner.
 		this.before("SAVE", Organizations, async (req) => {
 			const members = (req.data.members ?? []) as { role?: string }[];

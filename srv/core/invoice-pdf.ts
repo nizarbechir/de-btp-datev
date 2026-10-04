@@ -111,11 +111,11 @@ const footerColumns = [
 /** Item table columns: horizontal position, width and alignment. */
 const columns = {
 	amount: { align: "right", posX: 454, width: 85 },
-	description: { align: "left", posX: 86, width: 164 },
+	description: { align: "left", posX: 86, width: 156 },
 	position: { align: "left", posX: 56, width: 26 },
-	quantity: { align: "right", posX: 254, width: 40 },
+	quantity: { align: "right", posX: 246, width: 40 },
 	taxRate: { align: "right", posX: 414, width: 36 },
-	unit: { align: "left", posX: 300, width: 42 },
+	unit: { align: "left", posX: 292, width: 50 },
 	unitPrice: { align: "right", posX: 344, width: 66 },
 } as const;
 

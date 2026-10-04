@@ -61,7 +61,7 @@ export async function accountantExport(
 			"taxAmount",
 			"paidAmount",
 			"paymentStatus_code as paymentStatus",
-			"documentFileName",
+			"documentMediaType",
 		)
 		.where({ organization_ID })
 		.and("invoiceDate >=", fromDate)
@@ -71,10 +71,8 @@ export async function accountantExport(
 		const row = await SELECT.one.from("swiver.SupplierInvoices").columns("documentContent").where({ ID: invoice.ID });
 		const content = await toBuffer(row?.documentContent);
 		if (content) {
-			const extension =
-				String(invoice.documentFileName ?? "")
-					.split(".")
-					.pop() || "pdf";
+			// The extension follows the stored content type; the user's file name never becomes part of the path.
+			const extension = documentExtensions.get(String(invoice.documentMediaType)) ?? "pdf";
 			files[`purchases/${safe(invoice.supplier)}-${safe(invoice.invoiceNumber)}.${extension}`] = content;
 		}
 		invoice.grossAmount = (Number(invoice.netAmount) + Number(invoice.taxAmount)).toFixed(2);
@@ -190,6 +188,12 @@ async function invoicePdf(document: NonNullable<Awaited<ReturnType<typeof loadIn
 	}
 	return renderSalesInvoicePdf(document);
 }
+
+const documentExtensions = new Map([
+	["application/pdf", "pdf"],
+	["image/jpeg", "jpg"],
+	["image/png", "png"],
+]);
 
 function safe(value: unknown): string {
 	return String(value ?? "unknown")
