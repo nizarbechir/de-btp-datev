@@ -53,7 +53,9 @@ checksums before writing and the row counts afterwards.
 
    ```sh
    cf create-service hana hdi-shared swiver-db-restore --wait
-   npx cds deploy --to hana:swiver-db-restore --production --no-save
+   npx cds deploy --to hana:swiver-db-restore --production
+   # cds deploy re-points the hybrid profile to the new container; point it back to production:
+   npx cds bind db --to swiver-db: service key hana-cloud --for hybrid < your > --kind
    ```
 
 2. Bind it under a separate profile and restore:
