@@ -84,7 +84,7 @@ function toRow(elements: Record<string, Element>, header: string[], line: string
 		if (value === undefined || value === "") {
 			row[column] = null;
 		} else if (type === "cds.Boolean") {
-			row[column] = value === "true";
+			row[column] = String(value) === "true";
 		} else if (type === "cds.Integer" || type === "cds.Int64") {
 			row[column] = Number(value);
 		} else {
