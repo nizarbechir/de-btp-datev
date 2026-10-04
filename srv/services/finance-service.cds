@@ -113,6 +113,8 @@ service FinanceService {
     receivables      : Receivables;
     payables         : Payables;
     estimatedVat     : Decimal(15, 2);
+    // Net revenue minus net expenses of this month.
+    profitThisMonth  : Decimal(15, 2);
     inboxCount       : Integer;
     unmatchedCount   : Integer;
     needsAttention   : many AttentionItem;

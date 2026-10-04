@@ -97,6 +97,7 @@ export async function dashboard() {
 		needsAttention: attention.map((item) => ({ ...item, text: `${item.count} ${item.text}` })),
 		organizationName: organization?.name ?? "",
 		payables,
+		profitThisMonth: Math.round((receivables.revenueThisMonth.amount - payables.expensesThisMonth.amount) * 100) / 100,
 		receivables,
 		unmatchedCount: unmatched.count + suggested.count,
 	};

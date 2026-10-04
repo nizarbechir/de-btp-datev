@@ -2,8 +2,8 @@ import PageController from "sap/fe/core/PageController";
 import MessageBox from "sap/m/MessageBox";
 import Event from "sap/ui/base/Event";
 import NumberFormat from "sap/ui/core/format/NumberFormat";
+import Context from "sap/ui/model/Context";
 import JSONModel from "sap/ui/model/json/JSONModel";
-import Context from "sap/ui/model/odata/v4/Context";
 import ODataModel from "sap/ui/model/odata/v4/ODataModel";
 import ResourceModel from "sap/ui/model/resource/ResourceModel";
 
@@ -31,6 +31,7 @@ export default class Dashboard extends PageController {
 		super.onInit();
 		const view = this.getView();
 		view?.setModel(new JSONModel({ hasOrganization: false, loaded: false, organizationName: "" }), "view");
+		view?.setModel(new JSONModel({}), "kpi");
 		view?.setModel(
 			new JSONModel({
 				companyName: "",
@@ -62,7 +63,7 @@ export default class Dashboard extends PageController {
 	}
 
 	public onAttention(event: Event): void {
-		const context = (event.getSource() as { getBindingContext(): Context }).getBindingContext();
+		const context = (event.getSource() as { getBindingContext(model: string): Context }).getBindingContext("kpi");
 		const target = attentionTargets[context.getProperty("target") as string];
 		if (target) {
 			this.navigate(target);
@@ -83,6 +84,10 @@ export default class Dashboard extends PageController {
 		} catch (error) {
 			MessageBox.error((error as Error).message);
 		}
+	}
+
+	public formatAmount(amount: null | number | string): string {
+		return NumberFormat.getFloatInstance({ maxFractionDigits: 2, minFractionDigits: 2 }).format(Number(amount ?? 0));
 	}
 
 	public formatOverdue(amount: null | number, currency: string): string {
@@ -107,6 +112,11 @@ export default class Dashboard extends PageController {
 			loaded: true,
 			organizationName: result?.name ?? "",
 		});
+		if (result?.organizationID) {
+			// The figures are one function result; loading it once avoids relative bindings to a function.
+			const figures = await (this.getView()?.getModel() as ODataModel).bindContext("/dashboard()").requestObject();
+			(this.getView()?.getModel("kpi") as JSONModel).setData(figures);
+		}
 	}
 
 	private money(amount: null | number, currency: string): string {

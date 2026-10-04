@@ -48,36 +48,36 @@
 					<Button id="createOrganization" text="{i18n>createOrganization}" type="Emphasized" press=".onCreateOrganization" />
 				</VBox>
 
-				<VBox id="dashboardContent" class="sapUiSmallMargin" visible="{view>/hasOrganization}" binding="{path: '/dashboard()', parameters: {$$groupId: '$auto'}}">
+				<VBox id="dashboardContent" class="sapUiSmallMargin" visible="{view>/hasOrganization}">
 					<!-- Key figures: one row, the second line says what needs action -->
 					<l:Grid id="kpiGrid" defaultSpan="XL3 L3 M6 S12" containerQuery="true" class="sapUiNoMargin">
 						<GenericTile id="kpiToCollect" width="100%" header="{i18n>kpiToCollect}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
-							<TileContent id="kpiToCollectContent" footer="{parts: ['receivables/overdue/amount', 'currency'], formatter: '.formatOverdue'}" footerColor="Critical">
-								<ObjectNumber id="kpiToCollectValue" class="sapMObjectNumberLarge" number="{receivables/outstanding/amount}" unit="{currency}" emphasized="true" />
+							<TileContent id="kpiToCollectContent" footer="{parts: [{path: 'kpi>/receivables/overdue/amount'}, 'kpi>/currency'], formatter: '.formatOverdue'}" footerColor="Critical">
+								<ObjectNumber id="kpiToCollectValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/receivables/outstanding/amount', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
 						</GenericTile>
 						<GenericTile id="kpiToPay" width="100%" header="{i18n>kpiToPay}" press=".onNavigate($event, 'Purchases-manage&amp;/SupplierInvoices')">
-							<TileContent id="kpiToPayContent" footer="{parts: ['payables/dueNext7Days/amount', 'currency'], formatter: '.formatDueSoon'}" footerColor="Critical">
-								<ObjectNumber id="kpiToPayValue" class="sapMObjectNumberLarge" number="{payables/open/amount}" unit="{currency}" emphasized="true" />
+							<TileContent id="kpiToPayContent" footer="{parts: [{path: 'kpi>/payables/dueNext7Days/amount'}, 'kpi>/currency'], formatter: '.formatDueSoon'}" footerColor="Critical">
+								<ObjectNumber id="kpiToPayValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/payables/open/amount', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
 						</GenericTile>
 						<GenericTile id="kpiProfit" width="100%" header="{i18n>kpiProfitThisMonth}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
-							<TileContent id="kpiProfitContent" footer="{parts: ['receivables/revenueThisMonth/amount', 'payables/expensesThisMonth/amount', 'currency'], formatter: '.formatProfitHint'}">
-								<ObjectNumber id="kpiProfitValue" class="sapMObjectNumberLarge" number="{= ${receivables/revenueThisMonth/amount} - ${payables/expensesThisMonth/amount} }" unit="{currency}" state="{= ${receivables/revenueThisMonth/amount} &lt; ${payables/expensesThisMonth/amount} ? 'Error' : 'Success' }" emphasized="true" />
+							<TileContent id="kpiProfitContent" footer="{parts: [{path: 'kpi>/receivables/revenueThisMonth/amount'}, {path: 'kpi>/payables/expensesThisMonth/amount'}, 'kpi>/currency'], formatter: '.formatProfitHint'}">
+								<ObjectNumber id="kpiProfitValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/profitThisMonth', formatter: '.formatAmount'}" unit="{kpi>/currency}" state="{= ${kpi>/profitThisMonth} &lt; 0 ? 'Error' : 'Success' }" emphasized="true" />
 							</TileContent>
 						</GenericTile>
 						<GenericTile id="kpiVat" width="100%" header="{i18n>kpiEstimatedVat}" press=".onNavigate($event, 'Finance-manage&amp;/Reports')">
 							<TileContent id="kpiVatContent" footer="{i18n>kpiEstimatedVatSub}">
-								<ObjectNumber id="kpiVatValue" class="sapMObjectNumberLarge" number="{estimatedVat}" unit="{currency}" emphasized="true" />
+								<ObjectNumber id="kpiVatValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/estimatedVat', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
 						</GenericTile>
 					</l:Grid>
 
 					<!-- What to do next, and how money moved -->
 					<l:Grid id="workGrid" containerQuery="true" class="sapUiNoMargin sapUiSmallMarginTop">
-						<List id="attentionList" headerText="{i18n>toDo}" items="{path: 'needsAttention', templateShareable: false}" noDataText="{i18n>nothingToDo}">
+						<List id="attentionList" headerText="{i18n>toDo}" items="{kpi>/needsAttention}" noDataText="{i18n>nothingToDo}">
 							<layoutData><l:GridData id="attentionSpan" span="XL5 L5 M12 S12" /></layoutData>
-							<StandardListItem id="attentionItem" title="{text}" icon="sap-icon://alert" type="Navigation" press=".onAttention" />
+							<StandardListItem id="attentionItem" title="{kpi>text}" icon="sap-icon://alert" type="Navigation" press=".onAttention" />
 						</List>
 						<macros:Chart id="cashFlowChart" contextPath="/CashFlow" metaPath="@com.sap.vocabularies.UI.v1.Chart" header="{i18n>cashFlow}" personalization="Type" height="20rem">
 							<macros:layoutData><l:GridData id="chartSpan" span="XL7 L7 M12 S12" /></macros:layoutData>
@@ -87,7 +87,7 @@
 					<!-- Open invoices, money in and money out in one place -->
 					<IconTabBar id="openItemsTabs" class="sapUiSmallMarginTop sapUiResponsiveContentPadding" expandable="false" headerBackgroundDesign="Transparent">
 						<items>
-							<IconTabFilter id="moneyInTab" text="{i18n>moneyIn}" count="{receivables/outstanding/count}">
+							<IconTabFilter id="moneyInTab" text="{i18n>moneyIn}" count="{kpi>/receivables/outstanding/count}">
 								<macros:Table
 									id="openSalesInvoices"
 									contextPath="/SalesInvoices"
@@ -98,7 +98,7 @@
 									width="100%"
 								/>
 							</IconTabFilter>
-							<IconTabFilter id="moneyOutTab" text="{i18n>moneyOut}" count="{payables/open/count}">
+							<IconTabFilter id="moneyOutTab" text="{i18n>moneyOut}" count="{kpi>/payables/open/count}">
 								<macros:Table
 									id="upcomingPayments"
 									contextPath="/SupplierInvoices"
