@@ -10,6 +10,7 @@ One CAP application (modular monolith). Service handlers stay thin: they read th
 | `sales/`                 | Sales invoices (lifecycle, numbering), quotes, item totals, PDF data, e-mail texts         |
 | `purchases/`             | Document inbox, supplier matching                                                          |
 | `payments/`              | Payment records, paid/open amount and payment status                                       |
+| `support/`               | Support tickets: lifecycle, numbering, notification e-mails                                |
 | `finance/`               | Bank import, matching, VAT overview, dashboard, accountant export                          |
 | `integrations/einvoice/` | ZUGFeRD / Factur-X: `generate`, `extract`, `validate` (CII XML, PDF/A-3)                   |
 | `integrations/email/`    | `EmailProvider` and the Microsoft Graph implementation                                     |
@@ -25,6 +26,7 @@ One CAP application (modular monolith). Service handlers stay thin: they read th
 | `PurchasingService`   | `/odata/v4/purchasing`   | Suppliers, supplier invoices, inbox, expense categories |
 | `FinanceService`      | `/odata/v4/finance`      | Bank transactions, payments, VAT, export, dashboard     |
 | `OrganizationService` | `/odata/v4/organization` | Organization, members, company settings, onboarding     |
+| `SupportService`      | `/odata/v4/support`      | Support tickets; agents (role SupportAgent) see all     |
 
 ## Organization isolation
 

@@ -1,0 +1,23 @@
+{
+	"name": "swiver-support",
+	"version": "0.0.1",
+	"description": "Swiver: support tickets.",
+	"keywords": [
+		"ui5",
+		"openui5",
+		"sapui5"
+	],
+	"type": "commonjs",
+	"main": "webapp/index.html",
+	"scripts": {
+		"build:cf": "ui5 build preload --clean-dest --config ui5-deploy.yaml --include-task=generateCachebusterInfo",
+		"deploy-config": "npx -p @sap/ux-ui5-tooling fiori add deploy-config cf"
+	},
+	"devDependencies": {
+		"@sap/ux-ui5-tooling": "^1.28.0",
+		"@sapui5/types": "^1.150.0",
+		"@ui5/cli": "^4.0.57",
+		"ui5-task-zipper": "^3.6.1",
+		"ui5-tooling-transpile": "^3.11.3"
+	}
+}

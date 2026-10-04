@@ -1,0 +1,6 @@
+code;name;criticality
+NEW;New;5
+IN_PROGRESS;In Progress;2
+WAITING_FOR_CUSTOMER;Waiting for Customer;2
+RESOLVED;Resolved;3
+CLOSED;Closed;0
