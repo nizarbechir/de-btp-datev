@@ -17,6 +17,10 @@ extend projection SalesService.SalesInvoices with {
   virtual null as readOnly : Boolean
 };
 
+extend projection SalesService.DeliveryNotes with {
+  virtual null as readOnly : Boolean
+};
+
 extend projection PurchasingService.Suppliers with {
   virtual null as readOnly : Boolean
 };

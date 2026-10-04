@@ -61,6 +61,10 @@
 					"vizId": "ProductService-manage"
 				},
 				{
+					"appId": "swiver.inventory",
+					"vizId": "Inventory-manage"
+				},
+				{
 					"appId": "swiver.suppliers",
 					"vizId": "Supplier-manage"
 				},
@@ -145,6 +149,10 @@
 					"vizId": "ProductService-manage"
 				},
 				{
+					"appId": "swiver.inventory",
+					"vizId": "Inventory-manage"
+				},
+				{
 					"appId": "swiver.suppliers",
 					"vizId": "Supplier-manage"
 				},
@@ -208,6 +216,9 @@
 				},
 				{
 					"id": "swiver.products"
+				},
+				{
+					"id": "swiver.inventory"
 				},
 				{
 					"id": "swiver.suppliers"
@@ -337,6 +348,11 @@
 							"id": "swiverproductsWidget",
 							"appId": "swiver.products",
 							"vizId": "ProductService-manage"
+						},
+						{
+							"id": "swiverinventoryWidget",
+							"appId": "swiver.inventory",
+							"vizId": "Inventory-manage"
 						},
 						{
 							"id": "swiversuppliersWidget",

@@ -38,6 +38,38 @@ const transitions: Record<string, { from: string[]; to: string }> = {
 
 const backendFields = ["quoteNumber", "status_code", "convertedInvoice_ID", "sentAt", "sentTo"] as const;
 
+/**
+ * Creates a draft sales invoice with the quote's customer, currency, texts and items, dated today
+ * with the company's payment terms. A quote is only converted once, unless forced.
+ */
+export async function convertQuote(srv: cds.ApplicationService, quoteID: string, force = false) {
+	const quote = await requireQuote({ ID: quoteID });
+	if (quote.convertedInvoice_ID && !force) {
+		throw new DomainError("QUOTE_ALREADY_CONVERTED");
+	}
+	if (quote.status_code === "REJECTED") {
+		throw new DomainError("QUOTE_REJECTED");
+	}
+	const source = await SELECT.one
+		.from(Quotes)
+		.columns("customer_ID", "currency_code", "subject", "introductionText", "footerText")
+		.where({ ID: quote.ID });
+	const items = await SELECT.from(QuoteItems)
+		.columns("position", "description", "quantity", "unit", "unitPrice", "taxRate", "productService_ID")
+		.where({ quote_ID: quote.ID })
+		.orderBy("position");
+	const invoiceID = cds.utils.uuid();
+	await srv.send("NEW", invoiceDocument.documentDrafts, {
+		...source,
+		ID: invoiceID,
+		items: items.map((item: Data) => ({ ...item, ID: cds.utils.uuid() })),
+	});
+	await recalculateDraft(invoiceDocument, invoiceID);
+	await UPDATE(invoiceDocument.documentDrafts).set({ quote_ID: quote.ID }).where({ ID: invoiceID });
+	await UPDATE(Quotes).set({ convertedInvoice_ID: invoiceID, status_code: "ACCEPTED" }).where({ ID: quote.ID });
+	return SELECT.one.from(invoiceDocument.documentDrafts).where({ ID: invoiceID });
+}
+
 export function registerQuotes(srv: cds.ApplicationService) {
 	srv.before("NEW", QuoteDrafts, async (req) => {
 		const settings = await getCompanySettings();
@@ -79,7 +111,9 @@ export function registerQuotes(srv: cds.ApplicationService) {
 	for (const action of Object.keys(transitions)) {
 		srv.on(action, Quotes, (req) => guarded(req, () => changeStatus(req, action)));
 	}
-	srv.on("convertToInvoice", Quotes, (req) => guarded(req, () => convertToInvoice(srv, req)));
+	srv.on("convertToInvoice", Quotes, (req) =>
+		guarded(req, () => convertQuote(srv, key(req).ID, Boolean(req.data.force))),
+	);
 	srv.on("sendByEmail", Quotes, (req) => guarded(req, () => sendByEmail(req)));
 	srv.on("pdf", [Quotes, QuoteDrafts], (req) => pdf(req));
 }
@@ -92,38 +126,6 @@ async function changeStatus(req: Request, action: string) {
 	}
 	await UPDATE(Quotes).set({ status_code: to }).where({ ID: quote.ID });
 	return SELECT.one.from(Quotes).where({ ID: quote.ID });
-}
-
-/**
- * Creates a draft sales invoice with the quote's customer, currency, texts and items, dated today
- * with the company's payment terms. A quote is only converted once, unless forced.
- */
-async function convertToInvoice(srv: cds.ApplicationService, req: Request) {
-	const quote = await requireQuote(key(req));
-	if (quote.convertedInvoice_ID && !req.data.force) {
-		throw new DomainError("QUOTE_ALREADY_CONVERTED");
-	}
-	if (quote.status_code === "REJECTED") {
-		throw new DomainError("QUOTE_REJECTED");
-	}
-	const source = await SELECT.one
-		.from(Quotes)
-		.columns("customer_ID", "currency_code", "subject", "introductionText", "footerText")
-		.where({ ID: quote.ID });
-	const items = await SELECT.from(QuoteItems)
-		.columns("position", "description", "quantity", "unit", "unitPrice", "taxRate", "productService_ID")
-		.where({ quote_ID: quote.ID })
-		.orderBy("position");
-	const invoiceID = cds.utils.uuid();
-	await srv.send("NEW", invoiceDocument.documentDrafts, {
-		...source,
-		ID: invoiceID,
-		items: items.map((item: Data) => ({ ...item, ID: cds.utils.uuid() })),
-	});
-	await recalculateDraft(invoiceDocument, invoiceID);
-	await UPDATE(invoiceDocument.documentDrafts).set({ quote_ID: quote.ID }).where({ ID: invoiceID });
-	await UPDATE(Quotes).set({ convertedInvoice_ID: invoiceID, status_code: "ACCEPTED" }).where({ ID: quote.ID });
-	return SELECT.one.from(invoiceDocument.documentDrafts).where({ ID: invoiceID });
 }
 
 async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T> {

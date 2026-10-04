@@ -138,6 +138,16 @@
 					"pattern": "Quotes({key}):?query:",
 					"name": "QuotesObjectPage",
 					"target": "QuotesObjectPage"
+				},
+				{
+					"pattern": "DeliveryNotes:?query:",
+					"name": "DeliveryNotesList",
+					"target": "DeliveryNotesList"
+				},
+				{
+					"pattern": "DeliveryNotes({key}):?query:",
+					"name": "DeliveryNotesObjectPage",
+					"target": "DeliveryNotesObjectPage"
 				}
 			],
 			"targets": {
@@ -390,6 +400,15 @@
 												"placement": "After",
 												"anchor": "downloadPdf"
 											}
+										},
+										"createDeliveryNote": {
+											"press": "swiver.sales.ext.document.DocumentActions.createDeliveryNote",
+											"text": "{i18n>createDeliveryNote}",
+											"visible": "{= ${IsActiveEntity} === true && ${status_code} !== 'REJECTED' }",
+											"position": {
+												"placement": "After",
+												"anchor": "convertToInvoice"
+											}
 										}
 									}
 								},
@@ -399,6 +418,70 @@
 											"press": "swiver.sales.ext.document.DocumentActions.preview",
 											"text": "{i18n>preview}",
 											"visible": "{= ${IsActiveEntity} === false }"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"DeliveryNotesList": {
+					"type": "Component",
+					"id": "DeliveryNotesList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/DeliveryNotes",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"navigation": {
+								"DeliveryNotes": {
+									"detail": {
+										"route": "DeliveryNotesObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable"
+									}
+								}
+							}
+						}
+					}
+				},
+				"DeliveryNotesObjectPage": {
+					"type": "Component",
+					"id": "DeliveryNotesObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/DeliveryNotes",
+							"enhanceI18n": "i18n/i18n.properties",
+							"controlConfiguration": {
+								"items/@com.sap.vocabularies.UI.v1.LineItem": {
+									"tableSettings": {
+										"type": "ResponsiveTable",
+										"creationMode": {
+											"name": "InlineCreationRows",
+											"createAtEnd": true
+										},
+										"personalization": false,
+										"enableExport": false,
+										"enablePaste": false
+									}
+								}
+							},
+							"content": {
+								"header": {
+									"actions": {
+										"createInvoice": {
+											"press": "swiver.sales.ext.document.DocumentActions.createInvoice",
+											"text": "{i18n>createInvoice}",
+											"type": "Emphasized",
+											"visible": "{= ${IsActiveEntity} === true && ${status_code} === 'CONFIRMED' && !${salesInvoice_ID} }"
 										}
 									}
 								}

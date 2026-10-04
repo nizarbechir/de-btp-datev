@@ -21,7 +21,7 @@ function download(url: string, fileName = "") {
 /**
  * Header actions of sales invoices and quotes that Fiori elements has no annotation for:
  * PDF preview and download, ZUGFeRD download, and actions that open the newly created draft invoice
- * (duplicate, correct, convert a quote).
+ * (duplicate, correct, convert a quote) or delivery note.
  */
 async function fileUrl(context: Context, operation: string, download: boolean): Promise<string> {
 	const model = context.getModel() as ODataModel;
@@ -31,15 +31,20 @@ async function fileUrl(context: Context, operation: string, download: boolean): 
 	return `${model.getServiceUrl()}${context.getPath().slice(1)}/SalesService.${operation}(download=${download})`;
 }
 
-/** Runs a bound action that returns a new draft invoice and opens that draft. */
-async function openNewInvoice(api: ExtensionAPI, context: Context, action: string): Promise<void> {
+/** Runs a bound action that returns a new draft (an invoice unless another route is given) and opens it. */
+async function openNewInvoice(
+	api: ExtensionAPI,
+	context: Context,
+	action: string,
+	route = "SalesInvoicesObjectPage",
+): Promise<void> {
 	const result = (await api.editFlow.invokeAction(`SalesService.${action}`, {
 		contexts: context,
 		model: context.getModel(),
 	})) as Context | undefined;
 	const ID = (await result?.requestObject("ID")) as string | undefined;
 	if (ID) {
-		api.routing.navigateToRoute("SalesInvoicesObjectPage", { key: `ID=${ID},IsActiveEntity=false` });
+		api.routing.navigateToRoute(route, { key: `ID=${ID},IsActiveEntity=false` });
 	}
 }
 
@@ -122,6 +127,16 @@ const DocumentActions = {
 	/** Creates the draft invoice from the quote and opens it. */
 	async convertToInvoice(this: ExtensionAPI, context: Context): Promise<void> {
 		await openNewInvoice(this, context, "convertToInvoice");
+	},
+
+	/** Creates the draft delivery note with the quote's goods and opens it. */
+	async createDeliveryNote(this: ExtensionAPI, context: Context): Promise<void> {
+		await openNewInvoice(this, context, "createDeliveryNote", "DeliveryNotesObjectPage");
+	},
+
+	/** Creates the draft invoice of a confirmed delivery note and opens it. */
+	async createInvoice(this: ExtensionAPI, context: Context): Promise<void> {
+		await openNewInvoice(this, context, "createInvoice");
 	},
 };
 

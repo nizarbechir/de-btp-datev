@@ -7,7 +7,8 @@ using {
 } from '@sap/cds/common';
 using {
   swiver.Amount,
-  swiver.PaymentStatuses
+  swiver.PaymentStatuses,
+  swiver.Suppliers
 } from './schema';
 using {swiver.OrganizationOwned} from './organizations';
 using {
@@ -45,6 +46,12 @@ entity Customers : cuid, managed, OrganizationOwned {
   vatId          : String(20);
   // Used to recognize the customer's bank transfers.
   iban           : String(34);
+  // Default delivery address for goods. Without it, goods are delivered to the billing address above.
+  deliveryName       : String(120);
+  deliveryStreet     : String(200);
+  deliveryPostalCode : String(10);
+  deliveryCity       : String(80);
+  deliveryCountry    : Country;
   notes          : String(1000);
   active         : Boolean default true;
   invoices       : Association to many SalesInvoices
@@ -235,17 +242,36 @@ view CustomerBalances as
     organization.ID;
 
 /**
- * Products and services the business sells, used to fill invoice and quote lines quickly.
- * No stock is kept.
+ * Products and services the business sells, used to fill invoice, quote and delivery note lines quickly.
+ * Services never have stock. Goods can track their stock (see db/inventory.cds); goods that are not kept
+ * in stock, e.g. drop shipping, simply leave stock tracking off.
  */
 entity ProductServices : cuid, managed, OrganizationOwned {
-  code           : String(40);
-  name           : String(200) @mandatory;
-  description    : String(1000);
-  unit           : String(20) default 'piece';
-  defaultPrice   : Amount default 0;
-  defaultTaxRate : TaxRate default 19;
-  active         : Boolean default true;
+  code            : String(40);
+  name            : String(200) @mandatory;
+  description     : String(1000);
+  type            : Association to ProductTypes default 'SERVICE';
+  unit            : String(20) default 'piece';
+  defaultPrice    : Amount default 0;
+  defaultTaxRate  : TaxRate default 19;
+  // Goods only
+  purchasePrice   : Amount;
+  defaultSupplier : Association to Suppliers;
+  ean             : String(14);
+  trackStock      : Boolean default false  @assert: (case
+                                                        when trackStock = true and type.code != 'GOODS'
+                                                        then 'STOCK_TRACKING_ONLY_FOR_GOODS'
+                                                      end);
+  reorderLevel    : Quantity default 0;
+  active          : Boolean default true;
+  isGoods         : Boolean = (case when type.code = 'GOODS' then true else false end);
+}
+
+entity ProductTypes : CodeList {
+  key code : String(10) enum {
+        goods   = 'GOODS';
+        service = 'SERVICE';
+      };
 }
 
 /**
@@ -336,6 +362,55 @@ entity QuoteStatuses : CodeList {
       };
 }
 
+/**
+ * Goods delivered to a customer, e.g. created from a quote. A draft changes nothing; confirming the
+ * delivery note books the stock out (the only stock-out of a sale) and locks it.
+ * The invoice is created from the confirmed delivery note or its quote.
+ */
+entity DeliveryNotes : cuid, managed, OrganizationOwned {
+  // Assigned by the backend when the delivery note is saved for the first time, e.g. DN-2026-0001.
+  deliveryNoteNumber : String(30);
+  customer           : Association to Customers @mandatory;
+  deliveryDate       : Date @mandatory;
+  status             : Association to DeliveryNoteStatuses default 'DRAFT';
+  // Copied from the customer's delivery address (or billing address) and editable per delivery.
+  deliveryName       : String(120);
+  deliveryStreet     : String(200);
+  deliveryPostalCode : String(10);
+  deliveryCity       : String(80);
+  deliveryCountry    : Country;
+  notes              : String(1000);
+  quote              : Association to Quotes;
+  salesInvoice       : Association to SalesInvoices;
+  confirmedAt        : Timestamp;
+  confirmedBy        : String(255);
+  items              : Composition of many DeliveryNoteItems
+                         on items.deliveryNote = $self;
+  isEditable         : Boolean = (case when status.code = 'DRAFT' then true else false end);
+  statusCriticality  : Integer = (case when status.code = 'CONFIRMED' then 3 else 0 end);
+}
+
+/** One delivered line. Returned quantities are booked back into stock by the return action. */
+entity DeliveryNoteItems : cuid {
+  deliveryNote     : Association to DeliveryNotes;
+  position         : Integer;
+  productService   : Association to ProductServices;
+  description      : String(500) @mandatory;
+  quantity         : Quantity @mandatory default 1  @assert: (case
+                                                                 when quantity <= 0
+                                                                 then 'QUANTITY_NOT_POSITIVE'
+                                                               end);
+  unit             : String(20) default 'piece';
+  returnedQuantity : Quantity default 0;
+}
+
+entity DeliveryNoteStatuses : CodeList {
+  key code : String(10) enum {
+        draft     = 'DRAFT';
+        confirmed = 'CONFIRMED';
+      };
+}
+
 // Document numbers are unique per organization, enforced by the database as the last line of defense
 // behind the number ranges (see srv/core/numbering.ts).
 annotate SalesInvoices with @assert.unique: {invoiceNumber: [
@@ -351,4 +426,9 @@ annotate Quotes with @assert.unique: {quoteNumber: [
 annotate Customers with @assert.unique: {customerNumber: [
   organization,
   customerNumber
+]};
+
+annotate DeliveryNotes with @assert.unique: {deliveryNoteNumber: [
+  organization,
+  deliveryNoteNumber
 ]};

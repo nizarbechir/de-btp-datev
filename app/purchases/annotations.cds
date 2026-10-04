@@ -31,6 +31,11 @@ annotate service.SupplierInvoices with @(
       Action: 'PurchasingService.markInvoiceOpen',
       Label : '{i18n>MarkOpen}'
     },
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'PurchasingService.bookGoodsReceipt',
+      Label : '{i18n>BookGoodsReceipt}'
+    },
     {Value: supplier_ID},
     {Value: invoiceNumber},
     {Value: invoiceDate},
@@ -189,6 +194,13 @@ annotate service.SupplierInvoices with @(
         }
       ]
     },
+    // Optional: expenses need no items; goods bought for stock do
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Items',
+      Label : '{i18n>Items}',
+      Target: 'items/@UI.LineItem'
+    },
     {
       $Type     : 'UI.ReferenceFacet',
       ID        : 'Payments',
@@ -233,6 +245,21 @@ annotate service.SupplierInvoices with @(
       'status',
       'statusCriticality'
     ]
+  },
+  Common.SideEffects #Items  : {
+    SourceEntities  : [items],
+    SourceProperties: [
+      items.quantity,
+      items.unitPrice,
+      items.taxRate,
+      items.productService_ID
+    ],
+    TargetProperties: [
+      'netAmount',
+      'taxAmount',
+      'grossAmount'
+    ],
+    TargetEntities  : [items]
   },
   Common.SideEffects #Status : {
     SourceProperties: [dueDate],
@@ -333,6 +360,117 @@ annotate service.SupplierInvoices actions {
       TargetEntities  : ['in/payments']
     }
   );
+};
+
+annotate service.SupplierInvoices actions {
+  bookGoodsReceipt @(
+    Core.OperationAvailable: {$edmJson: {$And: [{$Path: 'in/IsActiveEntity'}, {$Not: {$Path: 'in/readOnly'}}]}},
+    Common.SideEffects     : {TargetEntities: ['in/items']}
+  );
+};
+
+annotate service.SupplierInvoiceItems with @(
+  UI.HeaderInfo         : {
+    TypeName      : '{i18n>Item}',
+    TypeNamePlural: '{i18n>Items}',
+    Title         : {Value: description}
+  },
+  UI.LineItem           : [
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'PurchasingService.receiveGoods',
+      Label : '{i18n>BookGoodsReceipt}'
+    },
+    {
+      Value             : productService_ID,
+      @HTML5.CssDefaults: {width: '12rem'}
+    },
+    {
+      Value             : description,
+      @UI.Importance    : #High,
+      @HTML5.CssDefaults: {width: '20rem'}
+    },
+    {
+      Value             : quantity,
+      @UI.Importance    : #High,
+      @HTML5.CssDefaults: {width: '6rem'}
+    },
+    {
+      Value             : unit,
+      @HTML5.CssDefaults: {width: '7rem'}
+    },
+    {
+      Value             : unitPrice,
+      @UI.Importance    : #High,
+      @HTML5.CssDefaults: {width: '9rem'}
+    },
+    {
+      Value             : taxRate,
+      @HTML5.CssDefaults: {width: '6rem'}
+    },
+    {
+      Value             : grossAmount,
+      @HTML5.CssDefaults: {width: '9rem'}
+    },
+    {
+      Value             : receivedQuantity,
+      @HTML5.CssDefaults: {width: '7rem'}
+    }
+  ],
+  UI.PresentationVariant: {
+    SortOrder     : [{Property: position}],
+    Visualizations: ['@UI.LineItem']
+  },
+  Common.SideEffects #Product: {
+    SourceProperties: [productService_ID],
+    TargetProperties: [
+      'description',
+      'unit',
+      'unitPrice',
+      'taxRate',
+      'netAmount',
+      'grossAmount'
+    ]
+  }
+);
+
+annotate service.SupplierInvoiceItems with {
+  productService @(
+    Common.Text           : productService.name,
+    Common.TextArrangement: #TextOnly,
+    Common.ValueList      : {
+      CollectionPath : 'ProductServices',
+      SearchSupported: true,
+      Parameters     : [
+        {
+          $Type            : 'Common.ValueListParameterInOut',
+          LocalDataProperty: productService_ID,
+          ValueListProperty: 'ID'
+        },
+        {
+          $Type            : 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'name'
+        },
+        {
+          $Type            : 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'purchasePrice'
+        },
+        {
+          $Type            : 'Common.ValueListParameterConstant',
+          ValueListProperty: 'active',
+          Constant         : true
+        }
+      ]
+    }
+  );
+};
+
+annotate service.SupplierInvoiceItems actions {
+  // Received now: proposes what is still open on the line
+  receiveGoods @(
+    Core.OperationAvailable: {$edmJson: {$And: [{$Path: 'in/IsActiveEntity'}, {$Gt: [{$Path: 'in/openQuantity'}, 0]}]}},
+    Common.SideEffects     : {TargetProperties: ['in/receivedQuantity', 'in/openQuantity']}
+  )(quantity @UI.ParameterDefaultValue: in.openQuantity);
 };
 
 annotate service.Payments with @(UI.LineItem #Invoice: [

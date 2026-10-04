@@ -2,6 +2,7 @@ using {swiver as my} from '../../db/schema';
 using from '../../db/sales';
 using from '../../db/finance';
 using from '../../db/collaboration';
+using from '../../db/inventory';
 
 /**
  * Money in: customers, products and services, quotes and sales invoices.
@@ -82,7 +83,49 @@ service SalesService @(path: '/odata/v4/sales') {
                            message : String(4000) @title: '{i18n>Message}' @UI.MultiLineText) returns Quotes;
       @title: '{i18n>DownloadPdf}'
       function pdf(download : Boolean)                    returns LargeBinary @Core.MediaType: 'application/pdf';
+      /** Creates a draft delivery note with the quote's goods. */
+      @title: '{i18n>CreateDeliveryNote}'
+      action   createDeliveryNote()                       returns DeliveryNotes;
     };
+
+  entity DeliveryNotes        as projection on my.DeliveryNotes
+    actions {
+      /** Books the delivered goods out of stock and locks the delivery note. Repeating it changes nothing. */
+      @title: '{i18n>ConfirmDelivery}'
+      action confirm()                                    returns DeliveryNotes;
+      /** Creates the draft sales invoice: from the quote if the delivery note has one, otherwise from its items. */
+      @title: '{i18n>CreateInvoice}'
+      action createInvoice()                              returns SalesInvoices;
+    };
+
+  entity DeliveryNoteItems    as projection on my.DeliveryNoteItems
+    actions {
+      /** Books goods returned by the customer back into stock. The refund is a correction of the invoice. */
+      @title: '{i18n>CustomerReturn}'
+      action returnGoods(quantity : Decimal @title: '{i18n>Quantity}',
+                         reason : String(255) @title: '{i18n>Reason}') returns DeliveryNoteItems;
+    };
+
+  @readonly
+  entity Suppliers            as projection on my.Suppliers {
+    ID,
+    name,
+    city,
+    active,
+    organization
+  };
+
+  @readonly
+  entity ProductTypes         as projection on my.ProductTypes;
+
+  @readonly
+  entity DeliveryNoteStatuses as projection on my.DeliveryNoteStatuses;
+
+  @readonly
+  entity StockMovements       as projection on my.StockMovements;
+
+  @readonly
+  entity StockMovementTypes   as projection on my.StockMovementTypes;
 
   @readonly
   @cds.redirection.target: false
@@ -118,3 +161,4 @@ annotate SalesService.Customers with @odata.draft.enabled;
 annotate SalesService.SalesInvoices with @odata.draft.enabled;
 annotate SalesService.Quotes with @odata.draft.enabled;
 annotate SalesService.ProductServices with @odata.draft.enabled;
+annotate SalesService.DeliveryNotes with @odata.draft.enabled;

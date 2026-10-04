@@ -711,6 +711,14 @@ annotate service.Customers with @(
     {Value: vatId},
     {Value: iban}
   ]},
+  // Optional: goods are delivered to the billing address when it is empty.
+  UI.FieldGroup #Delivery    : {Data: [
+    {Value: deliveryName},
+    {Value: deliveryStreet},
+    {Value: deliveryPostalCode},
+    {Value: deliveryCity},
+    {Value: deliveryCountry_code}
+  ]},
   UI.FieldGroup #Notes       : {Data: [{Value: notes}]},
   UI.Facets                  : [
     {
@@ -735,6 +743,12 @@ annotate service.Customers with @(
           ID    : 'Tax',
           Label : '{i18n>TaxDetails}',
           Target: '@UI.FieldGroup#Tax'
+        },
+        {
+          $Type : 'UI.ReferenceFacet',
+          ID    : 'Delivery',
+          Label : '{i18n>DeliveryAddress}',
+          Target: '@UI.FieldGroup#Delivery'
         }
       ]
     },
@@ -761,8 +775,13 @@ annotate service.Customers with @(
 );
 
 annotate service.Customers with {
-  country @(
+  country         @(
     Common.Text                    : country.name,
+    Common.TextArrangement         : #TextOnly,
+    Common.ValueListWithFixedValues: true
+  );
+  deliveryCountry @(
+    Common.Text                    : deliveryCountry.name,
     Common.TextArrangement         : #TextOnly,
     Common.ValueListWithFixedValues: true
   );
@@ -1109,20 +1128,24 @@ annotate service.QuoteItems with {
 // ---------------------------------------------------------------------------
 
 annotate service.ProductServices with @(
-  UI.HeaderInfo         : {
+  UI.HeaderInfo          : {
     TypeName      : '{i18n>ProductService}',
     TypeNamePlural: '{i18n>ProductServices}',
     Title         : {Value: name},
     Description   : {Value: code},
     TypeImageUrl  : 'sap-icon://product'
   },
-  UI.SelectionFields    : [active],
-  UI.LineItem           : [
+  UI.SelectionFields     : [
+    type_code,
+    active
+  ],
+  UI.LineItem            : [
     {Value: code},
     {
       Value         : name,
       @UI.Importance: #High
     },
+    {Value: type_code},
     {Value: unit},
     {
       Value         : defaultPrice,
@@ -1131,29 +1154,83 @@ annotate service.ProductServices with @(
     {Value: defaultTaxRate},
     {Value: active}
   ],
-  UI.PresentationVariant: {
+  UI.PresentationVariant : {
     SortOrder     : [{Property: name}],
     Visualizations: ['@UI.LineItem']
   },
-  UI.FieldGroup #General: {Data: [
+  UI.FieldGroup #General : {Data: [
     {Value: code},
     {Value: name},
+    {Value: type_code},
     {Value: description},
-    {Value: unit},
-    {Value: defaultPrice},
-    {Value: defaultTaxRate},
     {Value: active}
   ]},
-  UI.Facets             : [{
-    $Type : 'UI.ReferenceFacet',
-    ID    : 'General',
-    Label : '{i18n>General}',
-    Target: '@UI.FieldGroup#General'
-  }]
+  UI.FieldGroup #Sales   : {Data: [
+    {Value: unit},
+    {Value: defaultPrice},
+    {Value: defaultTaxRate}
+  ]},
+  UI.FieldGroup #Purchase: {Data: [
+    {Value: purchasePrice},
+    {Value: defaultSupplier_ID},
+    {Value: ean}
+  ]},
+  UI.FieldGroup #Stock   : {Data: [
+    {Value: trackStock},
+    {Value: reorderLevel},
+    {
+      Value      : stockOnHand,
+      @UI.Hidden : {$edmJson: {$Not: {$Path: 'isStockTracked'}}}
+    },
+    {
+      Value      : stockStatus,
+      Criticality: stockStatusCriticality,
+      @UI.Hidden : {$edmJson: {$Not: {$Path: 'isStockTracked'}}}
+    }
+  ]},
+  // Services show only the sales data; goods also purchase data and stock.
+  UI.Facets              : [
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'General',
+      Label : '{i18n>General}',
+      Target: '@UI.FieldGroup#General'
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Sales',
+      Label : '{i18n>SalesData}',
+      Target: '@UI.FieldGroup#Sales'
+    },
+    {
+      $Type     : 'UI.ReferenceFacet',
+      ID        : 'Purchase',
+      Label     : '{i18n>PurchaseData}',
+      Target    : '@UI.FieldGroup#Purchase',
+      @UI.Hidden: {$edmJson: {$Not: {$Path: 'isGoods'}}}
+    },
+    {
+      $Type     : 'UI.ReferenceFacet',
+      ID        : 'Stock',
+      Label     : '{i18n>Inventory}',
+      Target    : '@UI.FieldGroup#Stock',
+      @UI.Hidden: {$edmJson: {$Not: {$Path: 'isGoods'}}}
+    }
+  ],
+  Common.SideEffects #Type: {
+    SourceProperties: [
+      type_code,
+      trackStock
+    ],
+    TargetProperties: [
+      'isGoods',
+      'isStockTracked'
+    ]
+  }
 );
 
 annotate service.ProductServices with {
-  unit @Common.ValueList: {
+  unit            @Common.ValueList: {
     CollectionPath: 'Units',
     Parameters    : [{
       $Type            : 'Common.ValueListParameterInOut',
@@ -1161,7 +1238,323 @@ annotate service.ProductServices with {
       ValueListProperty: 'code'
     }]
   };
+  defaultSupplier @(Common.ValueList: {
+    CollectionPath: 'Suppliers',
+    Parameters    : [
+      {
+        $Type            : 'Common.ValueListParameterInOut',
+        LocalDataProperty: defaultSupplier_ID,
+        ValueListProperty: 'ID'
+      },
+      {
+        $Type            : 'Common.ValueListParameterDisplayOnly',
+        ValueListProperty: 'name'
+      },
+      {
+        $Type            : 'Common.ValueListParameterDisplayOnly',
+        ValueListProperty: 'city'
+      },
+      {
+        $Type            : 'Common.ValueListParameterConstant',
+        ValueListProperty: 'active',
+        Constant         : true
+      }
+    ]
+  });
 };
+
+// ---------------------------------------------------------------------------
+// Delivery notes: a draft changes nothing, confirming books the goods out of stock
+// ---------------------------------------------------------------------------
+
+annotate service.DeliveryNotes with @(
+  UI.HeaderInfo            : {
+    TypeName      : '{i18n>DeliveryNote}',
+    TypeNamePlural: '{i18n>DeliveryNotes}',
+    Title         : {Value: deliveryNoteNumber},
+    Description   : {Value: customer.displayName},
+    TypeImageUrl  : 'sap-icon://shipping-status'
+  },
+  UI.SelectionFields       : [
+    customer_ID,
+    status_code,
+    deliveryDate
+  ],
+  UI.LineItem              : [
+    {
+      Value         : deliveryNoteNumber,
+      @UI.Importance: #High
+    },
+    {
+      Value         : customer_ID,
+      @UI.Importance: #High
+    },
+    {Value: deliveryDate},
+    {Value: deliveryCity},
+    {Value: salesInvoice_ID},
+    {
+      Value         : status_code,
+      Criticality   : statusCriticality,
+      @UI.Importance: #High
+    }
+  ],
+  UI.PresentationVariant   : {
+    SortOrder     : [{
+      Property  : deliveryDate,
+      Descending: true
+    }],
+    Visualizations: ['@UI.LineItem']
+  },
+  UI.Identification        : [{
+    $Type      : 'UI.DataFieldForAction',
+    Action     : 'SalesService.confirm',
+    Label      : '{i18n>ConfirmDelivery}',
+    Criticality: #Positive
+  }],
+  UI.DataPoint #status     : {
+    Value      : status_code,
+    Title      : '{i18n>Status}',
+    Criticality: statusCriticality
+  },
+  UI.DataPoint #deliveryDate: {
+    Value: deliveryDate,
+    Title: '{i18n>DeliveryDate}'
+  },
+  UI.HeaderFacets          : [
+    {
+      $Type : 'UI.ReferenceFacet',
+      Target: '@UI.DataPoint#status'
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      Target: '@UI.DataPoint#deliveryDate'
+    }
+  ],
+  UI.FieldGroup #Delivery  : {Data: [
+    {Value: customer_ID},
+    {Value: deliveryDate},
+    {Value: quote_ID},
+    {Value: salesInvoice_ID}
+  ]},
+  UI.FieldGroup #Address   : {Data: [
+    {Value: deliveryName},
+    {Value: deliveryStreet},
+    {Value: deliveryPostalCode},
+    {Value: deliveryCity},
+    {Value: deliveryCountry_code}
+  ]},
+  UI.FieldGroup #History   : {Data: [
+    {Value: confirmedAt},
+    {Value: confirmedBy}
+  ]},
+  UI.FieldGroup #Notes     : {Data: [{Value: notes}]},
+  UI.Facets                : [
+    {
+      $Type : 'UI.CollectionFacet',
+      ID    : 'Details',
+      Label : '{i18n>General}',
+      Facets: [
+        {
+          $Type : 'UI.ReferenceFacet',
+          ID    : 'Delivery',
+          Label : '{i18n>General}',
+          Target: '@UI.FieldGroup#Delivery'
+        },
+        {
+          $Type : 'UI.ReferenceFacet',
+          ID    : 'Address',
+          Label : '{i18n>DeliveryAddress}',
+          Target: '@UI.FieldGroup#Address'
+        },
+        {
+          $Type     : 'UI.ReferenceFacet',
+          ID        : 'History',
+          Label     : '{i18n>History}',
+          Target    : '@UI.FieldGroup#History',
+          @UI.Hidden: isEditable
+        }
+      ]
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Items',
+      Label : '{i18n>Items}',
+      Target: 'items/@UI.LineItem'
+    },
+    {
+      $Type : 'UI.ReferenceFacet',
+      ID    : 'Notes',
+      Label : '{i18n>Notes}',
+      Target: '@UI.FieldGroup#Notes'
+    }
+  ],
+  Common.SideEffects #Customer: {
+    SourceProperties: [customer_ID],
+    TargetProperties: [
+      'deliveryName',
+      'deliveryStreet',
+      'deliveryPostalCode',
+      'deliveryCity',
+      'deliveryCountry_code'
+    ]
+  }
+);
+
+annotate service.DeliveryNotes with {
+  customer        @(
+    Common.Text           : customer.displayName,
+    Common.TextArrangement: #TextOnly,
+    Common.ValueList      : {
+      CollectionPath : 'Customers',
+      SearchSupported: true,
+      Parameters     : [
+        {
+          $Type            : 'Common.ValueListParameterInOut',
+          LocalDataProperty: customer_ID,
+          ValueListProperty: 'ID'
+        },
+        {
+          $Type            : 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'displayName'
+        },
+        {
+          $Type            : 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'city'
+        },
+        {
+          $Type            : 'Common.ValueListParameterConstant',
+          ValueListProperty: 'active',
+          Constant         : true
+        }
+      ]
+    }
+  );
+  status          @Common.ValueListWithFixedValues;
+  deliveryCountry @(
+    Common.Text                    : deliveryCountry.name,
+    Common.TextArrangement         : #TextOnly,
+    Common.ValueListWithFixedValues: true
+  );
+};
+
+annotate service.DeliveryNotes actions {
+  confirm       @(
+    Core.OperationAvailable: {$edmJson: {$And: [{$Eq: [{$Path: 'in/status_code'}, 'DRAFT']}, {$Path: 'in/IsActiveEntity'}]}},
+    Common.IsActionCritical: true,
+    Common.SideEffects     : {TargetProperties: ['in/*']}
+  );
+};
+
+annotate service.DeliveryNoteItems with @(
+  UI.HeaderInfo         : {
+    TypeName      : '{i18n>Item}',
+    TypeNamePlural: '{i18n>Items}',
+    Title         : {Value: description}
+  },
+  UI.LineItem           : [
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'SalesService.returnGoods',
+      Label : '{i18n>CustomerReturn}'
+    },
+    {
+      Value             : productService_ID,
+      @HTML5.CssDefaults: {width: '12rem'}
+    },
+    {
+      Value             : description,
+      @UI.Importance    : #High,
+      @HTML5.CssDefaults: {width: '24rem'}
+    },
+    {
+      Value             : quantity,
+      @UI.Importance    : #High,
+      @HTML5.CssDefaults: {width: '6rem'}
+    },
+    {
+      Value             : unit,
+      @HTML5.CssDefaults: {width: '7rem'}
+    },
+    {
+      Value             : returnedQuantity,
+      @HTML5.CssDefaults: {width: '8rem'}
+    }
+  ],
+  UI.PresentationVariant: {
+    SortOrder     : [{Property: position}],
+    Visualizations: ['@UI.LineItem']
+  },
+  Common.SideEffects #Product: {
+    SourceProperties: [productService_ID],
+    TargetProperties: [
+      'description',
+      'unit'
+    ]
+  }
+);
+
+annotate service.DeliveryNoteItems with {
+  unit           @Common.ValueList: {
+    CollectionPath: 'Units',
+    Parameters    : [{
+      $Type            : 'Common.ValueListParameterInOut',
+      LocalDataProperty: unit,
+      ValueListProperty: 'code'
+    }]
+  };
+  productService @(
+    Common.Text           : productService.name,
+    Common.TextArrangement: #TextOnly,
+    Common.ValueList      : {
+      CollectionPath : 'ProductServices',
+      SearchSupported: true,
+      Parameters     : [
+        {
+          $Type            : 'Common.ValueListParameterInOut',
+          LocalDataProperty: productService_ID,
+          ValueListProperty: 'ID'
+        },
+        {
+          $Type            : 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'name'
+        },
+        {
+          $Type            : 'Common.ValueListParameterDisplayOnly',
+          ValueListProperty: 'stockOnHand'
+        },
+        {
+          $Type            : 'Common.ValueListParameterConstant',
+          ValueListProperty: 'type_code',
+          Constant         : 'GOODS'
+        },
+        {
+          $Type            : 'Common.ValueListParameterConstant',
+          ValueListProperty: 'active',
+          Constant         : true
+        }
+      ]
+    }
+  );
+};
+
+annotate service.DeliveryNoteItems actions {
+  returnGoods @(
+    Core.OperationAvailable: {$edmJson: {$And: [{$Eq: [{$Path: 'in/deliveryNote/status_code'}, 'CONFIRMED']}, {$Path: 'in/IsActiveEntity'}]}},
+    Common.SideEffects     : {TargetProperties: ['in/returnedQuantity']}
+  );
+};
+
+annotate service.StockMovements with @(UI.LineItem: [
+  {Value: movementDate},
+  {Value: product_ID},
+  {Value: type_code},
+  {
+    Value      : quantity,
+    Criticality: quantityCriticality
+  },
+  {Value: reason},
+  {Value: createdBy}
+]);
 
 // ---------------------------------------------------------------------------
 // Comments and questions (e.g. from the tax advisor), resolved by the team
@@ -1209,4 +1602,10 @@ annotate service.ProductServices with @(
 annotate service.SalesInvoices with @(
   UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
   UI.UpdateHidden: {$edmJson: {$Or: [{$Path: 'isLocked'}, {$Path: 'readOnly'}]}}
+);
+
+annotate service.DeliveryNotes with @(
+  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  UI.UpdateHidden: {$edmJson: {$Or: [{$Not: {$Path: 'isEditable'}}, {$Path: 'readOnly'}]}},
+  UI.DeleteHidden: {$edmJson: {$Or: [{$Not: {$Path: 'isEditable'}}, {$Path: 'readOnly'}]}}
 );

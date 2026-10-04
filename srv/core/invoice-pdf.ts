@@ -1,6 +1,6 @@
 import PDFDocument from "pdfkit";
 
-import { labelsFor, PdfLabels } from "./invoice-pdf-labels";
+import { labelsFor, PdfLabels, SupplyKind } from "./invoice-pdf-labels";
 import { documentFonts } from "./pdf-fonts";
 
 /** PDF/A-3b output for e-invoices: embedded fonts, attachments and additional XMP metadata. */
@@ -79,6 +79,8 @@ export interface SalesInvoicePdfData {
 		servicePeriodStart?: null | string;
 		status_code?: null | string;
 		subject?: null | string;
+		/** Decides between Leistungsdatum and Lieferdatum; services if not given. */
+		supplyKind?: SupplyKind;
 		taxAmount?: Value;
 		taxes?: { netAmount?: Value; taxAmount?: Value; taxRate?: Value }[];
 	};
@@ -206,6 +208,24 @@ export function renderSalesInvoicePdf(
 	}
 	doc.end();
 	return done;
+}
+
+/**
+ * The service period, or the single service date (Lieferdatum for goods); without one, the invoice
+ * date is the service date.
+ */
+export function serviceDateRow(
+	invoice: SalesInvoicePdfData["invoice"],
+	labels: PdfLabels,
+	date: Format["date"],
+): [string, string] {
+	const start = invoice.servicePeriodStart;
+	const end = invoice.servicePeriodEnd;
+	const kind = invoice.supplyKind ?? "services";
+	if (start && end && start !== end) {
+		return [labels.servicePeriod[kind], `${date(start)} – ${date(end)}`];
+	}
+	return [labels.serviceDate[kind], date(start || end || invoice.invoiceDate)];
 }
 
 /** Labels and formatters for the document language: 03.10.2026 and 1.234,56 € in German. */
@@ -508,20 +528,6 @@ function formatIban(iban: string): string {
 
 function join(separator: string, ...parts: (null | string | undefined)[]): string {
 	return parts.filter(Boolean).join(separator);
-}
-
-/** The service period, or the single service date; without one, the invoice date is the service date. */
-function serviceDateRow(
-	invoice: SalesInvoicePdfData["invoice"],
-	labels: PdfLabels,
-	date: Format["date"],
-): [string, string] {
-	const start = invoice.servicePeriodStart;
-	const end = invoice.servicePeriodEnd;
-	if (start && end && start !== end) {
-		return [labels.servicePeriod, `${date(start)} – ${date(end)}`];
-	}
-	return [labels.serviceDate, date(start || end || invoice.invoiceDate)];
 }
 
 /** Moves the text cursor to the given horizontal position. */

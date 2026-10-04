@@ -5,6 +5,7 @@ using from '../services/organization-service';
 using from '../services/tax-advisor-service';
 using from '../services/support-service';
 using from '../services/reporting-service';
+using from '../services/inventory-service';
 using from '../services/client-service';
 
 // Any signed-in user may use Swiver; what they see is decided by their organization membership.
@@ -145,6 +146,53 @@ annotate SalesService.QuoteItems with @(restrict: [
   }
 ]);
 
+// Delivery notes and stock: the tax advisor reads them, but books nothing.
+
+annotate SalesService.DeliveryNotes with @(restrict: [
+  {
+    grant: '*',
+    to   : 'OrganizationMember',
+    where: 'organization_ID = $user.organization'
+  },
+  {
+    grant: 'READ',
+    to   : 'TaxAdvisor',
+    where: 'organization_ID = $user.organization'
+  }
+]);
+
+annotate SalesService.DeliveryNoteItems with @(restrict: [
+  {
+    grant: '*',
+    to   : 'OrganizationMember',
+    where: 'deliveryNote.organization_ID = $user.organization'
+  },
+  {
+    grant: 'READ',
+    to   : 'TaxAdvisor',
+    where: 'deliveryNote.organization_ID = $user.organization'
+  }
+]);
+
+annotate SalesService.StockMovements with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate SalesService.Suppliers with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+
 annotate SalesService.FinancialComments with @(restrict: [
   {
     grant: ['READ', 'resolve'],
@@ -232,6 +280,28 @@ annotate PurchasingService.IncomingDocuments with @(restrict: [
     where: 'organization_ID = $user.organization'
   }
 ]);
+
+annotate PurchasingService.SupplierInvoiceItems with @(restrict: [
+  {
+    grant: '*',
+    to   : 'OrganizationMember',
+    where: 'supplierInvoice.organization_ID = $user.organization'
+  },
+  {
+    grant: 'READ',
+    to   : 'TaxAdvisor',
+    where: 'supplierInvoice.organization_ID = $user.organization'
+  }
+]);
+
+annotate PurchasingService.ProductServices with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
 
 annotate PurchasingService.FinancialComments with @(restrict: [
   {
@@ -596,6 +666,44 @@ annotate ReportingService.Suppliers with @(restrict: [{
 }]);
 
 annotate ReportingService.ExpenseCategories with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+// Inventory: owners, admins and members book stock changes through the actions; the tax advisor reads.
+annotate InventoryService with @(requires: 'authenticated-user');
+
+annotate InventoryService.Products with @(restrict: [
+  {
+    grant: [
+      'READ',
+      'adjustStock',
+      'returnToSupplier'
+    ],
+    to   : 'OrganizationMember',
+    where: 'organization_ID = $user.organization'
+  },
+  {
+    grant: 'READ',
+    to   : 'TaxAdvisor',
+    where: 'organization_ID = $user.organization'
+  }
+]);
+
+annotate InventoryService.StockMovements with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate InventoryService.Suppliers with @(restrict: [{
   grant: 'READ',
   to   : [
     'OrganizationMember',

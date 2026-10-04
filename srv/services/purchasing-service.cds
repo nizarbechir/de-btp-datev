@@ -1,6 +1,7 @@
 using {swiver as my} from '../../db/schema';
 using from '../../db/finance';
 using from '../../db/collaboration';
+using from '../../db/inventory';
 
 /**
  * Money out: suppliers, the document inbox, supplier invoices and expense categories.
@@ -30,7 +31,36 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
       action recordPayment(amount : Decimal(15, 2) @title: '{i18n>Amount}',
                            paymentDate : Date @title: '{i18n>PaymentDate}',
                            reference : String(255) @title: '{i18n>Reference}') returns SupplierInvoices;
+      /** Books the not yet received quantities of all stock-tracked items into stock. */
+      @title: '{i18n>BookGoodsReceipt}'
+      action bookGoodsReceipt() returns SupplierInvoices;
     };
+
+  entity SupplierInvoiceItems     as projection on my.SupplierInvoiceItems
+    actions {
+      /** Books a received quantity of this item into stock, e.g. part of a delivery. */
+      @title: '{i18n>BookGoodsReceipt}'
+      action receiveGoods(quantity : Decimal @title: '{i18n>ReceivedNow}') returns SupplierInvoiceItems;
+    };
+
+  @readonly
+  entity ProductServices          as projection on my.ProductServices {
+    ID,
+    code,
+    name,
+    description,
+    type,
+    unit,
+    purchasePrice,
+    defaultTaxRate,
+    trackStock,
+    isStockTracked,
+    active,
+    organization
+  };
+
+  @readonly
+  entity ProductTypes             as projection on my.ProductTypes;
 
   entity IncomingDocuments        as projection on my.IncomingDocuments
     actions {

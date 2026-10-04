@@ -6,6 +6,13 @@ export async function nextCustomerNumber(): Promise<string> {
 	return `CUS-${1000 + (await nextNumber("Customer"))}`;
 }
 
+/** Delivery note numbers restart every year, e.g. DN-2026-0001. */
+export async function nextDeliveryNoteNumber(deliveryDate: string): Promise<string> {
+	const year = deliveryDate.slice(0, 4);
+	const number = await nextNumber(`DeliveryNote-${year}`);
+	return `DN-${year}-${String(number).padStart(4, "0")}`;
+}
+
 /**
  * Returns the next number of a number range of the current organization, starting at 1.
  * Every organization has its own ranges, so two organizations can both have INV-2026-0001.

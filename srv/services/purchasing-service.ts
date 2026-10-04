@@ -8,6 +8,7 @@ import { invoiceDocumentTypes, validateUpload } from "../core/document-upload";
 import { requireOrganization } from "../organizations/organization-context";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 import { recordPayment, refreshInvoicePayments, rejectDomainError, removeManualPayments } from "../payments/payments";
+import { bookGoodsReceipt, registerSupplierInvoiceItems } from "../purchases/goods-receipt";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
 import { prefillInvoiceDraft } from "../purchases/supplier-invoice-prefill";
 
@@ -17,7 +18,7 @@ import { prefillInvoiceDraft } from "../purchases/supplier-invoice-prefill";
 
 export default class PurchasingService extends cds.ApplicationService {
 	async init() {
-		const { IncomingDocuments, SupplierInvoices } = this.entities as Record<
+		const { IncomingDocuments, SupplierInvoiceItems, SupplierInvoices } = this.entities as Record<
 			string,
 			cds.entity & { drafts: cds.entity }
 		>;
@@ -25,7 +26,11 @@ export default class PurchasingService extends cds.ApplicationService {
 		registerChangeHistoryGuard(this);
 		registerReadOnlyFlag(this);
 		registerComments(this, { IncomingDocuments: "incomingDocument", SupplierInvoices: "supplierInvoice" });
-		auditActions(this, { SupplierInvoices: ["markInvoicePaid", "markInvoiceOpen", "recordPayment"] });
+		auditActions(this, {
+			SupplierInvoiceItems: ["receiveGoods"],
+			SupplierInvoices: ["markInvoicePaid", "markInvoiceOpen", "recordPayment", "bookGoodsReceipt"],
+		});
+		registerSupplierInvoiceItems(this);
 
 		this.before(["CREATE", "UPDATE"], [SupplierInvoices, SupplierInvoices.drafts], (req) =>
 			validateUpload(req, {
@@ -71,6 +76,25 @@ export default class PurchasingService extends cds.ApplicationService {
 		this.on("markInvoiceOpen", SupplierInvoices, (req) =>
 			guarded(req, () => removeManualPayments("supplier", key(req))),
 		);
+
+		// Goods receipt: of all open items, or of a part of one item
+		this.on("bookGoodsReceipt", SupplierInvoices, (req) =>
+			guarded(req, async () => {
+				if (!(await bookGoodsReceipt(key(req)))) {
+					req.info("NOTHING_TO_RECEIVE");
+				}
+			}),
+		);
+		this.on("receiveGoods", SupplierInvoiceItems, async (req) => {
+			const item = await SELECT.one
+				.from("swiver.SupplierInvoiceItems")
+				.columns("supplierInvoice_ID")
+				.where({ ID: key(req) });
+			if (!item) {
+				return req.reject(404, "RECORD_NOT_FOUND");
+			}
+			return guarded(req, () => bookGoodsReceipt(item.supplierInvoice_ID, key(req), req.data.quantity));
+		});
 
 		// Explains the upload while editing
 		this.after("READ", [SupplierInvoices, SupplierInvoices.drafts], (result, req) => {

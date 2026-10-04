@@ -82,6 +82,13 @@
             "applicationType": "URL",
             "url": "/swiver.products"
         },
+        "Inventory-manage": {
+            "title": "Inventory",
+            "description": "Stock of your goods",
+            "additionalInformation": "SAPUI5.Component=swiver.inventory",
+            "applicationType": "URL",
+            "url": "/swiver.inventory"
+        },
         "Supplier-manage": {
             "title": "Suppliers",
             "description": "Purchases",
@@ -211,6 +218,26 @@
                                         "info": "Sales",
                                         "icon": "sap-icon://product",
                                         "targetURL": "#ProductService-manage"
+                                    }
+                                },
+                                {
+                                    "id": "deliveryNotes",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Delivery Notes",
+                                        "info": "Sales",
+                                        "icon": "sap-icon://shipping-status",
+                                        "targetURL": "#Sales-manage&/DeliveryNotes"
+                                    }
+                                },
+                                {
+                                    "id": "inventory",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Inventory",
+                                        "info": "Stock of your goods",
+                                        "icon": "sap-icon://inventory",
+                                        "targetURL": "#Inventory-manage"
                                     }
                                 }
                             ]
@@ -393,7 +420,7 @@
         src="https://sapui5.hana.ondemand.com/1.148.4/resources/sap-ui-core.js"
         data-sap-ui-libs="sap.m, sap.ui.core, sap.ushell, sap.fe.templates"
         data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.reports": "/swiver.reports/", "swiver.settings": "/swiver.settings/", "swiver.configuration": "/swiver.configuration/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.clients": "/swiver.clients/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/", "swiver.support": "/swiver.support/"}'
+        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.reports": "/swiver.reports/", "swiver.settings": "/swiver.settings/", "swiver.configuration": "/swiver.configuration/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.clients": "/swiver.clients/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.inventory": "/swiver.inventory/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/", "swiver.support": "/swiver.support/"}'
         data-sap-ui-compatVersion="edge"
         data-sap-ui-async="true"
         data-sap-ui-frameOptions="allow"

@@ -147,6 +147,10 @@ modules:
           artifacts:
             - swiverproducts.zip
           target-path: resources/
+        - name: swiverinventory
+          artifacts:
+            - swiverinventory.zip
+          target-path: resources/
         - name: swiversuppliers
           artifacts:
             - swiversuppliers.zip
@@ -238,6 +242,16 @@ modules:
   - name: swiverproducts
     type: html5
     path: app/products
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverinventory
+    type: html5
+    path: app/inventory
     build-parameters:
       build-result: dist
       builder: custom

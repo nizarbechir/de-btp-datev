@@ -31,6 +31,8 @@
 						<tnt:NavigationListItem text="{i18n>quotes}" key="swiver.sales#Quotes" />
 						<tnt:NavigationListItem text="{i18n>customers}" key="swiver.customers" />
 						<tnt:NavigationListItem text="{i18n>products}" key="swiver.products" />
+						<tnt:NavigationListItem text="{i18n>deliveryNotes}" key="swiver.sales#DeliveryNotes" />
+						<tnt:NavigationListItem text="{i18n>inventory}" key="swiver.inventory" />
 					</tnt:NavigationListItem>
 					<tnt:NavigationListItem text="{i18n>groupPurchases}" icon="sap-icon://cart" selectable="false" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'TAX_ADVISOR' }">
 						<tnt:NavigationListItem text="{i18n>supplierInvoices}" key="swiver.purchases#SupplierInvoices" />

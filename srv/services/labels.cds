@@ -5,6 +5,7 @@ using from '../../db/finance';
 using from '../../db/organizations';
 using from '../../db/collaboration';
 using from '../../db/support';
+using from '../../db/inventory';
 using from '../../db/clients';
 
 /**
@@ -81,6 +82,23 @@ annotate swiver.SupplierInvoices with @(
   organization      @UI.Hidden;
 };
 
+annotate swiver.SupplierInvoiceItems with @Capabilities.SearchRestrictions.Searchable: false {
+  ID               @UI.Hidden;
+  supplierInvoice  @UI.Hidden;
+  productService   @title: '{i18n>ProductService}';
+  position         @title: '{i18n>Position}'          @readonly;
+  description      @title: '{i18n>Description}';
+  quantity         @title: '{i18n>Quantity}';
+  unit             @title: '{i18n>Unit}';
+  unitPrice        @title: '{i18n>UnitPrice}';
+  taxRate          @title: '{i18n>VatRatePercent}';
+  netAmount        @title: '{i18n>NetAmount}'         @readonly  @Measures.ISOCurrency: supplierInvoice.currency_code;
+  taxAmount        @title: '{i18n>VatAmount}'         @readonly  @Measures.ISOCurrency: supplierInvoice.currency_code;
+  grossAmount      @title: '{i18n>Total}'             @readonly  @Measures.ISOCurrency: supplierInvoice.currency_code;
+  receivedQuantity @title: '{i18n>ReceivedQuantity}'  @readonly;
+  openQuantity     @title: '{i18n>OpenQuantity}';
+};
+
 annotate swiver.PaymentStatuses with {
   code @title: '{i18n>PaymentStatus}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
 };
@@ -118,6 +136,11 @@ annotate swiver.Customers with @(
   notes          @title: '{i18n>Notes}'           @UI.MultiLineText;
   active         @title: '{i18n>Active}';
   organization   @UI.Hidden;
+  deliveryName       @title: '{i18n>DeliveryName}';
+  deliveryStreet     @title: '{i18n>Address}';
+  deliveryPostalCode @title: '{i18n>PostalCode}';
+  deliveryCity       @title: '{i18n>City}';
+  deliveryCountry    @title: '{i18n>Country}';
 };
 
 annotate swiver.CustomerBalances with {
@@ -269,6 +292,88 @@ annotate swiver.ProductServices with @(
   defaultTaxRate @title: '{i18n>VatRatePercent}';
   active         @title: '{i18n>Active}';
   organization   @UI.Hidden;
+  type            @title: '{i18n>ProductType}'      @Common.Text: type.name  @Common.TextArrangement: #TextOnly  @Common.ValueListWithFixedValues;
+  purchasePrice   @title: '{i18n>PurchasePrice}';
+  defaultSupplier @title: '{i18n>DefaultSupplier}'  @Common.Text: defaultSupplier.name  @Common.TextArrangement: #TextOnly;
+  ean             @title: '{i18n>Ean}';
+  trackStock      @title: '{i18n>TrackStock}';
+  reorderLevel    @title: '{i18n>ReorderLevel}';
+  isGoods         @UI.Hidden;
+  isStockTracked  @UI.Hidden;
+  stockOnHand     @title: '{i18n>StockOnHand}'      @readonly;
+  stockStatus     @title: '{i18n>StockStatus}'      @readonly;
+  stockStatusCriticality @UI.Hidden;
+};
+
+annotate swiver.ProductTypes with {
+  code @title: '{i18n>ProductType}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
+};
+
+annotate swiver.DeliveryNotes with @(
+  title                          : '{i18n>DeliveryNote}',
+  // Confirmed delivery notes have booked stock: they are locked.
+  Capabilities.UpdateRestrictions: {Updatable: isEditable},
+  Capabilities.DeleteRestrictions: {Deletable: isEditable},
+  cds.search                     : {
+    deliveryNoteNumber,
+    deliveryName,
+    notes
+  }
+) {
+  ID                 @UI.Hidden;
+  deliveryNoteNumber @title: '{i18n>DeliveryNoteNumber}'  @readonly;
+  customer           @title: '{i18n>Customer}';
+  deliveryDate       @title: '{i18n>DeliveryDate}';
+  status             @title: '{i18n>Status}'              @readonly;
+  deliveryName       @title: '{i18n>DeliveryName}';
+  deliveryStreet     @title: '{i18n>Address}';
+  deliveryPostalCode @title: '{i18n>PostalCode}';
+  deliveryCity       @title: '{i18n>City}';
+  deliveryCountry    @title: '{i18n>Country}';
+  notes              @title: '{i18n>Notes}'               @UI.MultiLineText;
+  quote              @title: '{i18n>Quote}'               @readonly  @Common.Text: quote.quoteNumber  @Common.TextArrangement: #TextOnly;
+  salesInvoice       @title: '{i18n>SalesInvoice}'        @readonly  @Common.Text: salesInvoice.invoiceNumber  @Common.TextArrangement: #TextOnly;
+  confirmedAt        @title: '{i18n>ConfirmedAt}'         @readonly;
+  confirmedBy        @title: '{i18n>ConfirmedBy}'         @readonly;
+  isEditable         @UI.Hidden;
+  statusCriticality  @UI.Hidden;
+  organization       @UI.Hidden;
+};
+
+annotate swiver.DeliveryNoteItems with @Capabilities.SearchRestrictions.Searchable: false {
+  ID               @UI.Hidden;
+  deliveryNote     @UI.Hidden;
+  productService   @title: '{i18n>ProductService}';
+  position         @title: '{i18n>Position}'          @readonly;
+  description      @title: '{i18n>Description}';
+  quantity         @title: '{i18n>Quantity}';
+  unit             @title: '{i18n>Unit}';
+  returnedQuantity @title: '{i18n>ReturnedQuantity}'  @readonly;
+};
+
+annotate swiver.DeliveryNoteStatuses with {
+  code @title: '{i18n>Status}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
+};
+
+annotate swiver.StockMovements with @(title: '{i18n>StockMovement}') {
+  ID                  @UI.Hidden;
+  product             @title: '{i18n>Product}'          @Common.Text: product.name  @Common.TextArrangement: #TextOnly;
+  type                @title: '{i18n>MovementType}'     @Common.Text: type.name     @Common.TextArrangement: #TextOnly;
+  quantity            @title: '{i18n>Quantity}';
+  movementDate        @title: '{i18n>MovementDate}';
+  reason              @title: '{i18n>Reason}';
+  supplierInvoice     @title: '{i18n>SupplierInvoice}'  @Common.Text: supplierInvoice.invoiceNumber  @Common.TextArrangement: #TextOnly;
+  supplierInvoiceItem @UI.Hidden;
+  deliveryNote        @title: '{i18n>DeliveryNote}'     @Common.Text: deliveryNote.deliveryNoteNumber  @Common.TextArrangement: #TextOnly;
+  deliveryNoteItem    @UI.Hidden;
+  quantityCriticality @UI.Hidden;
+  createdBy           @title: '{i18n>BookedBy}';
+  createdAt           @title: '{i18n>BookedAt}';
+  organization        @UI.Hidden;
+};
+
+annotate swiver.StockMovementTypes with {
+  code @title: '{i18n>MovementType}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
 };
 
 annotate swiver.Quotes with @(

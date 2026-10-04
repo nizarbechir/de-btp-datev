@@ -1,0 +1,7 @@
+code;name;descr
+OPENING_BALANCE;Opening Balance;First stock of a product
+GOODS_RECEIPT;Goods Receipt;Goods received from a supplier
+DELIVERY;Delivery;Goods delivered to a customer
+CUSTOMER_RETURN;Customer Return;Goods returned by a customer
+SUPPLIER_RETURN;Supplier Return;Goods returned to a supplier
+ADJUSTMENT;Adjustment;Manual stock correction

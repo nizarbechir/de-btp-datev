@@ -7,6 +7,11 @@ using {
 } from '@sap/cds/common';
 using {swiver.OrganizationOwned} from './organizations';
 using {swiver.Payments} from './finance';
+using {
+  swiver.ProductServices,
+  swiver.Quantity,
+  swiver.TaxRate
+} from './sales';
 
 namespace swiver;
 
@@ -91,6 +96,9 @@ entity SupplierInvoices : cuid, managed, OrganizationOwned {
                                  end);
   payments          : Association to many Payments
                         on payments.supplierInvoice = $self;
+  // Optional: expenses such as a tax advisor's invoice need no items; goods bought for stock do.
+  items             : Composition of many SupplierInvoiceItems
+                        on items.supplierInvoice = $self;
   // The inbox document this invoice was created from, if any.
   incomingDocument  : Association to IncomingDocuments;
   // The original invoice (PDF, PNG or JPEG). One document per invoice.
@@ -103,6 +111,36 @@ entity SupplierInvoices : cuid, managed, OrganizationOwned {
                                   ];
   documentMediaType : String(100) @Core.IsMediaType;
   documentFileName  : String(255);
+}
+
+/**
+ * One line of a supplier invoice. With items, the invoice amounts are calculated from them with the
+ * same rules as sales invoices. Goods with stock tracking are booked into stock by the goods receipt.
+ */
+entity SupplierInvoiceItems : cuid {
+  supplierInvoice  : Association to SupplierInvoices;
+  position         : Integer;
+  productService   : Association to ProductServices;
+  description      : String(500) @mandatory;
+  quantity         : Quantity @mandatory default 1  @assert: (case
+                                                                 when quantity <= 0
+                                                                 then 'QUANTITY_NOT_POSITIVE'
+                                                               end);
+  unit             : String(20) default 'piece';
+  unitPrice        : Amount @mandatory  @assert: (case
+                                                    when unitPrice < 0
+                                                    then 'AMOUNT_NEGATIVE'
+                                                  end);
+  taxRate          : TaxRate @mandatory default 19  @assert: (case
+                                                                 when taxRate < 0
+                                                                 then 'TAX_RATE_NEGATIVE'
+                                                               end);
+  netAmount        : Amount default 0;
+  taxAmount        : Amount default 0;
+  grossAmount      : Amount default 0;
+  // Maintained by the goods receipt, so the same quantity is never booked twice.
+  receivedQuantity : Quantity default 0;
+  openQuantity     : Quantity = quantity - coalesce(receivedQuantity, 0);
 }
 
 entity PaymentStatuses : CodeList {

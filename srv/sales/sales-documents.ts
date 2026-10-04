@@ -1,6 +1,7 @@
 import { Readable } from "node:stream";
 
 import { renderSalesInvoicePdf, SalesInvoicePdfData } from "../core/invoice-pdf";
+import { supplyKind } from "../core/invoice-pdf-labels";
 import { calculateInvoice } from "../core/money";
 import { getCompany, getCompanyLogo } from "../core/settings";
 import { requireOrganization } from "../organizations/organization-context";
@@ -25,6 +26,7 @@ export async function loadInvoiceDocument(id: string, active = true): Promise<Do
 	invoice.items = await SELECT.from(`${service}.SalesInvoiceItems${suffix}`).where(byInvoice).orderBy("position");
 	invoice.taxes = await SELECT.from(`${service}.SalesInvoiceTaxes${suffix}`).where(byInvoice);
 	invoice.customer = await loadCustomer(invoice.customer_ID);
+	invoice.supplyKind = await supplyKindOf(invoice.items as { productService_ID?: null | string }[]);
 	return {
 		company: (await getCompany()) as DocumentData["company"],
 		invoice,
@@ -98,4 +100,15 @@ async function loadCustomer(customerID: null | string | undefined) {
 			.where({ code: customer.country_code });
 	}
 	return customer;
+}
+
+/** Goods, services or both, from the product types of the lines. */
+async function supplyKindOf(items: { productService_ID?: null | string }[]) {
+	const IDs = items.map((item) => item.productService_ID).filter(Boolean);
+	const types = IDs.length
+		? ((await SELECT.from("swiver.ProductServices")
+				.columns("ID", "type_code")
+				.where({ ID: { in: IDs }, organization_ID: requireOrganization() })) as { ID: string; type_code: string }[])
+		: [];
+	return supplyKind(items.map((item) => types.find((type) => type.ID === item.productService_ID)?.type_code));
 }

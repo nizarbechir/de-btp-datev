@@ -12,6 +12,11 @@ export interface DocumentConfig {
 	itemDrafts: string;
 	/** Foreign key of the items to the document, e.g. invoice_ID */
 	itemKey: string;
+	/**
+	 * Supplier invoices: items are optional. Without items the amounts are entered by hand, and the
+	 * gross amount is calculated by the database. Product lines are priced at the purchase price.
+	 */
+	optionalItems?: boolean;
 	/** Tax lines per rate, only kept for sales invoices. */
 	taxDrafts?: string;
 }
@@ -54,8 +59,16 @@ export async function recalculateDraft(config: DocumentConfig, documentID: strin
 			.set({ ...calculateItem(item), position: index + 1 })
 			.where({ ID: item.ID });
 	}
-	const { taxes, ...totals } = calculateInvoice(items);
-	await UPDATE(config.documentDrafts).set(totals).where({ ID: documentID });
+	const { grossAmount, taxes, ...totals } = calculateInvoice(items);
+	if (config.optionalItems) {
+		if (items.length) {
+			await UPDATE(config.documentDrafts).set(totals).where({ ID: documentID });
+		}
+		return;
+	}
+	await UPDATE(config.documentDrafts)
+		.set({ ...totals, grossAmount })
+		.where({ ID: documentID });
 	if (!config.taxDrafts) {
 		return;
 	}
@@ -88,7 +101,7 @@ export function registerItemCalculation(srv: cds.ApplicationService, itemDrafts:
 			itemDocument.set(req, item[config.itemKey] as string);
 		}
 		if (req.event === "UPDATE" && req.data.productService_ID) {
-			await prefillFromProduct(req.data as Data);
+			await prefillFromProduct(req.data as Data, config);
 		}
 	});
 	srv.after(["UPDATE", "DELETE"], itemDrafts, async (_results, req) => {
@@ -100,7 +113,7 @@ export function registerItemCalculation(srv: cds.ApplicationService, itemDrafts:
 	// Also when the product comes with the new line, e.g. from an inline creation row of the item table
 	srv.before("NEW", itemDrafts, async (req) => {
 		if (req.data.productService_ID) {
-			await prefillFromProduct(req.data as Data);
+			await prefillFromProduct(req.data as Data, config);
 		}
 	});
 	srv.after("NEW", itemDrafts, async (_results, req) => {
@@ -126,16 +139,16 @@ function itemKey(req: Request): string {
 }
 
 /** The user can still override the values afterwards. The tenant guard has checked the product's organization. */
-async function prefillFromProduct(data: Data) {
+async function prefillFromProduct(data: Data, config: DocumentConfig) {
 	const product = await SELECT.one
 		.from("swiver.ProductServices")
-		.columns("name", "description", "unit", "defaultPrice", "defaultTaxRate")
+		.columns("name", "description", "unit", "defaultTaxRate", config.optionalItems ? "purchasePrice as defaultPrice" : "defaultPrice")
 		.where({ ID: data.productService_ID });
 	if (!product) {
 		return;
 	}
 	data.description = product.description ? `${product.name}\n${product.description}` : product.name;
 	data.unit = product.unit;
-	data.unitPrice = product.defaultPrice;
+	data.unitPrice = product.defaultPrice ?? 0;
 	data.taxRate = product.defaultTaxRate;
 }

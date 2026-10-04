@@ -28,8 +28,9 @@ export interface PdfLabels {
 	position: string;
 	quantity: string;
 	quoteValidUntil: (date: string) => string;
-	serviceDate: string;
-	servicePeriod: string;
+	/** Leistungsdatum for services, Lieferdatum for goods, both for a mix. */
+	serviceDate: Record<SupplyKind, string>;
+	servicePeriod: Record<SupplyKind, string>;
 	taxNumber: string;
 	total: string;
 	unit: string;
@@ -39,6 +40,9 @@ export interface PdfLabels {
 	vatId: string;
 	vatOn: (rate: string, base: string) => string;
 }
+
+/** What an invoice supplies: services, goods or both. Decides the wording of the service date. */
+export type SupplyKind = "goods" | "mixed" | "services";
 
 const german: PdfLabels = {
 	amount: "Betrag",
@@ -64,8 +68,8 @@ const german: PdfLabels = {
 	position: "Pos.",
 	quantity: "Menge",
 	quoteValidUntil: (date) => `Dieses Angebot ist gültig bis ${date}.`,
-	serviceDate: "Leistungsdatum",
-	servicePeriod: "Leistungszeitraum",
+	serviceDate: { goods: "Lieferdatum", mixed: "Liefer-/Leistungsdatum", services: "Leistungsdatum" },
+	servicePeriod: { goods: "Lieferzeitraum", mixed: "Liefer-/Leistungszeitraum", services: "Leistungszeitraum" },
 	taxNumber: "Steuernummer",
 	total: "Gesamtbetrag",
 	unit: "Einheit",
@@ -108,8 +112,8 @@ const english: PdfLabels = {
 	position: "Pos.",
 	quantity: "Qty",
 	quoteValidUntil: (date) => `This quote is valid until ${date}.`,
-	serviceDate: "Service date",
-	servicePeriod: "Service period",
+	serviceDate: { goods: "Delivery date", mixed: "Delivery/service date", services: "Service date" },
+	servicePeriod: { goods: "Delivery period", mixed: "Delivery/service period", services: "Service period" },
 	taxNumber: "Tax number",
 	total: "Total",
 	unit: "Unit",
@@ -123,4 +127,13 @@ const english: PdfLabels = {
 /** The labels for the language code of the company settings (DE or EN); German if unknown. */
 export function labelsFor(languageCode?: null | string): PdfLabels {
 	return languageCode?.toLowerCase() === "en" ? english : german;
+}
+
+/** Goods if all product lines are goods, services if none is; lines without a product count as services. */
+export function supplyKind(productTypes: (null | string | undefined)[]): SupplyKind {
+	const goods = productTypes.filter((type) => type === "GOODS").length;
+	if (!goods) {
+		return "services";
+	}
+	return goods === productTypes.length ? "goods" : "mixed";
 }
