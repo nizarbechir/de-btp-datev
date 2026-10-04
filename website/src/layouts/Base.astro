@@ -16,7 +16,8 @@ interface Props {
 
 const t = getContent();
 const { title = t.meta.title, description = t.meta.description, noindex = false, structuredData = [] } = Astro.props;
-const canonical = new URL(Astro.url.pathname.replace(/\/index$/, "/"), Astro.site);
+// Pages build to `name.html` but are served without the extension.
+const canonical = new URL(Astro.url.pathname.replace(/(index)?\.html$/, "").replace(/\/index$/, "/"), Astro.site);
 const ogImage = new URL("/og.png", Astro.site);
 
 // Only the subsets German text needs; the browser picks one by unicode-range.
