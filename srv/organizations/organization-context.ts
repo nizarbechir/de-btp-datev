@@ -78,7 +78,6 @@ export function requireOrganization(req?: cds.Request): string {
  * Picks the user's membership: the requested organization if the user is a member of it, otherwise
  * the one last switched to, otherwise the first one.
  */
-// TODO(feature): dedicated Steuerberater client cockpit
 export async function resolveOrganization(
 	user: cds.User,
 	requested?: string,

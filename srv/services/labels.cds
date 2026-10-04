@@ -5,6 +5,7 @@ using from '../../db/finance';
 using from '../../db/organizations';
 using from '../../db/collaboration';
 using from '../../db/support';
+using from '../../db/clients';
 
 /**
  * Business rules and labels of the domain model, independent of any UI and inherited by all services.
@@ -568,4 +569,41 @@ annotate swiver.SupportPriorities with {
 
 annotate swiver.SupportStatuses with {
   code @title: '{i18n>Status}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
+};
+
+annotate swiver.ClientOverview with @(title: '{i18n>Client}') {
+  ID                    @UI.Hidden;
+  name                  @title: '{i18n>Client}';
+  status                @title: '{i18n>Status}';
+  openQuestions         @title: '{i18n>OpenQuestions}';
+  missingDocuments      @title: '{i18n>MissingDocuments}';
+  uncategorized         @title: '{i18n>Uncategorized}';
+  unprocessedReceipts   @title: '{i18n>UnprocessedReceipts}';
+  unmatchedTransactions @title: '{i18n>UnmatchedTransactions}';
+  lastExportAt          @title: '{i18n>LastExportAt}';
+};
+
+annotate swiver.TaxFirms with @(title: '{i18n>TaxFirm}') {
+  ID   @UI.Hidden;
+  name @title: '{i18n>Name}';
+};
+
+annotate swiver.TaxFirmStaff with @(title: '{i18n>TaxFirmStaff}') {
+  ID     @UI.Hidden;
+  userId @title: '{i18n>User}';
+  role   @title: '{i18n>Role}'  @assert.range;
+};
+
+annotate swiver.TaxFirmClients with @(title: '{i18n>Client}') {
+  ID         @UI.Hidden;
+  clientName @title: '{i18n>Client}';
+};
+
+annotate swiver.TaxFirmAssignments with @(title: '{i18n>Assignment}') {
+  ID    @UI.Hidden;
+  staff @title: '{i18n>User}';
+};
+
+annotate swiver.Memberships with {
+  firm @title: '{i18n>TaxFirm}';
 };

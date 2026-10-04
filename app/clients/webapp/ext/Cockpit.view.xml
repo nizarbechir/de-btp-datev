@@ -1,0 +1,100 @@
+<mvc:View
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	xmlns:macros="sap.fe.macros"
+	controllerName="swiver.clients.ext.Cockpit"
+>
+	<f:DynamicPage id="cockpitPage" showFooter="false">
+		<f:title>
+			<f:DynamicPageTitle id="cockpitTitle">
+				<f:heading>
+					<Title id="cockpitHeading" text="{i18n>cockpitTitle}" />
+				</f:heading>
+				<f:expandedContent>
+					<Label id="cockpitSubtitle" text="{i18n>cockpitSubtitle}" />
+				</f:expandedContent>
+				<f:actions>
+					<Button id="taxFirm" text="{= ${firm>/name} || ${i18n>taxFirm} }" icon="sap-icon://building" visible="{= !!${firm>/ID} }" press=".onTaxFirm" />
+					<Button id="createTaxFirm" text="{i18n>createTaxFirm}" icon="sap-icon://add" visible="{= ${firm>/loaded} &amp;&amp; !${firm>/ID} }" press=".onCreateTaxFirm" />
+				</f:actions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<IconTabBar id="tabs" expandable="false" stretchContentHeight="false" applyContentPadding="false" class="sapUiResponsiveContentPadding">
+				<items>
+				<IconTabFilter id="clientsTab" key="clients" icon="sap-icon://customer-briefing" text="{i18n>clients}">
+					<macros:FilterBar id="clientsFilter" contextPath="/Clients" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="clientsTable"
+						contextPath="/Clients"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="clientsFilter"
+						header="{i18n>clients}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="questionsTab" key="questions" icon="sap-icon://comment" text="{i18n>openQuestions}">
+					<macros:FilterBar id="questionsFilter" contextPath="/OpenQuestions" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="questionsTable"
+						contextPath="/OpenQuestions"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="questionsFilter"
+						header="{i18n>openQuestions}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="invoicesTab" key="invoices" icon="sap-icon://receipt" text="{i18n>invoicesToReview}">
+					<macros:FilterBar id="invoicesFilter" contextPath="/SupplierInvoicesToReview" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="invoicesTable"
+						contextPath="/SupplierInvoicesToReview"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="invoicesFilter"
+						header="{i18n>invoicesToReview}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="receiptsTab" key="receipts" icon="sap-icon://inbox" text="{i18n>newReceipts}">
+					<macros:FilterBar id="receiptsFilter" contextPath="/NewReceipts" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="receiptsTable"
+						contextPath="/NewReceipts"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="receiptsFilter"
+						header="{i18n>newReceipts}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				<IconTabFilter id="transactionsTab" key="transactions" icon="sap-icon://loan" text="{i18n>unmatchedTransactions}">
+					<macros:FilterBar id="transactionsFilter" contextPath="/UnmatchedTransactions" metaPath="@com.sap.vocabularies.UI.v1.SelectionFields" liveMode="true" />
+					<macros:Table
+						id="transactionsTable"
+						contextPath="/UnmatchedTransactions"
+						metaPath="@com.sap.vocabularies.UI.v1.LineItem"
+						filterBar="transactionsFilter"
+						header="{i18n>unmatchedTransactions}"
+						type="ResponsiveTable"
+						enableExport="true"
+						personalization="Column,Sort,Filter"
+						rowPress=".onRowPress"
+					/>
+				</IconTabFilter>
+				</items>
+			</IconTabBar>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

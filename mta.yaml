@@ -167,6 +167,10 @@ modules:
           artifacts:
             - swivertaxadvisor.zip
           target-path: resources/
+        - name: swiverclients
+          artifacts:
+            - swiverclients.zip
+          target-path: resources/
         - name: swiversupport
           artifacts:
             - swiversupport.zip
@@ -294,6 +298,16 @@ modules:
   - name: swivertaxadvisor
     type: html5
     path: app/taxadvisor
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverclients
+    type: html5
+    path: app/clients
     build-parameters:
       build-result: dist
       builder: custom

@@ -8,6 +8,7 @@ import { acceptInvitation, inviteMember, resendInvitation, revokeInvitation } fr
 import { createOrganization } from "../organizations/onboarding";
 import { currentOrganization, requireAdmin } from "../organizations/organization-context";
 import { exportOrganizationData } from "../organizations/organization-data";
+import { firmOf, releaseRemovedFirmAccess } from "../organizations/tax-firms";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 
 /**
@@ -26,8 +27,14 @@ export default class OrganizationService extends cds.ApplicationService {
 
 		this.on("myOrganization", async (req) => {
 			const context = currentOrganization();
+			// For the hub: the client switcher and cockpit show for users with several organizations and for tax firm staff.
+			const clients = (await SELECT.one
+				.from("swiver.Memberships")
+				.columns("count(1) as count")
+				.where({ userId: req.user.id })) as { count: number };
+			const firmRole = (await firmOf(req.user.id))?.role;
 			if (!context) {
-				return { userId: req.user.id };
+				return { clients: clients.count, firmRole, userId: req.user.id };
 			}
 			const organization = await SELECT.one
 				.from("swiver.Organizations")
@@ -38,6 +45,8 @@ export default class OrganizationService extends cds.ApplicationService {
 				.columns("ID")
 				.where({ organization_ID: context.organizationId });
 			return {
+				clients: clients.count,
+				firmRole,
 				name: organization?.name,
 				organizationID: context.organizationId,
 				role: context.role,
@@ -106,6 +115,7 @@ export default class OrganizationService extends cds.ApplicationService {
 			}
 		});
 		this.before("SAVE", Organizations, (req) => auditMemberChanges(req.data.ID, req.data.members ?? []));
+		this.after("SAVE", Organizations, (_result, req) => releaseRemovedFirmAccess(req.data.ID));
 		return super.init();
 	}
 }

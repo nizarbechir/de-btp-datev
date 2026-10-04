@@ -5,6 +5,7 @@ import { audit, boundKey } from "../collaboration/audit";
 import { EmailNotConfiguredError } from "../integrations/email/email-provider";
 import { sendMembershipInvitation } from "./invitation-email";
 import { MembershipRole, requireAdmin, resolveOrganization } from "./organization-context";
+import { addFirmClient } from "./tax-firms";
 import { assertOwned } from "./tenant-guard";
 
 /**
@@ -59,6 +60,9 @@ export async function acceptInvitation(req: cds.Request) {
 			role: invitation.role,
 			userId: req.user.id,
 		});
+		if (invitation.role === "TAX_ADVISOR") {
+			await addFirmClient(req.user.id, organizationId);
+		}
 	}
 	await UPDATE(Invitations, invitation.ID).with({
 		acceptedAt: now,

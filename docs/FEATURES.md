@@ -25,6 +25,18 @@ Test:
 curl -u bob:bob "localhost:4004/odata/v4/sales/SalesInvoices(ID=44444444-0000-4000-8000-000000000004,IsActiveEntity=true)/SalesService.pdf(download=false)"
 ```
 
+## Clients and tax firms
+
+Users with several organizations, typically a tax advisor with many clients, get the **Clients** app (client cockpit, also in the hub) and a client switcher in the hub header. The cockpit lists all clients with their open work (open questions, supplier invoices without document or category, new receipts, unmatched bank transactions, last accountant export), sorted by the most open work, and tabs with these open items across all clients. Opening a row switches to that client and shows it, or the record, in the hub. The organization a user works in is kept per user (`Memberships.lastUsedAt`); the hub follows a switch made in another tab when it becomes visible again.
+
+A tax firm (Kanzlei) is created in the cockpit with **Create Tax Firm**; the creator becomes its admin and their existing clients become the firm's clients. Admins add staff (by user ID) and assign them to clients. Clients are only added by a client's invitation of one of the firm's staff. Each assignment is an ordinary tax advisor membership of the client (`srv/organizations/tax-firms.ts`), so the client sees everyone with access in its member list (with the firm's name) and can remove them; when no member of the firm is left, the firm loses the client.
+
+Test:
+
+1. Sign in as `steuerberater@example.de` / `steuerberater`, open **Clients** and choose **Create Tax Firm**.
+2. As `bob`, create an organization and invite `steuerberater@example.de` as tax advisor; accept the link as the advisor. The cockpit now shows both clients and the hub header the switcher.
+3. In the tax firm, add `tester` as staff, open the client Bob's company and assign `tester`. `tester` now sees that client; Bob sees `tester` in his members with the firm's name.
+
 ## Products and services
 
 Reusable lines for invoices and quotes (code, name, unit, price, VAT rate). Choosing one in an item fills description, unit, price and VAT; all values stay editable.

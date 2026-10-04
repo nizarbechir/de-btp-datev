@@ -6,12 +6,25 @@
 				<Button icon="sap-icon://menu2" type="Transparent" press=".onToggleSide" tooltip="{i18n>appTitle}" />
 				<Title text="{i18n>appTitle}" level="H1" />
 				<ToolbarSpacer />
-				<Text text="{org>name}" />
+				<!-- Users with several organizations (e.g. a tax advisor's clients) switch here. -->
+				<ComboBox
+					id="clientSwitcher"
+					width="20rem"
+					visible="{= ${org>clients} > 1 }"
+					selectedKey="{path: 'org>organizationID', mode: 'OneWay'}"
+					placeholder="{i18n>switchClient}"
+					selectionChange=".onClientSwitch"
+					items="{path: 'clients>/Clients', parameters: {$select: 'ID,name'}, sorter: {path: 'name'}, length: 1000}"
+				>
+					<core:Item key="{clients>ID}" text="{clients>name}" />
+				</ComboBox>
+				<Text text="{org>name}" visible="{= !(${org>clients} > 1) }" />
 			</tnt:ToolHeader>
 		</tnt:header>
 		<tnt:sideContent>
-			<tnt:SideNavigation selectedKey="swiver.dashboard" itemSelect=".onItemSelect">
+			<tnt:SideNavigation id="sideNavigation" selectedKey="swiver.dashboard" itemSelect=".onItemSelect">
 				<tnt:NavigationList>
+					<tnt:NavigationListItem text="{i18n>clients}" icon="sap-icon://customer-briefing" key="swiver.clients" visible="{= ${org>clients} > 1 || !!${org>firmRole} }" />
 					<tnt:NavigationListItem text="{i18n>dashboard}" icon="sap-icon://home" key="swiver.dashboard" />
 					<tnt:NavigationListItem text="{i18n>groupSales}" icon="sap-icon://sales-order" selectable="false" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'TAX_ADVISOR' }">
 						<tnt:NavigationListItem text="{i18n>salesInvoices}" key="swiver.sales#SalesInvoices" />

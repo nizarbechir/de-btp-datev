@@ -6,3 +6,4 @@ using from './settings/annotations';
 using from './taxadvisor/annotations';
 using from './support/annotations';
 using from './reports/annotations';
+using from './clients/annotations';

@@ -1,0 +1,174 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.clients",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/clients/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Clients-manage": {
+					"semanticObject": "Clients",
+					"action": "manage",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://customer-briefing",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.f": {},
+				"sap.fe.core": {},
+				"sap.fe.macros": {},
+				"sap.ui.layout": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.clients.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"resources": {
+			"css": []
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "Cockpit",
+					"target": "Cockpit"
+				},
+				{
+					"pattern": "TaxFirms({key}):?query:",
+					"name": "TaxFirmsObjectPage",
+					"target": "TaxFirmsObjectPage"
+				},
+				{
+					"pattern": "TaxFirms({key})/clients({key2}):?query:",
+					"name": "TaxFirmClientsObjectPage",
+					"target": "TaxFirmClientsObjectPage"
+				}
+			],
+			"targets": {
+				"Cockpit": {
+					"type": "Component",
+					"id": "Cockpit",
+					"name": "sap.fe.core.fpm",
+					"options": {
+						"settings": {
+							"viewName": "swiver.clients.ext.Cockpit",
+							"contextPath": "/Clients"
+						}
+					}
+				},
+				"TaxFirmsObjectPage": {
+					"type": "Component",
+					"id": "TaxFirmsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/TaxFirms",
+							"navigation": {
+								"clients": {
+									"detail": {
+										"route": "TaxFirmClientsObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"TaxFirmClientsObjectPage": {
+					"type": "Component",
+					"id": "TaxFirmClientsObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"editableHeaderContent": false,
+							"contextPath": "/TaxFirms/clients"
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

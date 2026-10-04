@@ -7,7 +7,6 @@ using {FinanceService} from './finance-service';
 /**
  * The tax advisor's workspace: everything needed for the bookkeeping of a period, read-only, with
  * what is missing or unclear. Open to tax advisors and to owners and admins.
- * TODO(feature): dedicated Steuerberater client cockpit across organizations
  */
 @readonly
 service TaxAdvisorService @(path: '/odata/v4/tax-advisor') {

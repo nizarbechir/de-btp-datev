@@ -96,6 +96,13 @@
             "applicationType": "URL",
             "url": "/swiver.expensecategories"
         },
+        "Clients-manage": {
+            "title": "Clients",
+            "description": "Client cockpit",
+            "additionalInformation": "SAPUI5.Component=swiver.clients",
+            "applicationType": "URL",
+            "url": "/swiver.clients"
+        },
         "TaxAdvisor-display": {
             "title": "Tax Advisor",
             "description": "Workspace for your Steuerberater",
@@ -314,6 +321,16 @@
                             "isGroupLocked": false,
                             "tiles": [
                                 {
+                                    "id": "clientCockpit",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Clients",
+                                        "info": "Client cockpit and tax firm",
+                                        "icon": "sap-icon://customer-briefing",
+                                        "targetURL": "#Clients-manage"
+                                    }
+                                },
+                                {
                                     "id": "taxAdvisorWorkspace",
                                     "tileType": "sap.ushell.ui.tile.StaticTile",
                                     "properties": {
@@ -376,7 +393,7 @@
         src="https://sapui5.hana.ondemand.com/1.148.4/resources/sap-ui-core.js"
         data-sap-ui-libs="sap.m, sap.ui.core, sap.ushell, sap.fe.templates"
         data-sap-ui-theme="sap_horizon"
-        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.reports": "/swiver.reports/", "swiver.settings": "/swiver.settings/", "swiver.configuration": "/swiver.configuration/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/", "swiver.support": "/swiver.support/"}'
+        data-sap-ui-resourceroots='{"swiver.dashboard": "/swiver.dashboard/", "swiver.sales": "/swiver.sales/", "swiver.purchases": "/swiver.purchases/", "swiver.finance": "/swiver.finance/", "swiver.reports": "/swiver.reports/", "swiver.settings": "/swiver.settings/", "swiver.configuration": "/swiver.configuration/", "swiver.taxadvisor": "/swiver.taxadvisor/", "swiver.clients": "/swiver.clients/", "swiver.customers": "/swiver.customers/", "swiver.products": "/swiver.products/", "swiver.suppliers": "/swiver.suppliers/", "swiver.expensecategories": "/swiver.expensecategories/", "swiver.support": "/swiver.support/"}'
         data-sap-ui-compatVersion="edge"
         data-sap-ui-async="true"
         data-sap-ui-frameOptions="allow"

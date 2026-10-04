@@ -6,5 +6,6 @@ using from './services/organization-service';
 using from './services/tax-advisor-service';
 using from './services/support-service';
 using from './services/reporting-service';
+using from './services/client-service';
 using from './authorization/authorization';
 using from './authorization/read-only';

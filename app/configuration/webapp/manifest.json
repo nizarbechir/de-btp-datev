@@ -31,6 +31,13 @@
 				"settings": {
 					"odataVersion": "4.0"
 				}
+			},
+			"clientService": {
+				"uri": "odata/v4/clients/",
+				"type": "OData",
+				"settings": {
+					"odataVersion": "4.0"
+				}
 			}
 		}
 	},
@@ -64,6 +71,12 @@
 			},
 			"org": {
 				"dataSource": "organizationService",
+				"settings": {
+					"operationMode": "Server"
+				}
+			},
+			"clients": {
+				"dataSource": "clientService",
 				"settings": {
 					"operationMode": "Server"
 				}

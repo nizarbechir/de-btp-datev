@@ -25,7 +25,14 @@ service OrganizationService @(path: '/odata/v4/organization') {
       action switchTo()                                                        returns Organizations;
     };
 
-  entity Memberships       as projection on my.Memberships;
+  entity Memberships       as
+    projection on my.Memberships {
+      *,
+      firm.name as firmName : String(120) @readonly
+    }
+    excluding {
+      firm
+    };
 
   @readonly
   entity Invitations       as projection on my.Invitations excluding {
@@ -56,6 +63,9 @@ service OrganizationService @(path: '/odata/v4/organization') {
 
   type CurrentOrganization {
     organizationID : UUID;
+    // Number of organizations the user belongs to, and their role in a tax firm (ADMIN, STAFF), if any.
+    clients        : Integer;
+    firmRole       : String(10);
     name           : String(120);
     role           : String(10);
     settingsID     : Integer;

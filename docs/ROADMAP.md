@@ -103,7 +103,6 @@ What the repository implements today, what is only partly there, and what is del
 - Multi-workspace switcher to create further organizations (`onboarding.ts`)
 - Granular/custom permissions (`db/organizations.cds`)
 - Dedicated accountant permission profiles (`db/organizations.cds`)
-- Dedicated Steuerberater client cockpit (`organization-context.ts`, `tax-advisor-service.cds`)
 - Comment notifications, mentions, e-mail for unanswered accountant questions (`db/collaboration.cds`)
 - Notification preferences per member (`srv/collaboration/comment-email.ts`)
 

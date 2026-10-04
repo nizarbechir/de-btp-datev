@@ -144,13 +144,7 @@ annotate service.Organizations with @(
     {Value: name},
     {Value: slug},
     {Value: status},
-    {Value: isCurrent},
-    {
-      $Type : 'UI.DataFieldForAction',
-      Action: 'OrganizationService.switchTo',
-      Label : '{i18n>SwitchOrganization}',
-      Inline: true
-    }
+    {Value: isCurrent}
   ],
   UI.Identification     : [{
     $Type : 'UI.DataFieldForAction',
@@ -208,10 +202,6 @@ annotate service.Organizations actions {
       }]
     }
   ));
-  switchTo     @(
-    Core.OperationAvailable: {$edmJson: {$Not: {$Path: 'in/isCurrent'}}},
-    Common.SideEffects     : {TargetProperties: ['in/*']}
-  );
 };
 
 annotate service.Memberships with @(
@@ -223,6 +213,7 @@ annotate service.Memberships with @(
   UI.LineItem  : [
     {Value: userId},
     {Value: role},
+    {Value: firmName},
     {Value: createdAt}
   ]
 );
@@ -267,6 +258,7 @@ annotate service.AuditLogEntries with @(UI.LineItem: [
 ]);
 
 annotate service.Memberships with {
+  firmName @title: '{i18n>TaxFirm}';
   role @(
     Common.ValueListWithFixedValues: true,
     Common.ValueList               : {

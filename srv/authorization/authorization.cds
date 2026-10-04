@@ -5,6 +5,7 @@ using from '../services/organization-service';
 using from '../services/tax-advisor-service';
 using from '../services/support-service';
 using from '../services/reporting-service';
+using from '../services/client-service';
 
 // Any signed-in user may use Swiver; what they see is decided by their organization membership.
 // Every record is restricted to the organization of the signed-in user ($user.organization),
@@ -663,3 +664,80 @@ annotate SupportService.SupportAttachments with @(restrict: [
     to   : 'SupportAgent'
   }
 ]);
+
+// Client cockpit: across organizations, but only those the user is a member of. The open items are
+// read-only and only for members and tax advisors of the record's organization.
+
+annotate ClientService with @(requires: 'authenticated-user');
+
+annotate ClientService.Clients with @(restrict: [{
+  grant: [
+    'READ',
+    'open'
+  ],
+  to   : 'authenticated-user',
+  where: 'exists members[userId = $user]'
+}]);
+
+annotate ClientService.Memberships with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'userId = $user'
+}]);
+
+annotate ClientService.OpenQuestions with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists organization.members[userId = $user]'
+}]);
+
+annotate ClientService.SupplierInvoicesToReview with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists organization.members[userId = $user]'
+}]);
+
+annotate ClientService.NewReceipts with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists organization.members[userId = $user]'
+}]);
+
+annotate ClientService.UnmatchedTransactions with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists organization.members[userId = $user]'
+}]);
+
+// Tax firm: its staff read it, its admins maintain staff and assignments.
+
+annotate ClientService.TaxFirms with @(restrict: [
+  {
+    grant: 'READ',
+    to   : 'authenticated-user',
+    where: 'exists staff[userId = $user]'
+  },
+  {
+    grant: '*',
+    to   : 'authenticated-user',
+    where: 'exists staff[userId = $user and role = ''ADMIN'']'
+  }
+]);
+
+annotate ClientService.TaxFirmStaff with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists firm.staff[userId = $user]'
+}]);
+
+annotate ClientService.TaxFirmClients with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists firm.staff[userId = $user]'
+}]);
+
+annotate ClientService.TaxFirmAssignments with @(restrict: [{
+  grant: 'READ',
+  to   : 'authenticated-user',
+  where: 'exists client.firm.staff[userId = $user]'
+}]);
