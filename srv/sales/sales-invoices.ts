@@ -72,6 +72,14 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 	srv.before("NEW", invoiceDocument.itemDrafts, async (req) => {
 		req.data.taxRate ??= (await getCompanySettings()).defaultTaxRate;
 	});
+	// Links and other backend fields are never taken from the client, also not while editing a draft.
+	srv.before(["NEW", "UPDATE"], InvoiceDrafts, (req) => {
+		for (const field of backendFields) {
+			if (field !== "status_code" || req.event === "UPDATE") {
+				Reflect.deleteProperty(req.data as Data, field);
+			}
+		}
+	});
 	srv.before("UPDATE", InvoiceDrafts, (req) => keepPaymentTerm(req));
 	registerItemCalculation(srv, invoiceDocument.itemDrafts, invoiceDocument);
 
@@ -80,6 +88,15 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 		const data = req.data as Data;
 		for (const field of backendFields) {
 			Reflect.deleteProperty(data, field);
+		}
+		// Saving a draft keeps the links the backend set on it (correction of an invoice, quote it came from).
+		const draft = await SELECT.one
+			.from(InvoiceDrafts)
+			.columns("replacesInvoice_ID", "quote_ID")
+			.where({ ID: data.ID ?? key(req).ID });
+		if (draft) {
+			data.replacesInvoice_ID = draft.replacesInvoice_ID;
+			data.quote_ID = draft.quote_ID;
 		}
 		if (req.event === "CREATE") {
 			data.status_code = "DRAFT";

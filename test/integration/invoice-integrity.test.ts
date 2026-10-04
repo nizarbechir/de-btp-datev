@@ -246,3 +246,44 @@ describe("Invoice items", () => {
 		expect(picked.data).toMatchObject({ description: "SAP BTP Consulting", unitPrice: "1000.00" });
 	});
 });
+
+describe("Links kept on saving", () => {
+	it("keeps the correction link after the correction is saved, so the original is corrected only once", async () => {
+		const original = await createFinalized();
+		const correction = await POST(action(original.ID, "correct"), {});
+		const draft = `${SALES}/SalesInvoices(ID=${correction.data.ID},IsActiveEntity=false)`;
+		await PATCH(draft, { replacesInvoice_ID: null });
+		const saved = await POST(`${draft}/SalesService.draftActivate`, {});
+
+		expect(saved.data.replacesInvoice_ID).toBe(original.ID);
+		expect((await POST(action(saved.data.ID, "finalize"), {})).status).toBe(200);
+		expect((await POST(action(original.ID, "correct"), {})).status).toBe(409);
+
+		const xml = await GET(`${active(saved.data.ID)}/SalesService.zugferd(download=true)`, {
+			responseType: "arraybuffer",
+		});
+		expect(xml.status).toBe(200);
+	});
+
+	it("keeps the quote link on the saved invoice and frees the quote when the draft is discarded", async () => {
+		const quote = await POST(`${SALES}/Quotes`, { customer_ID: customerID });
+		const quoteDraft = `${SALES}/Quotes(ID=${quote.data.ID},IsActiveEntity=false)`;
+		await POST(`${quoteDraft}/items`, { description: "Workshop", quantity: 1, taxRate: 19, unitPrice: 500 });
+		await POST(`${quoteDraft}/SalesService.draftActivate`, {});
+		const convert = `${SALES}/Quotes(ID=${quote.data.ID},IsActiveEntity=true)/SalesService.convertToInvoice`;
+
+		const first = await POST(convert, {});
+		expect(first.status).toBe(200);
+		await DELETE(`${SALES}/SalesInvoices(ID=${first.data.ID},IsActiveEntity=false)`);
+
+		const second = await POST(convert, {});
+		expect(second.status).toBe(200);
+		const saved = await POST(
+			`${SALES}/SalesInvoices(ID=${second.data.ID},IsActiveEntity=false)/SalesService.draftActivate`,
+			{},
+		);
+		expect(saved.data.quote_ID).toBe(quote.data.ID);
+
+		expect((await POST(convert, {})).status).toBe(409);
+	});
+});

@@ -100,7 +100,7 @@ async function changeStatus(req: Request, action: string) {
  */
 async function convertToInvoice(srv: cds.ApplicationService, req: Request) {
 	const quote = await requireQuote(key(req));
-	if (quote.convertedInvoice_ID && !req.data.force) {
+	if (quote.convertedInvoice_ID && !req.data.force && (await invoiceExists(quote.convertedInvoice_ID as string))) {
 		throw new DomainError("QUOTE_ALREADY_CONVERTED");
 	}
 	if (quote.status_code === "REJECTED") {
@@ -135,6 +135,12 @@ async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T>
 		}
 		return rejectDomainError(req, error);
 	}
+}
+
+/** The converted invoice still exists, saved or as draft; a discarded draft frees the quote again. */
+async function invoiceExists(id: string): Promise<boolean> {
+	const saved = await SELECT.one.from("swiver.SalesInvoices").columns("ID").where({ ID: id });
+	return Boolean(saved ?? (await SELECT.one.from(invoiceDocument.documentDrafts).columns("ID").where({ ID: id })));
 }
 
 function key(req: Request): { ID: string; IsActiveEntity?: boolean | string } {
