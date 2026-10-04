@@ -510,6 +510,18 @@ annotate service.IncomingDocuments with @(
       Value         : processingStatus_code,
       Criticality   : statusCriticality,
       @UI.Importance: #High
+    },
+    // Book straight from the list: select a document, check the proposed data, done
+    {
+      $Type      : 'UI.DataFieldForAction',
+      Action     : 'PurchasingService.createSupplierInvoice',
+      Label      : '{i18n>CreateSupplierInvoice}',
+      Criticality: #Positive
+    },
+    {
+      $Type : 'UI.DataFieldForAction',
+      Action: 'PurchasingService.ignore',
+      Label : '{i18n>Ignore}'
     }
   ],
   UI.PresentationVariant       : {
@@ -773,7 +785,8 @@ annotate service.SupplierInvoices with @(
 );
 
 annotate service.IncomingDocuments with @(
-  UI.CreateHidden: {$edmJson: {$Path: '/ReadOnlyUser/readOnly'}},
+  // Files are added with the Upload button of the list (several at once, no draft)
+  UI.CreateHidden: true,
   UI.UpdateHidden: readOnly,
   UI.DeleteHidden: readOnly
 );

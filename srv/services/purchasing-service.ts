@@ -5,6 +5,7 @@ import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
 import { invoiceDocumentTypes, validateUpload } from "../core/document-upload";
+import { requireOrganization } from "../organizations/organization-context";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 import { recordPayment, refreshInvoicePayments, rejectDomainError, removeManualPayments } from "../payments/payments";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
@@ -107,6 +108,33 @@ export default class PurchasingService extends cds.ApplicationService {
 			} catch (error) {
 				return rejectDomainError(req, error);
 			}
+		});
+		this.before("uploadDocument", (req) =>
+			validateUpload(req, {
+				allowed: invoiceDocumentTypes,
+				content: "content",
+				fileName: "fileName",
+				mediaType: "mediaType",
+			}),
+		);
+		this.on("uploadDocument", async (req) => {
+			const { content, fileName, mediaType } = req.data as Record<string, unknown>;
+			if (!content) {
+				return req.reject(400, "DOCUMENT_MISSING");
+			}
+			const ID = cds.utils.uuid();
+			await INSERT.into("swiver.IncomingDocuments").entries({
+				content,
+				ID,
+				mediaType,
+				organization_ID: requireOrganization(req),
+				originalFileName: fileName,
+			});
+			await processDocument(ID);
+			return SELECT.one
+				.from(IncomingDocuments)
+				.columns("ID", "originalFileName", "processingStatus_code")
+				.where({ ID });
 		});
 		this.on("ignore", IncomingDocuments, async (req) => {
 			await UPDATE("swiver.IncomingDocuments", key(req)).with({ processingStatus_code: "IGNORED" });

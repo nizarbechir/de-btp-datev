@@ -212,7 +212,16 @@
 							"controlConfiguration": {
 								"@com.sap.vocabularies.UI.v1.LineItem": {
 									"tableSettings": {
-										"type": "ResponsiveTable"
+										"type": "ResponsiveTable",
+										"selectionMode": "Single"
+									},
+									"actions": {
+										"upload": {
+											"press": "swiver.purchases.ext.inbox.InboxActions.upload",
+											"text": "{i18n>uploadDocuments}",
+											"requiresSelection": false,
+											"visible": "{= ${/ReadOnlyUser/readOnly} !== true }"
+										}
 									}
 								}
 							},

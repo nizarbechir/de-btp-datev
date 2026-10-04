@@ -75,6 +75,10 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
 
   @readonly
   entity IncomingDocumentStatuses as projection on my.IncomingDocumentStatuses;
+
+  /** Adds one file to the inbox in a single step (no draft) and reads its invoice data. */
+  @requires: 'OrganizationMember'
+  action uploadDocument(fileName : String(255), mediaType : String(100), content : LargeBinary) returns IncomingDocuments;
 }
 
 annotate PurchasingService.Suppliers with @odata.draft.enabled;
