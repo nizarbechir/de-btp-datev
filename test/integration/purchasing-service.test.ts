@@ -179,7 +179,7 @@ describe("PurchasingService", () => {
 		const url = `${SERVICE}/SupplierInvoices(ID=${invoices.value[0].ID},IsActiveEntity=true)/documentContent`;
 
 		const rejected = await axios.put(url, "text", { headers: { "Content-Type": "text/plain" } });
-		const accepted = await axios.put(url, Buffer.from("%PDF-1.4"), { headers: { "Content-Type": "application/pdf" } });
+		const accepted = await axios.put(url, "%PDF-1.4", { headers: { "Content-Type": "application/pdf" } });
 
 		expect(rejected.status).toBe(415);
 		expect(accepted.status).toBe(204);

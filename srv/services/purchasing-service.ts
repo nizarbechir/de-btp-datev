@@ -3,6 +3,7 @@ import cds, { Request } from "@sap/cds";
 import { registerReadOnlyFlag } from "../authorization/read-only-flag";
 import { auditActions } from "../collaboration/audit";
 import { registerComments } from "../collaboration/comments";
+import { invoiceDocumentTypes, validateUpload } from "../core/document-upload";
 import { registerTenantGuard } from "../organizations/tenant-guard";
 import { recordPayment, rejectDomainError, removeManualPayments } from "../payments/payments";
 import { createSupplierInvoice, processDocument } from "../purchases/inbox";
@@ -11,7 +12,6 @@ import { prefillInvoiceDraft } from "../purchases/supplier-invoice-prefill";
 /**
  * Money out: suppliers, supplier invoices with their payments, the document inbox and expense categories.
  */
-const documentMediaTypes = ["application/pdf", "image/png", "image/jpeg"];
 
 export default class PurchasingService extends cds.ApplicationService {
 	async init() {
@@ -24,11 +24,21 @@ export default class PurchasingService extends cds.ApplicationService {
 		registerComments(this, { IncomingDocuments: "incomingDocument", SupplierInvoices: "supplierInvoice" });
 		auditActions(this, { SupplierInvoices: ["markInvoicePaid", "markInvoiceOpen", "recordPayment"] });
 
-		this.before("UPDATE", [SupplierInvoices, SupplierInvoices.drafts], (req) =>
-			checkMediaType(req, "documentMediaType", "documentContent"),
+		this.before(["CREATE", "UPDATE"], [SupplierInvoices, SupplierInvoices.drafts], (req) =>
+			validateUpload(req, {
+				allowed: invoiceDocumentTypes,
+				content: "documentContent",
+				fileName: "documentFileName",
+				mediaType: "documentMediaType",
+			}),
 		);
-		this.before("UPDATE", [IncomingDocuments, IncomingDocuments.drafts], (req) =>
-			checkMediaType(req, "mediaType", "content"),
+		this.before(["CREATE", "UPDATE"], [IncomingDocuments, IncomingDocuments.drafts], (req) =>
+			validateUpload(req, {
+				allowed: invoiceDocumentTypes,
+				content: "content",
+				fileName: "originalFileName",
+				mediaType: "mediaType",
+			}),
 		);
 		this.before(["CREATE", "UPDATE"], SupplierInvoices, (req) => {
 			// Payment fields follow from the payments
@@ -93,13 +103,6 @@ export default class PurchasingService extends cds.ApplicationService {
 			return SELECT.one.from(req.subject);
 		});
 		return super.init();
-	}
-}
-
-function checkMediaType(req: Request, mediaTypeField: string, contentField: string) {
-	const mediaType = req.data[mediaTypeField];
-	if (mediaType && !documentMediaTypes.includes(mediaType)) {
-		req.reject(415, "UNSUPPORTED_DOCUMENT_TYPE", contentField, [mediaType]);
 	}
 }
 

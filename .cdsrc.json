@@ -71,5 +71,10 @@
 	},
 	"i18n": {
 		"folders": ["i18n"]
+	},
+	"swiver": {
+		"documents": {
+			"maxSizeMB": 10
+		}
 	}
 }
