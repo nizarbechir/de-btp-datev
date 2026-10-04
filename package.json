@@ -75,7 +75,7 @@
 		"@sap/eslint-plugin-cds": "^4",
 		"@sapui5/types": "^1.150.0",
 		"@semantic-release/exec": "^7.1.0",
-		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/git": "^11.0.1",
 		"@semantic-release/github": "^12.0.9",
 		"@types/eslint-plugin-markdown": "^2.0.2",
 		"@types/node": "^26.1.1",
