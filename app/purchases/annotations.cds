@@ -379,6 +379,7 @@ annotate service.SupplierInvoiceItems with @(
     {
       $Type : 'UI.DataFieldForAction',
       Action: 'PurchasingService.receiveGoods',
+      Inline: true,
       Label : '{i18n>BookGoodsReceipt}'
     },
     {
