@@ -1455,7 +1455,6 @@ annotate service.DeliveryNoteItems with @(
     {
       $Type : 'UI.DataFieldForAction',
       Action: 'SalesService.returnGoods',
-      Inline: true,
       Label : '{i18n>CustomerReturn}'
     },
     {
