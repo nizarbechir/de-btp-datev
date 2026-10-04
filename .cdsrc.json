@@ -55,6 +55,10 @@
 					"alice": {
 						"password": "alice",
 						"roles": ["InvoiceManager"]
+					},
+					"tester": {
+						"password": "tester",
+						"roles": ["InvoiceManager"]
 					}
 				}
 			}
