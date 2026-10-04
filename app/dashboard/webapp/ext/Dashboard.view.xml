@@ -50,8 +50,11 @@
 
 				<!-- One grid: every widget sits in a card that fills its cell, so rows always line up -->
 				<VBox id="dashboardContent" class="sapUiContentPadding" visible="{view>/hasOrganization}">
-					<!-- Key figures: as many equal columns as fit, at least 14rem each -->
-					<grid:CSSGrid id="kpiGrid" gridTemplateColumns="repeat(auto-fit, minmax(14rem, 1fr))" gridGap="1rem">
+					<!-- Key figures: 4 per row on large screens, 2 on medium, 1 on phones, never 3 + 1 -->
+					<grid:CSSGrid id="kpiGrid" gridGap="1rem">
+						<grid:customLayout>
+							<grid:GridBoxLayout id="kpiLayout" boxesPerRowConfig="XL4 L4 M2 S1" />
+						</grid:customLayout>
 						<GenericTile id="kpiToCollect" width="100%" header="{i18n>kpiToCollect}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
 							<TileContent id="kpiToCollectContent" footer="{parts: [{path: 'kpi>/receivables/overdue/amount'}, 'kpi>/currency'], formatter: '.formatOverdue'}" footerColor="Critical">
 								<ObjectNumber id="kpiToCollectValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/receivables/outstanding/amount', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
