@@ -37,7 +37,9 @@
 				</tnt:NavigationList>
 				<tnt:fixedItem>
 					<tnt:NavigationList>
-						<tnt:NavigationListItem text="{i18n>support}" icon="sap-icon://headset" key="swiver.support" />
+						<tnt:NavigationListItem text="{i18n>groupHelp}" icon="sap-icon://sys-help" selectable="false">
+							<tnt:NavigationListItem text="{i18n>support}" key="swiver.support" />
+						</tnt:NavigationListItem>
 					</tnt:NavigationList>
 				</tnt:fixedItem>
 			</tnt:SideNavigation>
