@@ -14,10 +14,10 @@
 		"deploy-config": "npx -p @sap/ux-ui5-tooling fiori add deploy-config cf"
 	},
 	"devDependencies": {
-		"@sap/ux-ui5-tooling": "^1.28.0",
-		"@sapui5/types": "^1.150.0",
-		"@ui5/cli": "^4.0.57",
-		"ui5-task-zipper": "^3.6.1",
-		"ui5-tooling-transpile": "^3.11.3"
+		"@sap/ux-ui5-tooling": "^1.32.0",
+		"@sapui5/types": "^1.152.0",
+		"@ui5/cli": "^4.0.70",
+		"ui5-task-zipper": "^3.7.0",
+		"ui5-tooling-transpile": "^3.13.1"
 	}
 }
