@@ -184,14 +184,14 @@ Conventions:
 
 ## Deployment
 
-SAP BTP Cloud Foundry via MTA (`mta.yaml`, one `*.mtaext` per landscape) and the GitHub Actions workflows in `.github/workflows`.
+SAP BTP Cloud Foundry via MTA (`mta.yaml` is the single source of truth) and the GitHub Actions workflows in `.github/workflows`.
 
 ```bash
-npm run build:dev # or build:qas / build:rse / build:prd
+npm run build
 npm run deploy
 ```
 
-Production uses XSUAA and SAP HANA Cloud. The UI apps are published to the HTML5 application repository; SAP Build Work Zone content is in `app/workzone/cdm.json`.
+Production uses XSUAA and SAP HANA Cloud. The UI apps are published to the HTML5 application repository.
 
 ## Documentation
 

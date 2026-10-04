@@ -1,4 +1,4 @@
-# Dev-only: cf push from this folder after deploying the MTA with free.mtaext.
+# Dev-only: cf push from this folder after deploying the MTA from mta.yaml.
 applications:
   - name: swiver-approuter
     memory: 256M

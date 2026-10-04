@@ -1,5 +1,5 @@
 {
-	"welcomeFile": "/swiverservice.swiverdashboard/index.html",
+	"welcomeFile": "/swiverconfiguration-0.0.1/index.html",
 	"authenticationMethod": "route",
 	"routes": [
 		{

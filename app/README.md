@@ -24,7 +24,7 @@ Every new app is also added to the Swiver Hub (`configuration/webapp/view/App.vi
 
 ## Navigation
 
-Apps link to each other by intent plus inner route, e.g. `#Sales-manage&/Quotes`. Locally `launchpad.html` (FLP sandbox) provides the tiles; in production SAP Build Work Zone does (`workzone/cdm.json`).
+Apps link to each other by intent plus inner route, e.g. `#Sales-manage&/Quotes`. Locally `launchpad.html` (FLP sandbox) provides the tiles.
 
 ## Custom code
 

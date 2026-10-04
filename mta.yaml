@@ -12,7 +12,6 @@ build-parameters:
         - npx cds build --production
         - npx @cap-js/cds-typer "*" --outputDirectory gen/srv/@cds-models
         - mkdir -p resources
-        - cp app/workzone/cdm.json resources/cdm.json
 
 modules:
   - name: swiver-srv
@@ -22,74 +21,6 @@ modules:
       - name: swiver-auth
       - name: swiver-db
       - name: swiver-destination
-      - name: swiver-connectivity
-      - name: swiver-cls
-      - name: swiver-autoscaler
-        parameters:
-          config:
-            instance_min_count: 1
-            instance_max_count: 5
-            scaling_rules:
-              - metric_type: memoryutil
-                threshold: 80
-                operator: ">"
-                breach_duration_secs: 180
-                cool_down_secs: 600
-                adjustment: "+1"
-              - metric_type: memoryutil
-                threshold: 50
-                operator: "<"
-                breach_duration_secs: 600
-                cool_down_secs: 600
-                adjustment: "-1"
-              - metric_type: cpuutil
-                threshold: 75
-                operator: ">"
-                breach_duration_secs: 180
-                cool_down_secs: 600
-                adjustment: "+1"
-              - metric_type: cpuutil
-                threshold: 45
-                operator: "<"
-                breach_duration_secs: 600
-                cool_down_secs: 600
-                adjustment: "-1"
-              - metric_type: diskutil
-                threshold: 80
-                operator: ">"
-                breach_duration_secs: 300
-                cool_down_secs: 600
-                adjustment: "+1"
-              - metric_type: diskutil
-                threshold: 55
-                operator: "<"
-                breach_duration_secs: 600
-                cool_down_secs: 600
-                adjustment: "-1"
-              - metric_type: responsetime
-                threshold: 1200
-                operator: ">"
-                breach_duration_secs: 300
-                cool_down_secs: 600
-                adjustment: "+1"
-              - metric_type: responsetime
-                threshold: 700
-                operator: "<"
-                breach_duration_secs: 600
-                cool_down_secs: 600
-                adjustment: "-1"
-              - metric_type: throughput
-                threshold: 90
-                operator: ">"
-                breach_duration_secs: 300
-                cool_down_secs: 600
-                adjustment: "+1"
-              - metric_type: throughput
-                threshold: 40
-                operator: "<"
-                breach_duration_secs: 600
-                cool_down_secs: 600
-                adjustment: "-1"
     provides:
       - name: srv-api
         properties:
@@ -98,6 +29,12 @@ modules:
       buildpack: nodejs_buildpack
       health-check-type: http
       health-check-http-endpoint: /health
+      memory: 512M
+      disk-quota: 512M
+      instances: 1
+    properties:
+      # Support tickets notify this address (srv/support/notifications.ts)
+      SUPPORT_EMAIL: info@beytp.com
     build-parameters:
       builder: npm
   - name: swiver-db-deployer
@@ -107,6 +44,8 @@ modules:
       - name: swiver-db
     parameters:
       buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 512M
   - name: swiver-app-content
     type: com.sap.application.content
     path: .
@@ -179,36 +118,6 @@ modules:
           artifacts:
             - swiversupport.zip
           target-path: resources/
-  - name: swiver-destination-content
-    type: com.sap.application.content
-    requires:
-      - name: srv-api
-      - name: swiver-destination
-        parameters:
-          content-target: true
-      - name: swiver-repo-host
-        parameters:
-          service-key:
-            name: swiver-repo-host-key
-      - name: swiver-auth
-        parameters:
-          service-key:
-            name: swiver-auth-key
-      - name: swiver-html5-rt
-        parameters:
-          service-key:
-            name: swiver-html5-rt-key
-    parameters:
-      content:
-        subaccount:
-          destinations:
-            - Name: wz-swiver-cdm-dt # this name should follow wz-<app-name>-cdm-dt pattern
-              ServiceInstanceName: swiver-html5-rt
-              ServiceKeyName: swiver-html5-rt-key
-              URL: https://html5-apps-repo-rt.cfapps.eu10.hana.ondemand.com/applications/cdm/swiverservice
-          existing_destinations_policy: update
-    build-parameters:
-      no-source: true
   - name: swiverdashboard
     type: html5
     path: app/dashboard
@@ -364,6 +273,9 @@ resources:
     type: org.cloudfoundry.managed-service
     parameters:
       config:
+        oauth2-configuration:
+          redirect-uris:
+            - https://*.cfapps.eu22.hana.ondemand.com/login/callback
         tenant-mode: dedicated
         xsappname: swiver-${org}-${space}
       path: ./xs-security.json
@@ -405,21 +317,3 @@ resources:
       service-plan: lite
     requires:
       - name: srv-api
-  - name: swiver-connectivity
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: connectivity
-      service-plan: lite
-  - name: swiver-cls
-    type: org.cloudfoundry.existing-service
-    optional: true
-  - name: swiver-autoscaler
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: autoscaler
-      service-plan: standard
-  - name: swiver-html5-rt
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-runtime

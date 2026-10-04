@@ -97,11 +97,11 @@ export default class App extends Controller {
 		return ((await (binding?.getBoundContext() as Context | null)?.requestObject()) ?? {}) as CurrentOrganization;
 	}
 
-	/** Locally CAP serves an app at /swiver.x/, the BTP approuter at /swiverservice.swiverx/. */
+	/** Locally CAP serves an app at /swiver.x/, the approuter at /swiverx-<version>/ (the version of this app). */
 	private static url(key: string): string {
 		const [id, route = ""] = key.split("#");
-		const deployed = window.location.pathname.startsWith("/swiverservice.");
-		const app = deployed ? `/swiverservice.${id.replace(/\./g, "")}` : `/${id}`;
+		const version = /^\/swiverconfiguration-(\d+\.\d+\.\d+)\//.exec(window.location.pathname)?.[1];
+		const app = version ? `/${id.replace(/\./g, "")}-${version}` : `/${id}`;
 		return `${app}/index.html${route && "#" + route}`;
 	}
 }
