@@ -185,7 +185,8 @@ describe("PurchasingService", () => {
 		expect(accepted.status).toBe(204);
 	});
 
-	it("keeps the data of other organizations invisible", async () => {
+	// Full cross-organization coverage: tenant-isolation.test.ts
+	it("refuses users without an organization", async () => {
 		const asBob = { auth: { password: "bob", username: "bob" } };
 		const { data: invoices } = await GET(`${SERVICE}/SupplierInvoices?$top=1`);
 		const own = await GET(`${SERVICE}/SupplierInvoices?$count=true&$top=0`, asBob);
@@ -194,7 +195,7 @@ describe("PurchasingService", () => {
 			asBob,
 		);
 
-		expect(own.data["@odata.count"]).toBe(0);
+		expect(own.status).toBe(403);
 		expect([403, 404]).toContain(foreign.status);
 	});
 });
