@@ -38,7 +38,11 @@
 					},
 					"steuerberater@example.de": {
 						"password": "steuerberater",
-						"roles": ["InvoiceManager"]
+						"roles": []
+					},
+					"carol": {
+						"password": "carol",
+						"roles": []
 					}
 				}
 			}
