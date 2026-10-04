@@ -4,7 +4,8 @@ Swiver covers the daily finance work of a small company:
 
 - **Money in:** customer → quote → invoice → ZUGFeRD → e-mail → payment → bank match → reminder
 - **Money out:** supplier document → inbox → supplier invoice → expense category → payment → bank match
-- **Overview:** dashboard, estimated VAT, export for the tax adviser
+- **Goods:** goods receipt → stock → delivery note → customer return
+- **Overview:** dashboard, reports, estimated VAT, export for the tax adviser
 
 Every record belongs to one organization; users only ever see their own organization's data.
 
@@ -134,6 +135,31 @@ The tax advisor sees the same reports for the organization they advise.
 ```bash
 curl -u alice:alice "localhost:4004/odata/v4/reporting/SalesReport?\$apply=groupby((customerName),aggregate(netAmount))"
 ```
+
+## Goods, stock and delivery notes
+
+Products of type _Goods_ can track stock. Stock only changes through bookings in an append-only ledger and never becomes negative: goods receipt on a supplier invoice (in), confirming a delivery note (out), customer returns on a delivery note (in), and in the Inventory app stock adjustments (the first one is the opening balance) and returns to the supplier. Each booking is listed in the product's movement history. An invoice PDF with goods prints the delivery date (_Lieferdatum_).
+
+Test:
+
+1. Products & Services → **Create** a product of type _Goods_ with _Track stock_ and a reorder level.
+2. Purchases → Supplier Invoices: add the product as an item, **Save**, then **Book Goods Receipt**. The Inventory app shows the received quantity.
+3. Sales → Quotes: a quote with the product → **Create Delivery Note** → **Save** → **Confirm Delivery**. Stock goes down and the note is locked.
+4. On the delivery note select the item → **Customer Return**; in Inventory use **Adjust Stock** (reason required) or **Return to Supplier**.
+
+## Support tickets
+
+Owners, admins and members open tickets in the Support app with category, priority, description and attachments, and reply to the support team. Support agents (BTP role collection `Swiver_SupportAgent`) see the tickets of all organizations, reply and change the status (New → In Progress → Waiting for Customer / Resolved → Closed). Both sides are notified by e-mail; the support mailbox is `SUPPORT_EMAIL`.
+
+Test: as `alice`, Support → **Create** a ticket. Sign in as `support` / `support`, open the ticket, **Reply** and **Change Status**.
+
+## Swiver Hub
+
+The Hub (`app/configuration`) is the entry point with role-based navigation to every app; a tax advisor only sees the groups they may use. Users with several organizations switch client in the header.
+
+## Data export and offboarding
+
+Owners and admins export all data of their organization as a ZIP (`OrganizationService.exportOrganizationData`). Deleting an organization at offboarding is an operator script (`scripts/delete-organization.ts`), see [data-retention-privacy.md](data-retention-privacy.md).
 
 ## Dashboard
 

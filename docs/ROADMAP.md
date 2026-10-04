@@ -4,59 +4,15 @@ What the repository implements today, what is only partly there, and what is del
 
 ## Implemented
 
-### Sales
-
-- **Customers**: maintain customers with customer number, contact, tax and bank data; invoice and open-amount balances.
-- **Products / Services**: catalogue used on invoice and quote items.
-- **Quotes**: draft, send, accept, reject, convert to invoice, PDF, send by e-mail.
-- **Sales invoices**: draft, finalize with number range, mark as sent, send by e-mail, cancel, correct (replacement invoice), reopen, duplicate, create customer from the invoice, record payments.
-- **Invoice PDF**: generated invoice and quote PDFs with company logo and legal details.
-- **ZUGFeRD**: PDF/A-3 with embedded EN 16931 CII XML for finalized invoices, with a built-in check of the required fields.
-- **Payment reminders**: send a reminder e-mail for an overdue invoice; reminders are recorded.
-
-### Purchases
-
-- **Suppliers**: maintain and deactivate suppliers; invoice count and open amount per supplier.
-- **Supplier invoices**: create, edit, attach the original document (PDF, PNG, JPEG), derived status (open, partially paid, paid, overdue).
-- **Incoming documents (inbox)**: upload, process, create a supplier invoice from a document, ignore.
-- **Automatic extraction**: invoice data read from embedded ZUGFeRD XML and from PDF text, proposed in the draft; supplier matching.
-- **Expense categories**: per organization, with a default list created on onboarding.
-
-### Finance
-
-- **Payments / partial payments**: payments per invoice; payment status and open amount derived from them; mark as paid / open.
-- **Bank transactions / matching**: CSV statement import (generic adapter, duplicate detection), match suggestions, confirm, manual match, unmatch, ignore.
-- **VAT overview**: estimated VAT of a period from sales and supplier invoices (an estimate, not a tax return).
-- **Accountant export**: ZIP of a period with invoices, documents and CSV lists.
-- **Dashboard**: receivables, payables, due soon, paid this month, estimated VAT, "Needs Attention" (including missing documents, uncategorized supplier invoices, open comments), onboarding for new users.
-- **Tax Advisor workspace** (separate tile, read-only `TaxAdvisorService`): VAT and export of a period, attention counters, and filterable lists of questions, supplier invoices, sales invoices, receipts, bank transactions and payments.
-
-### SaaS / Collaboration
-
-- **Organizations**: onboarding creates the organization, the owner membership, company settings and default expense categories; single-company data is migrated to organization #1 on start.
-- **Memberships / invitations**: roles OWNER, ADMIN, MEMBER, TAX_ADVISOR; invitations by e-mail with hashed, expiring, single-use tokens; resend, revoke; acceptance checks the signed-in e-mail; at least one owner is kept.
-- **Tax advisor role**: read access to financial data, document downloads, accountant export, VAT overview and comments; no changes.
-- **Switching organizations**: users with several memberships switch in Settings; the choice is remembered per membership.
-- **Comments / questions**: on sales invoices, supplier invoices, incoming documents and bank transactions; add and resolve; owners and admins are e-mailed when the tax advisor asks a question.
-- **Audit trail**: invitations, member removal and role changes, invoice finalize/cancel, payments, bank matches, accountant export, comments; shown in Settings → Activity Log.
-- **Settings**: company data, legal and bank details, invoice defaults and number prefixes, logo, members and invitations.
-- **Authentication / authorization**: mocked users locally, XSUAA in production; membership roles mapped to CAP roles and enforced with `@restrict` / `@requires`.
-- **Tenant / organization isolation**: every query restricted to the user's organization; new records get the user's organization; cross-organization references are rejected.
-
-### Integrations
-
-- **Microsoft Graph e-mail**: invoices, quotes, reminders, invitations and tax advisor questions sent through the `EmailProvider` abstraction; missing configuration gives a clear message.
+See the feature overview in the [README](../README.md#features) and the test instructions in [FEATURES.md](FEATURES.md).
 
 ## Partially Implemented
 
-- **Change history (`@cap-js/change-tracking`)**
-  - Already exists: plugin dependency and `change-tracking` configuration in `.cdsrc.json`.
-  - Missing: no entity is annotated with `@changelog`, so no change history is recorded or shown.
 - **Organization status**
   - Already exists: `Organizations.status` with ACTIVE / SUSPENDED.
   - Missing: SUSPENDED is not evaluated anywhere.
 - **Several own organizations per user**
-  - Already exists: joining further organizations by invitation and switching between them.
+  - Already exists: joining further organizations by invitation and switching between them in the Swiver Hub.
   - Missing: creating a second organization is rejected (`ORGANIZATION_EXISTS`, `srv/organizations/onboarding.ts`).
 - **Organization selection by header**
   - Already exists: the backend honours the `x-organization-id` header.
@@ -110,6 +66,15 @@ What the repository implements today, what is only partly there, and what is del
 
 - Secure organization-specific e-mail credentials (`srv/integrations/email/email-provider.ts`)
 - Additional e-mail providers (`email-provider.ts`)
+
+## Open Operations
+
+- **Backup and restore (#16)**: the logical backup was verified on HANA and restored into SQLite; one restore into HANA (`docs/backup-restore.md`, steps 2–3) still has to be run by a person. The HANA free tier has no reliable platform backups.
+- **Legal documents (#22)**: DPA, privacy policy and subprocessor list are a baseline only and need a legal review before external customers are onboarded.
+- **Free HANA instance**: stops automatically and must be restarted.
+- **SAP Build Work Zone**: not live yet; the UI runs through the app router with direct app URLs.
+- **Load test on HANA**: concurrency safety relies on row locks and unique constraints, tested on SQLite only.
+- **Logical backup tooling**: once production uses HANA Cloud managed backups, remove `scripts/backup.ts`, `scripts/restore.ts`, `npm run backup`, `docs/backup-restore.md` and the `swiver-db-restore` test container, and close #16.
 
 ## Other Existing TODO / FIXME
 
