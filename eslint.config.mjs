@@ -45,6 +45,7 @@ export default defineConfig(
 		...jestPlugin.configs["flat/recommended"],
 		rules: {
 			...jestPlugin.configs["flat/recommended"].rules,
+			"jest/expect-expect": ["warn", { assertFunctionNames: ["expect", "expect*"] }],
 		},
 	},
 

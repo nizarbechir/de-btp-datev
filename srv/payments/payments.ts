@@ -68,6 +68,8 @@ export async function loadInvoice(kind: InvoiceKind, invoiceID: string) {
 
 /** Records a payment and updates the invoice. Defaults: the full open amount, dated today. */
 export async function recordPayment(input: PaymentInput): Promise<string> {
+	// Lock the invoice until the transaction ends: parallel payments wait and then see the new open amount.
+	await SELECT.one.from(config[input.kind].entity).columns("ID").where({ ID: input.invoiceID }).forUpdate();
 	const invoice = await loadInvoice(input.kind, input.invoiceID);
 	if (input.kind === "sales" && !["FINALIZED", "SENT"].includes(invoice.status_code ?? "")) {
 		throw new DomainError("PAYMENT_INVOICE_NOT_ISSUED");

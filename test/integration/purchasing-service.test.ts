@@ -179,13 +179,14 @@ describe("PurchasingService", () => {
 		const url = `${SERVICE}/SupplierInvoices(ID=${invoices.value[0].ID},IsActiveEntity=true)/documentContent`;
 
 		const rejected = await axios.put(url, "text", { headers: { "Content-Type": "text/plain" } });
-		const accepted = await axios.put(url, Buffer.from("%PDF-1.4"), { headers: { "Content-Type": "application/pdf" } });
+		const accepted = await axios.put(url, "%PDF-1.4", { headers: { "Content-Type": "application/pdf" } });
 
 		expect(rejected.status).toBe(415);
 		expect(accepted.status).toBe(204);
 	});
 
-	it("keeps the data of other organizations invisible", async () => {
+	// Full cross-organization coverage: tenant-isolation.test.ts
+	it("refuses users without an organization", async () => {
 		const asBob = { auth: { password: "bob", username: "bob" } };
 		const { data: invoices } = await GET(`${SERVICE}/SupplierInvoices?$top=1`);
 		const own = await GET(`${SERVICE}/SupplierInvoices?$count=true&$top=0`, asBob);
@@ -194,7 +195,26 @@ describe("PurchasingService", () => {
 			asBob,
 		);
 
-		expect(own.data["@odata.count"]).toBe(0);
+		expect(own.status).toBe(403);
 		expect([403, 404]).toContain(foreign.status);
+	});
+
+	it("updates the payment status when the amounts of a paid invoice are corrected", async () => {
+		const { data } = await createActive("SupplierInvoices", {
+			dueDate: isoDate(addDays(today, 14)),
+			invoiceDate: isoDate(today),
+			invoiceNumber: "T-CORRECTED",
+			netAmount: 100,
+			supplier_ID: supplierID,
+			taxAmount: 19,
+		});
+		await POST(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=true)/PurchasingService.markInvoicePaid`, {});
+		expect(await readInvoice(data.ID)).toMatchObject({ paymentStatus_code: "PAID" });
+
+		await POST(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=true)/PurchasingService.draftEdit`, {});
+		await PATCH(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=false)`, { netAmount: 200, taxAmount: 38 });
+		await POST(`${SERVICE}/SupplierInvoices(ID=${data.ID},IsActiveEntity=false)/PurchasingService.draftActivate`, {});
+
+		expect(await readInvoice(data.ID)).toMatchObject({ paymentStatus_code: "PARTIAL" });
 	});
 });

@@ -38,3 +38,5 @@ Makefile*.mta
 
 # @cap-js/cds-typer
 @cds-models
+# Database backups (personal and financial data)
+backups/

@@ -3,6 +3,7 @@ import { Readable } from "node:stream";
 
 import { audit } from "../collaboration/audit";
 import { isoDate } from "../core/dates";
+import { logFailure } from "../core/operation-log";
 import { accountantExport } from "./accountant-export";
 import { vatOverview } from "./vat-overview";
 
@@ -17,7 +18,14 @@ export function registerPeriodReports(srv: cds.ApplicationService) {
 	});
 	srv.on("accountantExport", async (req) => {
 		const { fromDate, toDate } = period(req);
-		const { content, fileName } = await accountantExport(fromDate, toDate);
+		let exported: Awaited<ReturnType<typeof accountantExport>>;
+		try {
+			exported = await accountantExport(fromDate, toDate);
+		} catch (error) {
+			logFailure("accountant-export", "accountantExport", error, { fromDate, toDate });
+			throw error;
+		}
+		const { content, fileName } = exported;
 		await audit({ action: "accountantExport", details: `${fromDate} to ${toDate}`, targetType: "AccountantExport" });
 		return {
 			$mediaContentDispositionType: "attachment",

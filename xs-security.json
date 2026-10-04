@@ -2,13 +2,13 @@
 	"scopes": [
 		{
 			"name": "$XSAPPNAME.InvoiceManager",
-			"description": "Manage suppliers and supplier invoices"
+			"description": "Use Swiver and create an organization; permissions inside an organization come from the membership role"
 		}
 	],
 	"role-templates": [
 		{
 			"name": "InvoiceManager",
-			"description": "Manage suppliers and supplier invoices",
+			"description": "Use Swiver and create an organization; permissions inside an organization come from the membership role",
 			"scope-references": ["$XSAPPNAME.InvoiceManager"],
 			"attribute-references": []
 		}

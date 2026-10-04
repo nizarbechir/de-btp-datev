@@ -47,7 +47,14 @@ const BankImport = {
 					}
 					dialog.close();
 					try {
-						const content = await file.text();
+						// German banks (e.g. Sparkasse) often export Latin-1; fall back when the file is no valid UTF-8.
+						const bytes = await file.arrayBuffer();
+						let content: string;
+						try {
+							content = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+						} catch {
+							content = new TextDecoder("windows-1252").decode(bytes);
+						}
 						const result = (await runAction(this, "/importBankStatement", { content, fileName: file.name })) as {
 							duplicates: number;
 							imported: number;

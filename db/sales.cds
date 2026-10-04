@@ -112,8 +112,8 @@ entity SalesInvoices : cuid, managed, OrganizationOwned {
                                on payments.salesInvoice = $self;
   reminders                : Association to many ReminderRecords
                                on reminders.invoice = $self;
-  isIssued                 : Boolean = (status.code = 'FINALIZED' or status.code = 'SENT');
-  isOverdue                : Boolean = ((status.code = 'FINALIZED' or status.code = 'SENT') and paymentStatus.code != 'PAID' and dueDate < current_date);
+  isIssued                 : Boolean = (case when status.code = 'FINALIZED' or status.code = 'SENT' then true else false end);
+  isOverdue                : Boolean = (case when (status.code = 'FINALIZED' or status.code = 'SENT') and paymentStatus.code != 'PAID' and dueDate < current_date then true else false end);
   displayStatus            : String(20) = (case
                                              when status.code = 'DRAFT' or status.code = 'CANCELLED'
                                              then status.name
@@ -137,9 +137,9 @@ entity SalesInvoices : cuid, managed, OrganizationOwned {
                                           else 5
                                         end);
   // Only drafts can be edited. Issued invoices are corrected by cancelling and replacing them.
-  isEditable               : Boolean = (status.code = 'DRAFT');
-  isLocked                 : Boolean = (status.code != 'DRAFT');
-  isClosed                 : Boolean = (status.code = 'CANCELLED' or paymentStatus.code = 'PAID');
+  isEditable               : Boolean = (case when status.code = 'DRAFT' then true else false end);
+  isLocked                 : Boolean = (case when status.code != 'DRAFT' then true else false end);
+  isClosed                 : Boolean = (case when status.code = 'CANCELLED' or paymentStatus.code = 'PAID' then true else false end);
 }
 
 /**
@@ -282,7 +282,7 @@ entity Quotes : cuid, managed, OrganizationOwned {
   notes                    : String(1000);
   items                    : Composition of many QuoteItems
                                on items.quote = $self;
-  isExpired                : Boolean = ((status.code = 'DRAFT' or status.code = 'SENT') and validUntil < current_date);
+  isExpired                : Boolean = (case when (status.code = 'DRAFT' or status.code = 'SENT') and validUntil < current_date then true else false end);
   displayStatus            : String(20) = (case
                                              when (status.code = 'DRAFT' or status.code = 'SENT') and validUntil < current_date
                                              then 'Expired'
@@ -299,7 +299,7 @@ entity Quotes : cuid, managed, OrganizationOwned {
                                           then 5
                                           else 0
                                         end);
-  isEditable               : Boolean = (status.code = 'DRAFT' or status.code = 'SENT');
+  isEditable               : Boolean = (case when status.code = 'DRAFT' or status.code = 'SENT' then true else false end);
 }
 
 /** One line of a quote, same rules as a sales invoice item. */
@@ -335,3 +335,20 @@ entity QuoteStatuses : CodeList {
         expired  = 'EXPIRED';
       };
 }
+
+// Document numbers are unique per organization, enforced by the database as the last line of defense
+// behind the number ranges (see srv/core/numbering.ts).
+annotate SalesInvoices with @assert.unique: {invoiceNumber: [
+  organization,
+  invoiceNumber
+]};
+
+annotate Quotes with @assert.unique: {quoteNumber: [
+  organization,
+  quoteNumber
+]};
+
+annotate Customers with @assert.unique: {customerNumber: [
+  organization,
+  customerNumber
+]};

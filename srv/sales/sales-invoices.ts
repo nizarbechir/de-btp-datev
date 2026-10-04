@@ -3,7 +3,8 @@ import cds, { Request } from "@sap/cds";
 import { addDays, isoDate } from "../core/dates";
 import { renderSalesInvoicePdf } from "../core/invoice-pdf";
 import { nextCustomerNumber, nextSalesInvoiceNumber } from "../core/numbering";
-import { getCompanySettings } from "../core/settings";
+import { logFailure } from "../core/operation-log";
+import { getCompanySettings, missingFooterFields } from "../core/settings";
 import { ZugferdValidationError } from "../integrations/einvoice/zugferd";
 import { EmailNotConfiguredError } from "../integrations/email/email-provider";
 import { requireOrganization } from "../organizations/organization-context";
@@ -98,6 +99,18 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 		}
 	});
 
+	// Issued invoices are locked, also against direct OData requests that bypass the draft:
+	// the invoice itself only changes while it is a draft, its items and taxes only through the draft.
+	srv.before("UPDATE", Invoices, async (req) => {
+		const invoice = await loadInvoice(key(req).ID);
+		if (invoice && invoice.status_code !== "DRAFT") {
+			return req.reject(409, "INVOICE_LOCKED");
+		}
+	});
+	srv.before(["CREATE", "UPDATE", "DELETE"], [Items, "SalesService.SalesInvoiceTaxes"], (req) =>
+		req.reject(405, "INVOICE_ITEMS_ONLY_IN_DRAFT"),
+	);
+
 	// Lifecycle
 	srv.on("finalize", Invoices, (req) => guarded(req, () => changeStatus(req, "finalize", "FINALIZED")));
 	srv.on("markAsSent", Invoices, (req) => guarded(req, () => changeStatus(req, "send", "SENT")));
@@ -134,6 +147,15 @@ export function registerSalesInvoices(srv: cds.ApplicationService) {
 	srv.on("sendReminder", Invoices, (req) => guarded(req, () => remind(req)));
 }
 
+/** An invoice needs items, a customer and the complete company footer from Settings before it is issued. */
+async function assertCanIssue(invoice: { customer_ID: null | string; ID: string }) {
+	assertIssuable(invoice, await itemCount(invoice.ID));
+	const missing = await missingFooterFields();
+	if (missing.length) {
+		throw new DomainError("CANNOT_FINALIZE_WITHOUT_COMPANY_DETAILS", 400, [missing.join(", ")]);
+	}
+}
+
 /** The invoice PDF to send: ZUGFeRD if the data is complete, otherwise the normal PDF with a warning. */
 async function attachmentFor(req: Request, document: DocumentData) {
 	const number = document.invoice.invoiceNumber ?? "Invoice";
@@ -151,15 +173,15 @@ async function attachmentFor(req: Request, document: DocumentData) {
 }
 
 async function changeStatus(req: Request, action: LifecycleAction, status: string) {
-	const invoice = await requireInvoice(key(req).ID);
+	const invoice = await requireInvoice(key(req).ID, true);
 	assertTransition(action, invoice.status_code);
 	if (action === "cancel" && Number(invoice.paidAmount ?? 0) > 0) {
 		throw new DomainError("INVOICE_HAS_PAYMENTS");
 	}
 	if (status === "FINALIZED" || (status === "SENT" && invoice.status_code === "DRAFT")) {
-		assertIssuable(invoice, await itemCount(invoice.ID));
+		await assertCanIssue(invoice);
 	}
-	await UPDATE(Invoices).set({ status_code: status }).where({ ID: invoice.ID });
+	await setStatus(invoice, status);
 	return reload(req);
 }
 
@@ -186,16 +208,21 @@ async function copyToDraft(srv: cds.ApplicationService, id: string, extra: Data 
 
 /** Cancels the issued invoice (if not yet cancelled) and opens a corrected copy that replaces it. */
 async function correct(srv: cds.ApplicationService, req: Request) {
-	const invoice = await requireInvoice(key(req).ID);
+	const invoice = await requireInvoice(key(req).ID, true);
 	assertTransition("correct", invoice.status_code);
-	if (await SELECT.one.from(Invoices).columns("ID").where({ replacesInvoice_ID: invoice.ID })) {
+	// Also a correction that is still an unsaved draft counts: an invoice is corrected only once.
+	const replacement = { replacesInvoice_ID: invoice.ID };
+	if (
+		(await SELECT.one.from(Invoices).columns("ID").where(replacement)) ||
+		(await SELECT.one.from(InvoiceDrafts).columns("ID").where(replacement))
+	) {
 		throw new DomainError("INVOICE_ALREADY_CORRECTED");
 	}
 	if (invoice.status_code !== "CANCELLED") {
 		if (Number(invoice.paidAmount ?? 0) > 0) {
 			throw new DomainError("INVOICE_HAS_PAYMENTS");
 		}
-		await UPDATE(Invoices).set({ status_code: "CANCELLED" }).where({ ID: invoice.ID });
+		await setStatus(invoice, "CANCELLED");
 	}
 	const copyID = await copyToDraft(srv, invoice.ID);
 	await UPDATE(InvoiceDrafts).set({ replacesInvoice_ID: invoice.ID }).where({ ID: copyID });
@@ -237,6 +264,9 @@ async function guarded<T>(req: Request, operation: () => Promise<T>): Promise<T>
 	try {
 		return await operation();
 	} catch (error) {
+		if (!(error instanceof ZugferdValidationError)) {
+			logFailure("sales", req.event, error, { invoice: req.params.length ? key(req).ID : undefined });
+		}
 		if (error instanceof EmailNotConfiguredError) {
 			return req.reject(503, "EMAIL_NOT_CONFIGURED") as never;
 		}
@@ -363,7 +393,14 @@ async function replacedNumber(invoice: Data): Promise<null | string> {
 	return (replaced?.invoiceNumber as string | undefined) ?? null;
 }
 
-async function requireInvoice(id: string) {
+/**
+ * The invoice of the current organization; with `lock`, its row stays locked until the transaction
+ * ends, so parallel requests for the same invoice run one after the other.
+ */
+async function requireInvoice(id: string, lock = false) {
+	if (lock) {
+		await SELECT.one.from("swiver.SalesInvoices").columns("ID").where({ ID: id }).forUpdate();
+	}
 	const invoice = await loadInvoice(id);
 	if (!invoice) {
 		throw new DomainError("INVOICE_NOT_FOUND", 404);
@@ -376,11 +413,11 @@ async function requireInvoice(id: string) {
 
 /** Finalizes a draft if needed, e-mails the invoice with its ZUGFeRD PDF and marks it as sent. */
 async function sendByEmail(req: Request) {
-	const invoice = await requireInvoice(key(req).ID);
+	const invoice = await requireInvoice(key(req).ID, true);
 	assertTransition("send", invoice.status_code);
 	if (invoice.status_code === "DRAFT") {
-		assertIssuable(invoice, await itemCount(invoice.ID));
-		await UPDATE(Invoices).set({ status_code: "FINALIZED" }).where({ ID: invoice.ID });
+		await assertCanIssue(invoice);
+		await setStatus(invoice, "FINALIZED");
 	}
 	const document = (await loadInvoiceDocument(invoice.ID)) as DocumentData;
 	const recipient = recipientOf(req, document);
@@ -392,6 +429,16 @@ async function sendByEmail(req: Request) {
 		.set({ emailMessageId: sent.messageId ?? null, sentAt: sent.sentAt, sentTo: recipient, status_code: "SENT" })
 		.where({ ID: invoice.ID });
 	return reload(req);
+}
+
+/** Changes the status only if nobody changed it in the meantime (e.g. a parallel finalize). */
+async function setStatus(invoice: { ID: string; status_code: string }, status: string) {
+	const changed = await UPDATE(Invoices)
+		.set({ status_code: status })
+		.where({ ID: invoice.ID, status_code: invoice.status_code });
+	if (!changed) {
+		throw new DomainError("SALES_INVOICE_STATUS_CHANGE_NOT_ALLOWED");
+	}
 }
 
 /** The ZUGFeRD PDF of an issued invoice. */

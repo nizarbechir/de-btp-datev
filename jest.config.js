@@ -7,6 +7,7 @@ module.exports = {
 	coverageReporters: ["text"],
 	globalSetup: "./test/setup.ts",
 	preset: "ts-jest",
+	setupFiles: ["./test/env.ts"],
 	testEnvironment: "node",
 	testPathIgnorePatterns: ["/node_modules/", "/dist/", "/gen/", "/app/"],
 };
