@@ -30,6 +30,11 @@
 						<tnt:NavigationListItem text="{i18n>payments}" key="swiver.finance#Payments" />
 						<tnt:NavigationListItem text="{i18n>reports}" key="swiver.finance#Reports" />
 					</tnt:NavigationListItem>
+					<tnt:NavigationListItem text="{i18n>groupReports}" icon="sap-icon://business-objects-experience" selectable="false" visible="{= !!${org>role} }">
+						<tnt:NavigationListItem text="{i18n>salesReport}" key="swiver.reports#SalesReport" />
+						<tnt:NavigationListItem text="{i18n>purchaseReport}" key="swiver.reports#PurchaseReport" />
+						<tnt:NavigationListItem text="{i18n>openItemsReport}" key="swiver.reports#OpenItems" />
+					</tnt:NavigationListItem>
 					<tnt:NavigationListItem text="{i18n>groupAdministration}" icon="sap-icon://building" selectable="false">
 						<tnt:NavigationListItem text="{i18n>organization}" key="swiver.settings" />
 						<tnt:NavigationListItem text="{i18n>taxAdvisor}" key="swiver.taxadvisor" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'MEMBER' }" />

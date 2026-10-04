@@ -4,6 +4,7 @@ using from '../services/finance-service';
 using from '../services/organization-service';
 using from '../services/tax-advisor-service';
 using from '../services/support-service';
+using from '../services/reporting-service';
 
 // Any signed-in user may use Swiver; what they see is decided by their organization membership.
 // Every record is restricted to the organization of the signed-in user ($user.organization),
@@ -532,6 +533,72 @@ annotate TaxAdvisorService.ExpenseCategories with @(restrict: [{
   to   : [
     'TaxAdvisor',
     'OrganizationAdmin'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+// Reports: read-only, for everybody who may read the sales and purchase data of the organization.
+annotate ReportingService with @(requires: 'authenticated-user');
+
+annotate ReportingService.SalesReport with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate ReportingService.PurchaseReport with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate ReportingService.OpenItems with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate ReportingService.Customers with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate ReportingService.ProductServices with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate ReportingService.Suppliers with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
+  ],
+  where: 'organization_ID = $user.organization'
+}]);
+
+annotate ReportingService.ExpenseCategories with @(restrict: [{
+  grant: 'READ',
+  to   : [
+    'OrganizationMember',
+    'TaxAdvisor'
   ],
   where: 'organization_ID = $user.organization'
 }]);

@@ -33,6 +33,10 @@
 					"vizId": "Finance-manage"
 				},
 				{
+					"appId": "swiver.reports",
+					"vizId": "Reports-display"
+				},
+				{
 					"appId": "swiver.taxadvisor",
 					"vizId": "TaxAdvisor-display"
 				},
@@ -109,6 +113,10 @@
 					"vizId": "Finance-manage"
 				},
 				{
+					"appId": "swiver.reports",
+					"vizId": "Reports-display"
+				},
+				{
 					"appId": "swiver.taxadvisor",
 					"vizId": "TaxAdvisor-display"
 				},
@@ -171,6 +179,9 @@
 				},
 				{
 					"id": "swiver.finance"
+				},
+				{
+					"id": "swiver.reports"
 				},
 				{
 					"id": "swiver.taxadvisor"
@@ -280,6 +291,11 @@
 							"id": "swiverfinanceWidget",
 							"appId": "swiver.finance",
 							"vizId": "Finance-manage"
+						},
+						{
+							"id": "swiverreportsWidget",
+							"appId": "swiver.reports",
+							"vizId": "Reports-display"
 						},
 						{
 							"id": "swivertaxadvisorWidget",

@@ -12,6 +12,7 @@ Fiori elements apps share one backend. Pages are defined by annotations in each 
 | Suppliers           | `Supplier-manage`        | Purchasing   | Suppliers                                                                    |
 | Expense Categories  | `ExpenseCategory-manage` | Purchasing   | Expense Categories                                                           |
 | Finance             | `Finance-manage`         | Finance      | Bank Transactions (matching), Payments, VAT & Accountant Export              |
+| Reports             | `Reports-display`        | Reporting    | Sales, Purchases, Open Items (analytical tables, one tab per grouping)       |
 | Settings            | `Settings-manage`        | Organization | Organization & members, Company Settings                                     |
 
 ## Navigation
@@ -26,4 +27,5 @@ Only where annotations are not enough, and without business logic:
 - `sales/webapp/ext/document` – PDF preview/download, ZUGFeRD download, actions that open the new draft invoice
 - `sales/webapp/ext/salesInvoice` – totals section
 - `finance/webapp/ext` – bank CSV upload, VAT & export page
+- `reports/webapp/ext` – entry page listing the three reports
 - `settings/webapp/ext` – link to company settings

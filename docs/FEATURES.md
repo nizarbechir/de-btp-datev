@@ -109,6 +109,20 @@ curl -u alice:alice "localhost:4004/odata/v4/finance/vatOverview(fromDate=2026-1
 curl -u alice:alice -o export.zip "localhost:4004/odata/v4/finance/accountantExport(fromDate=2026-01-01,toDate=2026-12-31)"
 ```
 
+## Reports
+
+Reports (one app, also in the Swiver Hub) has three reports, each a list report with analytical tables that group and total in the backend; expanding a group lists its invoices. Excel export is the standard table export.
+
+- **Sales:** revenue of issued invoices (cancelled and drafts left out) by month, customer or product/service; filter by invoice date, customer and product.
+- **Purchases:** supplier invoices by month, supplier or expense category; filter by invoice date, supplier and category.
+- **Open Items:** receivables and payables in separate tabs, with total open and overdue amounts and the aging buckets not due, 1-30, 31-60 and more than 60 days overdue.
+
+The tax advisor sees the same reports for the organization they advise.
+
+```bash
+curl -u alice:alice "localhost:4004/odata/v4/reporting/SalesReport?\$apply=groupby((customerName),aggregate(netAmount))"
+```
+
 ## Dashboard
 
 Answers who owes you, what you owe, what is overdue or due within 7 days, revenue and expenses this month, estimated VAT, open inbox documents and unmatched bank transactions. **Needs Attention** lists the open to-dos with a link to the right page.

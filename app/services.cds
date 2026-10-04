@@ -5,3 +5,4 @@ using from './finance/annotations';
 using from './settings/annotations';
 using from './taxadvisor/annotations';
 using from './support/annotations';
+using from './reports/annotations';

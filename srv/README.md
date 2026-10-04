@@ -25,6 +25,7 @@ One CAP application (modular monolith). Service handlers stay thin: they read th
 | `SalesService`        | `/odata/v4/sales`        | Customers, products/services, quotes, sales invoices    |
 | `PurchasingService`   | `/odata/v4/purchasing`   | Suppliers, supplier invoices, inbox, expense categories |
 | `FinanceService`      | `/odata/v4/finance`      | Bank transactions, payments, VAT, export, dashboard     |
+| `ReportingService`    | `/odata/v4/reporting`    | Sales, purchase and open item reports (read-only)       |
 | `OrganizationService` | `/odata/v4/organization` | Organization, members, company settings, onboarding     |
 | `SupportService`      | `/odata/v4/support`      | Support tickets; agents (role SupportAgent) see all     |
 

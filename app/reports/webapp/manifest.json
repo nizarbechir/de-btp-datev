@@ -1,0 +1,283 @@
+{
+	"_version": "1.65.0",
+	"sap.app": {
+		"id": "swiver.reports",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:lrop",
+			"version": "1.17.1"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "odata/v4/reporting/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"Reports-display": {
+					"semanticObject": "Reports",
+					"action": "display",
+					"title": "{{flpTitle}}",
+					"subTitle": "{{flpSubtitle}}",
+					"icon": "sap-icon://business-objects-experience",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.148.4",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {},
+				"sap.fe.macros": {},
+				"sap.f": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "swiver.reports.i18n.i18n"
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			},
+			"@i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"uri": "i18n/i18n.properties"
+			}
+		},
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "ReportsHome",
+					"target": "ReportsHome"
+				},
+				{
+					"pattern": "SalesReport:?query:",
+					"name": "SalesReportList",
+					"target": "SalesReportList"
+				},
+				{
+					"pattern": "PurchaseReport:?query:",
+					"name": "PurchaseReportList",
+					"target": "PurchaseReportList"
+				},
+				{
+					"pattern": "OpenItems:?query:",
+					"name": "OpenItemsList",
+					"target": "OpenItemsList"
+				}
+			],
+			"targets": {
+				"ReportsHome": {
+					"type": "Component",
+					"id": "ReportsHome",
+					"name": "sap.fe.core.fpm",
+					"options": {
+						"settings": {
+							"viewName": "swiver.reports.ext.ReportsHome",
+							"contextPath": "/SalesReport"
+						}
+					}
+				},
+				"SalesReportList": {
+					"type": "Component",
+					"id": "SalesReportList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/SalesReport",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem#ByMonth": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								},
+								"@com.sap.vocabularies.UI.v1.LineItem#ByCustomer": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								},
+								"@com.sap.vocabularies.UI.v1.LineItem#ByProductService": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "ByMonth",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#ByMonth"
+									},
+									{
+										"key": "ByCustomer",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#ByCustomer"
+									},
+									{
+										"key": "ByProductService",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#ByProductService"
+									}
+								],
+								"showCounts": false
+							}
+						}
+					}
+				},
+				"PurchaseReportList": {
+					"type": "Component",
+					"id": "PurchaseReportList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/PurchaseReport",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem#ByMonth": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								},
+								"@com.sap.vocabularies.UI.v1.LineItem#BySupplier": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								},
+								"@com.sap.vocabularies.UI.v1.LineItem#ByExpenseCategory": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "ByMonth",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#ByMonth"
+									},
+									{
+										"key": "BySupplier",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#BySupplier"
+									},
+									{
+										"key": "ByExpenseCategory",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#ByExpenseCategory"
+									}
+								],
+								"showCounts": false
+							}
+						}
+					}
+				},
+				"OpenItemsList": {
+					"type": "Component",
+					"id": "OpenItemsList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/OpenItems",
+							"variantManagement": "Page",
+							"initialLoad": "Enabled",
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem#Receivables": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								},
+								"@com.sap.vocabularies.UI.v1.LineItem#Payables": {
+									"tableSettings": {
+										"type": "AnalyticalTable",
+										"enableExport": true
+									}
+								}
+							},
+							"views": {
+								"paths": [
+									{
+										"key": "Receivables",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Receivables"
+									},
+									{
+										"key": "Payables",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Payables"
+									}
+								],
+								"showCounts": false
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "analytical"
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "swiver.service"
+	},
+	"sap.platform.cf": {
+		"ui5VersionNumber": "1.148.4"
+	}
+}

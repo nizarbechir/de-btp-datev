@@ -1,0 +1,33 @@
+<mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:f="sap.f" controllerName="swiver.reports.ext.ReportsHome">
+	<f:DynamicPage id="reportsHome" showFooter="false">
+		<f:title>
+			<f:DynamicPageTitle id="reportsHomeTitle">
+				<f:heading>
+					<Title id="reportsHomeHeading" text="{i18n>appTitle}" />
+				</f:heading>
+				<f:expandedContent>
+					<Label id="reportsHomeSubtitle" text="{i18n>reportsSubtitle}" />
+				</f:expandedContent>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<List id="reportList">
+				<StandardListItem id="salesReportItem" type="Navigation" icon="sap-icon://sales-document" title="{i18n>salesReport}" description="{i18n>salesReportDescription}" press=".onOpenReport">
+					<customData>
+						<core:CustomData key="route" value="SalesReportList" />
+					</customData>
+				</StandardListItem>
+				<StandardListItem id="purchaseReportItem" type="Navigation" icon="sap-icon://receipt" title="{i18n>purchaseReport}" description="{i18n>purchaseReportDescription}" press=".onOpenReport">
+					<customData>
+						<core:CustomData key="route" value="PurchaseReportList" />
+					</customData>
+				</StandardListItem>
+				<StandardListItem id="openItemsReportItem" type="Navigation" icon="sap-icon://lead-outdated" title="{i18n>openItemsReport}" description="{i18n>openItemsReportDescription}" press=".onOpenReport">
+					<customData>
+						<core:CustomData key="route" value="OpenItemsList" />
+					</customData>
+				</StandardListItem>
+			</List>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>
