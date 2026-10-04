@@ -11,9 +11,6 @@
 	},
 	"requires": {
 		"db": {
-			"credentials": {
-				"url": ":memory:"
-			},
 			"[development]": {
 				"data": ["db/data", "test/data"]
 			},

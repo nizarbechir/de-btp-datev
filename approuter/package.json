@@ -1,0 +1,14 @@
+{
+	"name": "swiver-approuter",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Dev-only standalone app router to open the Swiver apps without Work Zone",
+	"license": "UNLICENSED",
+	"type": "commonjs",
+	"scripts": {
+		"start": "node node_modules/@sap/approuter/approuter.js"
+	},
+	"dependencies": {
+		"@sap/approuter": "^23"
+	}
+}
