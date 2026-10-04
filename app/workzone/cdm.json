@@ -47,6 +47,10 @@
 				{
 					"appId": "swiver.expensecategories",
 					"vizId": "ExpenseCategory-manage"
+				},
+				{
+					"appId": "swiver.support",
+					"vizId": "Support-manage"
 				}
 			]
 		},
@@ -107,6 +111,10 @@
 				{
 					"appId": "swiver.expensecategories",
 					"vizId": "ExpenseCategory-manage"
+				},
+				{
+					"appId": "swiver.support",
+					"vizId": "Support-manage"
 				}
 			]
 		},
@@ -157,6 +165,9 @@
 				},
 				{
 					"id": "swiver.expensecategories"
+				},
+				{
+					"id": "swiver.support"
 				}
 			],
 			"catalogs": [
@@ -262,6 +273,11 @@
 							"id": "swiverexpensecategoriesWidget",
 							"appId": "swiver.expensecategories",
 							"vizId": "ExpenseCategory-manage"
+						},
+						{
+							"id": "swiversupportWidget",
+							"appId": "swiver.support",
+							"vizId": "Support-manage"
 						}
 					]
 				}

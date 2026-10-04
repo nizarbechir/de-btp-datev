@@ -13,22 +13,7 @@ export async function nextCustomerNumber(): Promise<string> {
  * until it commits, so parallel saves wait for each other, and a failed save gives the number back.
  */
 export async function nextNumber(name: string): Promise<number> {
-	const range = `${requireOrganization()}:${name}`;
-	if (!(await increment(range))) {
-		try {
-			await INSERT.into(NumberRanges).entries({ lastNumber: 1, range });
-			return 1;
-		} catch (error) {
-			// A parallel save created the range first (unique key): continue with its next number.
-			if (!(await increment(range))) {
-				throw error;
-			}
-		}
-	}
-	const { lastNumber } = (await SELECT.one.from(NumberRanges).columns("lastNumber").where({ range })) as {
-		lastNumber: number;
-	};
-	return lastNumber;
+	return nextInRange(`${requireOrganization()}:${name}`);
 }
 
 /** Quote numbers restart every year, e.g. QUO-2026-0001. */
@@ -45,6 +30,29 @@ export async function nextSalesInvoiceNumber(prefix: string, invoiceDate: string
 	return `${prefix}-${year}-${String(number).padStart(4, "0")}`;
 }
 
+/** Support ticket numbers are shared by all organizations: 1001, 1002, ... */
+export async function nextSupportTicketNumber(): Promise<number> {
+	return 1000 + (await nextInRange("SupportTicket"));
+}
+
 async function increment(range: string): Promise<number> {
 	return UPDATE(NumberRanges).set`lastNumber = lastNumber + 1`.where({ range });
+}
+
+async function nextInRange(range: string): Promise<number> {
+	if (!(await increment(range))) {
+		try {
+			await INSERT.into(NumberRanges).entries({ lastNumber: 1, range });
+			return 1;
+		} catch (error) {
+			// A parallel save created the range first (unique key): continue with its next number.
+			if (!(await increment(range))) {
+				throw error;
+			}
+		}
+	}
+	const { lastNumber } = (await SELECT.one.from(NumberRanges).columns("lastNumber").where({ range })) as {
+		lastNumber: number;
+	};
+	return lastNumber;
 }

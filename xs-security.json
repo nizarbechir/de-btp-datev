@@ -3,6 +3,10 @@
 		{
 			"name": "$XSAPPNAME.InvoiceManager",
 			"description": "Use Swiver and create an organization; permissions inside an organization come from the membership role"
+		},
+		{
+			"name": "$XSAPPNAME.SupportAgent",
+			"description": "Swiver support team: read and answer the support tickets of all organizations"
 		}
 	],
 	"role-templates": [
@@ -11,6 +15,12 @@
 			"description": "Use Swiver and create an organization; permissions inside an organization come from the membership role",
 			"scope-references": ["$XSAPPNAME.InvoiceManager"],
 			"attribute-references": []
+		},
+		{
+			"name": "SupportAgent",
+			"description": "Swiver support team: read and answer the support tickets of all organizations",
+			"scope-references": ["$XSAPPNAME.SupportAgent"],
+			"attribute-references": []
 		}
 	],
 	"role-collections": [
@@ -18,6 +28,11 @@
 			"name": "Swiver_InvoiceManager",
 			"description": "Swiver - Invoice Manager",
 			"role-template-references": ["$XSAPPNAME.InvoiceManager"]
+		},
+		{
+			"name": "Swiver_SupportAgent",
+			"description": "Swiver - Support Agent",
+			"role-template-references": ["$XSAPPNAME.SupportAgent"]
 		}
 	],
 	"attributes": [],

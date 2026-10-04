@@ -4,5 +4,6 @@ using from './services/purchasing-service';
 using from './services/finance-service';
 using from './services/organization-service';
 using from './services/tax-advisor-service';
+using from './services/support-service';
 using from './authorization/authorization';
 using from './authorization/read-only';

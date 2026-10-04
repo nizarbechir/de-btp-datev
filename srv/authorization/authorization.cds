@@ -3,6 +3,7 @@ using from '../services/purchasing-service';
 using from '../services/finance-service';
 using from '../services/organization-service';
 using from '../services/tax-advisor-service';
+using from '../services/support-service';
 
 // Any signed-in user may use Swiver; what they see is decided by their organization membership.
 // Every record is restricted to the organization of the signed-in user ($user.organization),
@@ -542,3 +543,56 @@ annotate OrganizationService.createOrganization with @(requires: 'InvoiceManager
 
 // The complete data export of an organization is for its owners and admins only.
 annotate OrganizationService.exportOrganizationData with @(requires: 'OrganizationAdmin');
+
+// Support: owners, admins and members create and follow the tickets of their organization. Support
+// agents (application role SupportAgent from the identity provider, never an organization membership)
+// read and answer the tickets of all organizations and change their status.
+
+annotate SupportService with @(requires: 'authenticated-user');
+
+annotate SupportService.SupportTickets with @(restrict: [
+  {
+    grant: [
+      'READ',
+      'CREATE',
+      'reply'
+    ],
+    to   : 'OrganizationMember',
+    where: 'organization_ID = $user.organization'
+  },
+  {
+    grant: [
+      'READ',
+      'reply',
+      'setStatus'
+    ],
+    to   : 'SupportAgent'
+  }
+]);
+
+annotate SupportService.SupportMessages with @(restrict: [
+  {
+    grant: 'READ',
+    to   : 'OrganizationMember',
+    where: 'ticket.organization_ID = $user.organization'
+  },
+  {
+    grant: 'READ',
+    to   : 'SupportAgent'
+  }
+]);
+
+annotate SupportService.SupportAttachments with @(restrict: [
+  {
+    grant: [
+      'READ',
+      'CREATE'
+    ],
+    to   : 'OrganizationMember',
+    where: 'ticket.organization_ID = $user.organization'
+  },
+  {
+    grant: 'READ',
+    to   : 'SupportAgent'
+  }
+]);

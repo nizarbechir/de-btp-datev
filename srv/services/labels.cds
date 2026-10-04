@@ -4,6 +4,7 @@ using from '../../db/settings';
 using from '../../db/finance';
 using from '../../db/organizations';
 using from '../../db/collaboration';
+using from '../../db/support';
 
 /**
  * Business rules and labels of the domain model, independent of any UI and inherited by all services.
@@ -514,4 +515,57 @@ annotate swiver.FinancialComments with @(title: '{i18n>Comment}') {
   resolved         @title: '{i18n>Resolved}';
   resolvedAt       @title: '{i18n>ResolvedAt}';
   resolvedBy       @title: '{i18n>ResolvedBy}';
+};
+
+// ---------------------------------------------------------------------------
+// Support
+// ---------------------------------------------------------------------------
+
+annotate swiver.SupportTickets with @(
+  title     : '{i18n>SupportTicket}',
+  cds.search: {
+    subject,
+    description
+  }
+) {
+  ID           @UI.Hidden;
+  ticketNumber @title: '{i18n>TicketNumber}'  @readonly;
+  subject      @title: '{i18n>Subject}';
+  description  @title: '{i18n>Description}'  @UI.MultiLineText;
+  category     @title: '{i18n>Category}'  @Common.Text: category.name  @Common.TextArrangement: #TextOnly  @Common.ValueListWithFixedValues;
+  priority     @title: '{i18n>Priority}'  @Common.Text: priority.name  @Common.TextArrangement: #TextOnly  @Common.ValueListWithFixedValues;
+  status       @title: '{i18n>Status}'  @Common.Text: status.name  @Common.TextArrangement: #TextOnly  @Common.ValueListWithFixedValues  @readonly;
+  creatorEmail @title: '{i18n>Email}'  @readonly;
+  resolvedAt   @title: '{i18n>ResolvedAt}'  @readonly;
+  modifiedAt   @title: '{i18n>UpdatedAt}';
+  organization @UI.Hidden;
+};
+
+annotate swiver.SupportMessages with {
+  ID          @UI.Hidden;
+  ticket      @UI.Hidden;
+  message     @title: '{i18n>Message}'  @UI.MultiLineText;
+  fromSupport @title: '{i18n>FromSupport}';
+  createdAt   @title: '{i18n>Date}';
+  createdBy   @title: '{i18n>Author}';
+};
+
+annotate swiver.SupportAttachments with {
+  ID       @UI.Hidden;
+  ticket   @UI.Hidden;
+  fileName @title: '{i18n>FileName}';
+  mimeType @UI.Hidden;
+  content  @title: '{i18n>Attachment}';
+};
+
+annotate swiver.SupportCategories with {
+  code @title: '{i18n>Category}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
+};
+
+annotate swiver.SupportPriorities with {
+  code @title: '{i18n>Priority}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
+};
+
+annotate swiver.SupportStatuses with {
+  code @title: '{i18n>Status}'  @Common.Text: name  @Common.TextArrangement: #TextOnly;
 };
