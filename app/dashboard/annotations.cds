@@ -104,8 +104,19 @@ annotate service.CashFlow with @(
     @Common.Label       : '{i18n>MoneyOut}'
   },
   UI.Chart                           : {
-    ChartType      : #Column,
-    Dimensions     : [month],
+    ChartType        : #Column,
+    Dimensions       : [month],
+    // Both measures on the same axis, so both render as bars
+    MeasureAttributes: [
+      {
+        DynamicMeasure: '@Analytics.AggregatedProperty#moneyIn',
+        Role          : #Axis1
+      },
+      {
+        DynamicMeasure: '@Analytics.AggregatedProperty#moneyOut',
+        Role          : #Axis1
+      }
+    ],
     DynamicMeasures: [
       '@Analytics.AggregatedProperty#moneyIn',
       '@Analytics.AggregatedProperty#moneyOut'

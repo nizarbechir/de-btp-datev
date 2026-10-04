@@ -4,7 +4,7 @@
 	xmlns="sap.m"
 	xmlns:f="sap.f"
 	xmlns:form="sap.ui.layout.form"
-	xmlns:l="sap.ui.layout"
+	xmlns:grid="sap.ui.layout.cssgrid"
 	xmlns:macros="sap.fe.macros"
 	controllerName="swiver.dashboard.ext.Dashboard"
 >
@@ -48,9 +48,10 @@
 					<Button id="createOrganization" text="{i18n>createOrganization}" type="Emphasized" press=".onCreateOrganization" />
 				</VBox>
 
-				<VBox id="dashboardContent" class="sapUiSmallMargin" visible="{view>/hasOrganization}">
-					<!-- Key figures: one row, the second line says what needs action -->
-					<l:Grid id="kpiGrid" defaultSpan="XL3 L3 M6 S12" containerQuery="true" class="sapUiNoMargin">
+				<!-- One grid: every widget sits in a card that fills its cell, so rows always line up -->
+				<VBox id="dashboardContent" class="sapUiContentPadding" visible="{view>/hasOrganization}">
+					<!-- Key figures: as many equal columns as fit, at least 14rem each -->
+					<grid:CSSGrid id="kpiGrid" gridTemplateColumns="repeat(auto-fit, minmax(14rem, 1fr))" gridGap="1rem">
 						<GenericTile id="kpiToCollect" width="100%" header="{i18n>kpiToCollect}" press=".onNavigate($event, 'Sales-manage&amp;/SalesInvoices')">
 							<TileContent id="kpiToCollectContent" footer="{parts: [{path: 'kpi>/receivables/overdue/amount'}, 'kpi>/currency'], formatter: '.formatOverdue'}" footerColor="Critical">
 								<ObjectNumber id="kpiToCollectValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/receivables/outstanding/amount', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
@@ -71,46 +72,60 @@
 								<ObjectNumber id="kpiVatValue" class="sapMObjectNumberLarge" number="{path: 'kpi>/estimatedVat', formatter: '.formatAmount'}" unit="{kpi>/currency}" emphasized="true" />
 							</TileContent>
 						</GenericTile>
-					</l:Grid>
+					</grid:CSSGrid>
 
-					<!-- What to do next, and how money moved -->
-					<l:Grid id="workGrid" containerQuery="true" class="sapUiNoMargin sapUiSmallMarginTop">
-						<List id="attentionList" headerText="{i18n>toDo}" items="{kpi>/needsAttention}" noDataText="{i18n>nothingToDo}">
-							<layoutData><l:GridData id="attentionSpan" span="XL5 L5 M12 S12" /></layoutData>
-							<StandardListItem id="attentionItem" title="{kpi>text}" icon="sap-icon://alert" type="Navigation" press=".onAttention" />
-						</List>
-						<macros:Chart id="cashFlowChart" contextPath="/CashFlow" metaPath="@com.sap.vocabularies.UI.v1.Chart" header="{i18n>cashFlow}" personalization="Type" height="20rem">
-							<macros:layoutData><l:GridData id="chartSpan" span="XL7 L7 M12 S12" /></macros:layoutData>
-						</macros:Chart>
-					</l:Grid>
+					<!-- To do and cash flow: two equal-height cards side by side, stacked when narrow -->
+					<grid:CSSGrid id="workGrid" gridTemplateColumns="repeat(auto-fit, minmax(24rem, 1fr))" gridGap="1rem" class="sapUiSmallMarginTop">
+						<f:Card id="attentionCard" height="100%">
+							<f:content>
+								<List id="attentionList" items="{kpi>/needsAttention}" noDataText="{i18n>nothingToDo}" showSeparators="Inner">
+									<headerToolbar>
+										<Toolbar id="attentionToolbar" style="Clear">
+											<Title id="attentionTitle" text="{i18n>toDo}" titleStyle="H4" />
+										</Toolbar>
+									</headerToolbar>
+									<StandardListItem id="attentionItem" title="{kpi>text}" icon="sap-icon://alert" type="Navigation" press=".onAttention" />
+								</List>
+							</f:content>
+						</f:Card>
+						<f:Card id="cashFlowCard" height="100%">
+							<f:content>
+								<macros:Chart id="cashFlowChart" contextPath="/CashFlow" metaPath="@com.sap.vocabularies.UI.v1.Chart" header="{i18n>cashFlow}" personalization="Type" width="100%" height="22rem" />
+							</f:content>
+						</f:Card>
+					</grid:CSSGrid>
 
-					<!-- Open invoices, money in and money out in one place -->
-					<IconTabBar id="openItemsTabs" class="sapUiSmallMarginTop sapUiResponsiveContentPadding" expandable="false" headerBackgroundDesign="Transparent">
-						<items>
-							<IconTabFilter id="moneyInTab" text="{i18n>moneyIn}" count="{kpi>/receivables/outstanding/count}">
-								<macros:Table
-									id="openSalesInvoices"
-									contextPath="/SalesInvoices"
-									metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Receivables"
-									type="ResponsiveTable"
-									personalization="false"
-									variantManagement="None"
-									width="100%"
-								/>
-							</IconTabFilter>
-							<IconTabFilter id="moneyOutTab" text="{i18n>moneyOut}" count="{kpi>/payables/open/count}">
-								<macros:Table
-									id="upcomingPayments"
-									contextPath="/SupplierInvoices"
-									metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Upcoming"
-									type="ResponsiveTable"
-									personalization="false"
-									variantManagement="None"
-									width="100%"
-								/>
-							</IconTabFilter>
-						</items>
-					</IconTabBar>
+					<!-- Open invoices, money in and money out in one full-width card -->
+					<f:Card id="openItemsCard" class="sapUiSmallMarginTop">
+						<f:content>
+						<IconTabBar id="openItemsTabs" expandable="false" applyContentPadding="false" headerBackgroundDesign="Transparent">
+							<items>
+								<IconTabFilter id="moneyInTab" text="{i18n>moneyIn}" count="{kpi>/receivables/outstanding/count}">
+									<macros:Table
+										id="openSalesInvoices"
+										contextPath="/SalesInvoices"
+										metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Receivables"
+										type="ResponsiveTable"
+										personalization="false"
+										variantManagement="None"
+										width="100%"
+									/>
+								</IconTabFilter>
+								<IconTabFilter id="moneyOutTab" text="{i18n>moneyOut}" count="{kpi>/payables/open/count}">
+									<macros:Table
+										id="upcomingPayments"
+										contextPath="/SupplierInvoices"
+										metaPath="@com.sap.vocabularies.UI.v1.SelectionPresentationVariant#Upcoming"
+										type="ResponsiveTable"
+										personalization="false"
+										variantManagement="None"
+										width="100%"
+									/>
+								</IconTabFilter>
+							</items>
+						</IconTabBar>
+						</f:content>
+					</f:Card>
 				</VBox>
 			</VBox>
 		</f:content>
