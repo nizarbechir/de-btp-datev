@@ -160,6 +160,10 @@ annotate service.BankTransactions with @(
     {Value: matchStatus_code},
     {Value: suggestedSalesInvoice_ID},
     {Value: suggestedSupplierInvoice_ID},
+    {
+      Value: suggestedSupplierInvoice.documentContent,
+      Label: '{i18n>SuggestedInvoiceDocument}'
+    },
     {Value: suggestionReason}
   ]},
   UI.Facets                      : [
