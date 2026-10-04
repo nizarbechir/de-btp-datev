@@ -14,7 +14,7 @@
 		"backup": "cds bind --exec --profile hybrid -- ts-node scripts/backup.ts backups",
 		"bind-to-services": "./scripts/bind-to-services.sh",
 		"build": "rimraf resources mta_archives && mbt build --mtar archive",
-		"build:dev": "rimraf resources mta_archives gen && mbt build --extensions dev.mtaext --mtar archive",
+		"build:dev": "rimraf resources mta_archives gen && mbt build --extensions free.mtaext --mtar archive",
 		"build:models": "npx @cap-js/cds-typer '*' --outputDirectory @cds-models",
 		"build:prd": "rimraf resources mta_archives gen && mbt build --extensions prd.mtaext --mtar archive",
 		"build:prd-hotfix": "rimraf resources mta_archives gen && mbt build --extensions prd-hotfix.mtaext --mtar archive",

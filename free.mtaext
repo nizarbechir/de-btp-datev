@@ -10,6 +10,9 @@ modules:
     memory: 512M
     disk-quota: 512M
     instances: 1
+  properties:
+    # Support tickets notify this address (srv/support/notifications.ts)
+    SUPPORT_EMAIL: info@beytp.com
 - name: swiver-db-deployer
   parameters:
     memory: 256M
