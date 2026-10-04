@@ -16,11 +16,20 @@
 					"action": "display",
 					"title": "{{appTitle}}",
 					"subTitle": "{{appDescription}}",
-					"icon": "sap-icon://action-settings",
+					"icon": "sap-icon://grid",
 					"signature": {
 						"parameters": {},
 						"additionalParameters": "allowed"
 					}
+				}
+			}
+		},
+		"dataSources": {
+			"organizationService": {
+				"uri": "odata/v4/organization/",
+				"type": "OData",
+				"settings": {
+					"odataVersion": "4.0"
 				}
 			}
 		}
@@ -51,6 +60,12 @@
 				"type": "sap.ui.model.resource.ResourceModel",
 				"settings": {
 					"bundleName": "swiver.configuration.i18n.i18n"
+				}
+			},
+			"org": {
+				"dataSource": "organizationService",
+				"settings": {
+					"operationMode": "Server"
 				}
 			}
 		},

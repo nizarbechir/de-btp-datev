@@ -1,22 +1,38 @@
 <mvc:View controllerName="swiver.configuration.controller.App" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:tnt="sap.tnt" xmlns:core="sap.ui.core" displayBlock="true">
-	<tnt:ToolPage id="toolPage">
+	<!-- The membership role decides which entries show, matching what the backend allows (srv/authorization). -->
+	<tnt:ToolPage id="toolPage" binding="{org>/myOrganization()}">
 		<tnt:header>
 			<tnt:ToolHeader>
 				<Button icon="sap-icon://menu2" type="Transparent" press=".onToggleSide" tooltip="{i18n>appTitle}" />
 				<Title text="{i18n>appTitle}" level="H1" />
+				<ToolbarSpacer />
+				<Text text="{org>name}" />
 			</tnt:ToolHeader>
 		</tnt:header>
 		<tnt:sideContent>
-			<tnt:SideNavigation selectedKey="swiver.settings" itemSelect=".onItemSelect">
+			<tnt:SideNavigation selectedKey="swiver.dashboard" itemSelect=".onItemSelect">
 				<tnt:NavigationList>
-					<tnt:NavigationListItem text="{i18n>groupOrganization}" icon="sap-icon://building" selectable="false">
-						<tnt:NavigationListItem text="{i18n>organization}" key="swiver.settings" />
-					</tnt:NavigationListItem>
-					<tnt:NavigationListItem text="{i18n>groupMasterData}" icon="sap-icon://database" selectable="false">
+					<tnt:NavigationListItem text="{i18n>dashboard}" icon="sap-icon://home" key="swiver.dashboard" />
+					<tnt:NavigationListItem text="{i18n>groupSales}" icon="sap-icon://sales-order" selectable="false" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'TAX_ADVISOR' }">
+						<tnt:NavigationListItem text="{i18n>salesInvoices}" key="swiver.sales#SalesInvoices" />
+						<tnt:NavigationListItem text="{i18n>quotes}" key="swiver.sales#Quotes" />
 						<tnt:NavigationListItem text="{i18n>customers}" key="swiver.customers" />
 						<tnt:NavigationListItem text="{i18n>products}" key="swiver.products" />
+					</tnt:NavigationListItem>
+					<tnt:NavigationListItem text="{i18n>groupPurchases}" icon="sap-icon://cart" selectable="false" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'TAX_ADVISOR' }">
+						<tnt:NavigationListItem text="{i18n>supplierInvoices}" key="swiver.purchases#SupplierInvoices" />
+						<tnt:NavigationListItem text="{i18n>inbox}" key="swiver.purchases#IncomingDocuments" />
 						<tnt:NavigationListItem text="{i18n>suppliers}" key="swiver.suppliers" />
 						<tnt:NavigationListItem text="{i18n>expenseCategories}" key="swiver.expensecategories" />
+					</tnt:NavigationListItem>
+					<tnt:NavigationListItem text="{i18n>groupFinance}" icon="sap-icon://loan" selectable="false" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'TAX_ADVISOR' }">
+						<tnt:NavigationListItem text="{i18n>bankTransactions}" key="swiver.finance#BankTransactions" />
+						<tnt:NavigationListItem text="{i18n>payments}" key="swiver.finance#Payments" />
+						<tnt:NavigationListItem text="{i18n>reports}" key="swiver.finance#Reports" />
+					</tnt:NavigationListItem>
+					<tnt:NavigationListItem text="{i18n>groupAdministration}" icon="sap-icon://building" selectable="false">
+						<tnt:NavigationListItem text="{i18n>organization}" key="swiver.settings" />
+						<tnt:NavigationListItem text="{i18n>taxAdvisor}" key="swiver.taxadvisor" visible="{= !!${org>role} &amp;&amp; ${org>role} !== 'MEMBER' }" />
 					</tnt:NavigationListItem>
 				</tnt:NavigationList>
 				<tnt:fixedItem>

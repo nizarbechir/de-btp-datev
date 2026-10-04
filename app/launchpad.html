@@ -111,8 +111,8 @@
             "url": "/swiver.settings"
         },
         "Configuration-display": {
-            "title": "Settings & Configuration",
-            "description": "Organization, master data and support",
+            "title": "Swiver Hub",
+            "description": "All Swiver apps in one place",
             "additionalInformation": "SAPUI5.Component=swiver.configuration",
             "applicationType": "URL",
             "url": "/swiver.configuration"
@@ -130,6 +130,16 @@
                             "isVisible": true,
                             "isGroupLocked": false,
                             "tiles": [
+                                {
+                                    "id": "configuration",
+                                    "tileType": "sap.ushell.ui.tile.StaticTile",
+                                    "properties": {
+                                        "title": "Swiver Hub",
+                                        "info": "All apps",
+                                        "icon": "sap-icon://grid",
+                                        "targetURL": "#Configuration-display"
+                                    }
+                                },
                                 {
                                     "id": "dashboard",
                                     "tileType": "sap.ushell.ui.tile.StaticTile",
@@ -305,16 +315,6 @@
                             "isVisible": true,
                             "isGroupLocked": false,
                             "tiles": [
-                                {
-                                    "id": "configuration",
-                                    "tileType": "sap.ushell.ui.tile.StaticTile",
-                                    "properties": {
-                                        "title": "Settings & Configuration",
-                                        "info": "All settings",
-                                        "icon": "sap-icon://action-settings",
-                                        "targetURL": "#Configuration-display"
-                                    }
-                                },
                                 {
                                     "id": "organization",
                                     "tileType": "sap.ushell.ui.tile.StaticTile",
