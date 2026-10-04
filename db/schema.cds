@@ -67,6 +67,10 @@ entity SupplierInvoices : cuid, managed, OrganizationOwned {
   paidAmount        : Amount default 0;
   outstandingAmount : Amount = netAmount + taxAmount - coalesce(paidAmount, 0);
   isOverdue         : Boolean = (paymentStatus.code != 'PAID' and dueDate < current_date);
+  // Filters for the dashboard's to-do links
+  isDueSoon         : Boolean = (paymentStatus.code != 'PAID' and dueDate >= current_date and days_between(current_date, dueDate) <= 7);
+  hasDocument       : Boolean = (documentFileName is not null);
+  isCategorized     : Boolean = (expenseCategory.ID is not null);
   status            : String(20) = (case
                                       when paymentStatus.code = 'PAID'
                                       then 'Paid'

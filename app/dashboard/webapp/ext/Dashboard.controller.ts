@@ -16,11 +16,16 @@ interface ShellServices {
 	toExternal(args: { target: { shellHash: string } }): void;
 }
 
+// Each to-do opens its app filtered to exactly those records (intent parameters become filter values).
 const attentionTargets: Record<string, string> = {
-	BankTransaction: "Finance-manage&/BankTransactions",
-	IncomingDocument: "Purchases-manage&/IncomingDocuments",
-	SalesInvoice: "Sales-manage&/SalesInvoices",
-	SupplierInvoice: "Purchases-manage&/SupplierInvoices",
+	dueSoon: "Purchases-manage?isDueSoon=true",
+	inbox: "Purchases-manage&/IncomingDocuments",
+	missingDocument: "Purchases-manage?hasDocument=false",
+	overduePayables: "Purchases-manage?isOverdue=true",
+	overdueReceivables: "Sales-manage?isOverdue=true",
+	suggested: "Finance-manage?matchStatus_code=SUGGESTED",
+	uncategorized: "Purchases-manage?isCategorized=false",
+	unmatched: "Finance-manage?matchStatus_code=UNMATCHED",
 };
 
 /**
@@ -64,7 +69,7 @@ export default class Dashboard extends PageController {
 
 	public onAttention(event: Event): void {
 		const context = (event.getSource() as { getBindingContext(model: string): Context }).getBindingContext("kpi");
-		const target = attentionTargets[context.getProperty("target") as string];
+		const target = attentionTargets[context.getProperty("id") as string];
 		if (target) {
 			this.navigate(target);
 		}

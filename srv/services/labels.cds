@@ -72,6 +72,9 @@ annotate swiver.SupplierInvoices with @(
   paidAmount        @title: '{i18n>PaidAmount}'       @readonly  @Measures.ISOCurrency: currency_code;
   outstandingAmount @title: '{i18n>OutstandingAmount}' @Measures.ISOCurrency: currency_code;
   isOverdue         @title: '{i18n>Overdue}';
+  isDueSoon         @title: '{i18n>DueSoon}';
+  hasDocument       @title: '{i18n>HasDocument}';
+  isCategorized     @title: '{i18n>Categorized}';
   incomingDocument  @UI.Hidden;
   organization      @UI.Hidden;
 };
