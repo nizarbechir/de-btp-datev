@@ -155,6 +155,10 @@ modules:
           artifacts:
             - swiversettings.zip
           target-path: resources/
+        - name: swiverconfiguration
+          artifacts:
+            - swiverconfiguration.zip
+          target-path: resources/
         - name: swivertaxadvisor
           artifacts:
             - swivertaxadvisor.zip
@@ -296,6 +300,16 @@ modules:
   - name: swiversettings
     type: html5
     path: app/settings
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+  - name: swiverconfiguration
+    type: html5
+    path: app/configuration
     build-parameters:
       build-result: dist
       builder: custom

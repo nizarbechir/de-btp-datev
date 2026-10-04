@@ -1,0 +1,31 @@
+<mvc:View controllerName="swiver.configuration.controller.App" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:tnt="sap.tnt" xmlns:core="sap.ui.core" displayBlock="true">
+	<tnt:ToolPage id="toolPage">
+		<tnt:header>
+			<tnt:ToolHeader>
+				<Button icon="sap-icon://menu2" type="Transparent" press=".onToggleSide" tooltip="{i18n>appTitle}" />
+				<Title text="{i18n>appTitle}" level="H1" />
+			</tnt:ToolHeader>
+		</tnt:header>
+		<tnt:sideContent>
+			<tnt:SideNavigation selectedKey="swiver.settings" itemSelect=".onItemSelect">
+				<tnt:NavigationList>
+					<tnt:NavigationListItem text="{i18n>groupOrganization}" icon="sap-icon://building" selectable="false">
+						<tnt:NavigationListItem text="{i18n>organization}" key="swiver.settings" />
+					</tnt:NavigationListItem>
+					<tnt:NavigationListItem text="{i18n>groupMasterData}" icon="sap-icon://database" selectable="false">
+						<tnt:NavigationListItem text="{i18n>customers}" key="swiver.customers" />
+						<tnt:NavigationListItem text="{i18n>products}" key="swiver.products" />
+						<tnt:NavigationListItem text="{i18n>suppliers}" key="swiver.suppliers" />
+						<tnt:NavigationListItem text="{i18n>expenseCategories}" key="swiver.expensecategories" />
+					</tnt:NavigationListItem>
+					<tnt:NavigationListItem text="{i18n>groupHelp}" icon="sap-icon://headset" selectable="false">
+						<tnt:NavigationListItem text="{i18n>support}" key="swiver.support" />
+					</tnt:NavigationListItem>
+				</tnt:NavigationList>
+			</tnt:SideNavigation>
+		</tnt:sideContent>
+		<tnt:mainContents>
+			<core:HTML id="frame" content="&lt;iframe class=&quot;swiverFrame&quot; style=&quot;border:0;width:100%;height:100%;display:block&quot;&gt;&lt;/iframe&gt;" afterRendering=".onFrameRendered" />
+		</tnt:mainContents>
+	</tnt:ToolPage>
+</mvc:View>
