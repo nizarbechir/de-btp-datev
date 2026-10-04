@@ -161,7 +161,7 @@ annotate service.BankTransactions with @(
     {Value: suggestedSalesInvoice_ID},
     {Value: suggestedSupplierInvoice_ID},
     {
-      Value: suggestedSupplierInvoice.documentContent,
+      Value: suggestedDocument,
       Label: '{i18n>SuggestedInvoiceDocument}'
     },
     {Value: suggestionReason}

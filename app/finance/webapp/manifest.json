@@ -178,6 +178,10 @@
 							"views": {
 								"paths": [
 									{
+										"key": "all",
+										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
+									},
+									{
 										"key": "toConfirm",
 										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#ToConfirm"
 									},
@@ -188,10 +192,6 @@
 									{
 										"key": "matched",
 										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Matched"
-									},
-									{
-										"key": "all",
-										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#All"
 									}
 								],
 								"showCounts": true

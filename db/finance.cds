@@ -74,6 +74,10 @@ entity BankTransactions : cuid, managed, OrganizationOwned {
                                           then 'OUT'
                                           else 'IN'
                                         end);
+  // The document of the suggested supplier invoice, to compare before confirming.
+  suggestedDocument      : LargeBinary = suggestedSupplierInvoice.documentContent  @Core.MediaType: suggestedDocumentType
+                                                                                   @Core.ContentDisposition.Type: 'inline';
+  suggestedDocumentType  : String(100) = suggestedSupplierInvoice.documentMediaType;
   // Money in green, money out red.
   amountCriticality      : Integer = (case
                                         when amount < 0
