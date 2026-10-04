@@ -122,6 +122,9 @@ service ClientService @(path: '/odata/v4/clients') {
 
   entity TaxFirmAssignments      as projection on my.TaxFirmAssignments;
 
+  @readonly
+  entity TaxFirmStaffRoles       as projection on my.TaxFirmStaffRoles;
+
   /** Only the user's own memberships; the client list is limited by them. */
   @readonly
   entity Memberships             as projection on my.Memberships {

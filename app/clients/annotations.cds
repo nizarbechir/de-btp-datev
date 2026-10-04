@@ -162,6 +162,20 @@ annotate service.TaxFirmStaff with @(UI.LineItem: [
   {Value: role}
 ]);
 
+annotate service.TaxFirmStaff with {
+  role @(
+    Common.ValueListWithFixedValues: true,
+    Common.ValueList               : {
+      CollectionPath: 'TaxFirmStaffRoles',
+      Parameters    : [{
+        $Type            : 'Common.ValueListParameterInOut',
+        LocalDataProperty: role,
+        ValueListProperty: 'code'
+      }]
+    }
+  );
+};
+
 annotate service.TaxFirmClients with @(
   UI.HeaderInfo: {
     TypeName      : '{i18n>Client}',

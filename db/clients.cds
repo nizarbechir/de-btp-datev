@@ -42,6 +42,12 @@ entity TaxFirmStaff : cuid {
   } default 'STAFF';
 }
 
+/** The roles offered for the firm's staff. */
+entity TaxFirmStaffRoles {
+  key code : String(10);
+      name : localized String(40);
+}
+
 /** A client of the firm: added when a client's invitation is accepted, never by the firm itself. */
 entity TaxFirmClients : cuid {
   firm         : Association to TaxFirms;
