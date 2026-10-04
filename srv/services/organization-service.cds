@@ -9,18 +9,21 @@ service OrganizationService @(path: '/odata/v4/organization') {
     InsertRestrictions.Insertable: false,
     DeleteRestrictions.Deletable : false
   }
-  entity Organizations   as projection on my.Organizations;
+  entity Organizations     as projection on my.Organizations;
 
-  entity Memberships     as projection on my.Memberships;
+  entity Memberships       as projection on my.Memberships;
 
   @readonly
-  entity MembershipRoles as projection on my.MembershipRoles;
+  entity MembershipRoles   as projection on my.MembershipRoles;
+
+  @readonly
+  entity DocumentLanguages as projection on my.DocumentLanguages;
 
   @Capabilities: {
     InsertRestrictions.Insertable: false,
     DeleteRestrictions.Deletable : false
   }
-  entity CompanySettings as projection on my.CompanySettings;
+  entity CompanySettings   as projection on my.CompanySettings;
 
   type CurrentOrganization {
     organizationID : UUID;

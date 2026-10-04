@@ -1,9 +1,12 @@
 import PDFDocument from "pdfkit";
 
+import { labelsFor, PdfLabels } from "./invoice-pdf-labels";
+import { documentFonts } from "./pdf-fonts";
+
 /** PDF/A-3b output for e-invoices: embedded fonts, attachments and additional XMP metadata. */
 export interface PdfArchiveOptions {
 	attachments: PdfAttachment[];
-	/** Font files to embed, since PDF/A does not allow the standard PDF fonts. */
+	/** Font files to embed; every invoice PDF embeds fonts, see documentFonts. */
 	fonts: { bold: string; regular: string };
 	xmp?: string;
 }
@@ -24,11 +27,15 @@ export interface SalesInvoicePdfData {
 		city?: null | string;
 		companyName?: null | string;
 		country_code?: null | string;
+		documentLanguage_code?: null | string;
 		email?: null | string;
 		iban?: null | string;
+		managingDirectors?: null | string;
 		ownerName?: null | string;
 		phone?: null | string;
 		postalCode?: null | string;
+		registerCourt?: null | string;
+		registerNumber?: null | string;
 		street?: null | string;
 		taxNumber?: null | string;
 		vatId?: null | string;
@@ -68,6 +75,8 @@ export interface SalesInvoicePdfData {
 		paymentDate?: null | string;
 		paymentStatus_code?: null | string;
 		replacesInvoice_ID?: null | string;
+		servicePeriodEnd?: null | string;
+		servicePeriodStart?: null | string;
 		status_code?: null | string;
 		subject?: null | string;
 		taxAmount?: Value;
@@ -77,73 +86,82 @@ export interface SalesInvoicePdfData {
 	logo?: Buffer;
 }
 
+/** Language-specific labels and formatting of one document. */
+interface Format {
+	date: (value: null | string | undefined) => string;
+	labels: PdfLabels;
+	money: (value: Value) => string;
+	number: (value: Value, maximumFractionDigits: number) => string;
+}
+
 type Value = null | number | string | undefined;
 
 const page = { bottom: 760, left: 56, right: 539, width: 483 };
-const color = { accent: "#1f4fd1", border: "#e4e7ec", muted: "#667085", soft: "#f2f4f7", text: "#101828" };
+const color = { border: "#e4e7ec", muted: "#667085", soft: "#f2f4f7", text: "#101828" };
 const font = { bold: "Helvetica-Bold", regular: "Helvetica" };
 
 /** Page footer columns: seller, contact, tax IDs, bank. */
 const footerColumns = [
-	{ posX: 0, width: 110 },
-	{ posX: 115, width: 130 },
-	{ posX: 250, width: 95 },
-	{ posX: 345, width: 138 },
+	{ posX: 0, width: 108 },
+	{ posX: 112, width: 106 },
+	{ posX: 222, width: 126 },
+	{ posX: 352, width: 131 },
 ];
 
 /** Item table columns: horizontal position, width and alignment. */
 const columns = {
 	amount: { align: "right", posX: 454, width: 85 },
-	description: { align: "left", posX: 80, width: 170 },
-	position: { align: "left", posX: 56, width: 20 },
+	description: { align: "left", posX: 86, width: 164 },
+	position: { align: "left", posX: 56, width: 26 },
 	quantity: { align: "right", posX: 254, width: 40 },
 	taxRate: { align: "right", posX: 414, width: 36 },
 	unit: { align: "left", posX: 300, width: 42 },
 	unitPrice: { align: "right", posX: 344, width: 66 },
 } as const;
 
-export function formatMoney(value: Value, currency: string): string {
-	return new Intl.NumberFormat("en-US", { currency, style: "currency" }).format(Number(value ?? 0));
+export function formatMoney(value: Value, currency: string, locale = "en-US"): string {
+	return new Intl.NumberFormat(locale, { currency, style: "currency" }).format(Number(value ?? 0));
 }
 
 /**
  * Renders a sales invoice as an A4 PDF: seller, customer address, invoice details, items,
  * totals per tax rate, payment information and the seller's details in the page footer.
+ * All labels, dates and amounts use the document language of the company settings.
  */
 export function renderSalesInvoicePdf(
 	{ company = {}, invoice, kind = "invoice", logo }: SalesInvoicePdfData,
 	archive?: PdfArchiveOptions,
 ): Promise<Buffer> {
+	const fonts = archive?.fonts ?? documentFonts;
 	const doc = new PDFDocument({
 		bufferPages: true,
+		font: fonts.regular,
 		margins: { bottom: 40, left: 56, right: 56, top: 48 },
 		size: "A4",
-		...(archive && { font: archive.fonts.regular, pdfVersion: "1.7", subset: "PDF/A-3b" }),
+		...(archive && { pdfVersion: "1.7", subset: "PDF/A-3b" }),
 	});
-	if (archive) {
-		// The layout uses the Helvetica names; for PDF/A they point to the embedded fonts.
-		doc.registerFont(font.regular, archive.fonts.regular);
-		doc.registerFont(font.bold, archive.fonts.bold);
-	}
+	// The layout uses the Helvetica names; they point to the embedded fonts.
+	doc.registerFont(font.regular, fonts.regular);
+	doc.registerFont(font.bold, fonts.bold);
 	const chunks: Buffer[] = [];
 	doc.on("data", (chunk: Buffer) => chunks.push(chunk));
 	const done = new Promise<Buffer>((resolve) => doc.on("end", () => resolve(Buffer.concat(chunks))));
 
-	const currency = invoice.currency_code || "EUR";
-	const money = (value: Value) => formatMoney(value, currency);
+	const format = documentFormat(company.documentLanguage_code, invoice.currency_code || "EUR");
+	const { labels } = format;
 
 	drawSeller(doc, company, logo);
 	drawRecipient(doc, company, invoice);
-	drawDetails(doc, invoice, kind);
+	drawDetails(doc, invoice, kind, format);
 
-	// Title, subject and introduction
+	// Title, service description and introduction
 	setTop(doc, 300);
-	const label = kind === "quote" ? "Quote" : "Invoice";
-	const title = invoice.invoiceNumber ? `${label} ${invoice.invoiceNumber}` : `${label} (draft)`;
+	const label = labels.documentTitle[kind];
+	const title = invoice.invoiceNumber ? `${label} ${invoice.invoiceNumber}` : `${label} (${labels.draft})`;
 	doc.font(font.bold).fontSize(20).fillColor(color.text).text(title, page.left, doc.y);
-	drawStatusBadge(doc, invoice);
+	drawStatusBadge(doc, invoice, labels);
 	if (invoice.subject) {
-		doc.moveDown(0.3).font(font.regular).fontSize(11).fillColor(color.muted).text(invoice.subject, page.left, doc.y, {
+		doc.moveDown(0.3).font(font.bold).fontSize(11).fillColor(color.text).text(invoice.subject, page.left, doc.y, {
 			width: page.width,
 		});
 	}
@@ -156,14 +174,14 @@ export function renderSalesInvoicePdf(
 			.text(invoice.introductionText, { width: page.width });
 	}
 
-	drawItems(doc, invoice, money);
-	drawTotals(doc, invoice, money);
+	drawItems(doc, invoice, format);
+	drawTotals(doc, invoice, format);
 	if (kind === "quote") {
 		ensureSpace(doc, 40);
 		doc.font(font.regular).fontSize(10).fillColor(color.text);
-		doc.text(`This quote is valid until ${formatDate(invoice.dueDate)}.`, page.left, doc.y, { width: page.width });
+		doc.text(labels.quoteValidUntil(format.date(invoice.dueDate)), page.left, doc.y, { width: page.width });
 	} else {
-		drawPayment(doc, company, invoice, money);
+		drawPayment(doc, company, invoice, format);
 	}
 
 	if (invoice.footerText) {
@@ -173,7 +191,7 @@ export function renderSalesInvoicePdf(
 		});
 	}
 
-	drawPageFooters(doc, company);
+	drawPageFooters(doc, company, labels);
 	for (const attachment of archive?.attachments ?? []) {
 		// pdfkit supports the PDF/A-3 relationship, its type definitions do not know it yet
 		doc.file(attachment.content, {
@@ -190,56 +208,87 @@ export function renderSalesInvoicePdf(
 	return done;
 }
 
-function drawDetails(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"], kind: "invoice" | "quote") {
-	const quote = kind === "quote";
+/** Labels and formatters for the document language: 03.10.2026 and 1.234,56 € in German. */
+function documentFormat(languageCode: null | string | undefined, currency: string): Format {
+	const labels = labelsFor(languageCode);
+	const dates = new Intl.DateTimeFormat(
+		labels.locale,
+		labels.locale === "de-DE"
+			? { day: "2-digit", month: "2-digit", timeZone: "UTC", year: "numeric" }
+			: { day: "numeric", month: "short", timeZone: "UTC", year: "numeric" },
+	);
+	return {
+		date: (value) => (value ? dates.format(new Date(value)) : ""),
+		labels,
+		// The standard PDF fonts have no width for the no-break space that German amounts use.
+		money: (value) => formatMoney(value, currency, labels.locale).replace(/[\u00a0\u202f]/g, " "),
+		number: (value, maximumFractionDigits) =>
+			new Intl.NumberFormat(labels.locale, { maximumFractionDigits }).format(Number(value ?? 0)),
+	};
+}
+
+function drawDetails(
+	doc: PDFKit.PDFDocument,
+	invoice: SalesInvoicePdfData["invoice"],
+	kind: "invoice" | "quote",
+	{ date, labels }: Format,
+) {
 	const rows: [string, string][] = [
-		[quote ? "Quote number" : "Invoice number", invoice.invoiceNumber || "Assigned when saved"],
-		[quote ? "Quote date" : "Invoice date", formatDate(invoice.invoiceDate)],
-		[quote ? "Valid until" : "Due date", formatDate(invoice.dueDate)],
+		[labels.documentNumber[kind], invoice.invoiceNumber || labels.assignedWhenSaved],
+		[labels.documentDate[kind], date(invoice.invoiceDate)],
 	];
+	if (kind === "invoice") {
+		rows.push(serviceDateRow(invoice, labels, date));
+	}
+	rows.push([labels.dueDate[kind], date(invoice.dueDate)]);
 	if (invoice.customer?.customerNumber) {
-		rows.push(["Customer number", invoice.customer.customerNumber]);
+		rows.push([labels.customerNumber, invoice.customer.customerNumber]);
 	}
 	if (invoice.customer?.vatId) {
-		rows.push(["Customer VAT ID", invoice.customer.vatId]);
+		rows.push([labels.customerVatId, invoice.customer.vatId]);
 	}
-	const posX = 340;
+	const posX = 320;
+	const labelWidth = 88;
 	let posY = 160;
 	doc.roundedRect(posX - 12, posY - 10, page.right - posX + 12, rows.length * 18 + 14, 6).fill(color.soft);
 	for (const [label, value] of rows) {
-		doc.font(font.regular).fontSize(9).fillColor(color.muted).text(label, posX, posY, { width: 90 });
+		doc.font(font.regular).fontSize(9).fillColor(color.muted).text(label, posX, posY, { width: labelWidth });
+		// Long values, such as a service period, shrink instead of wrapping into the next row.
+		const valueWidth = page.right - posX - labelWidth - 12;
+		doc.font(font.bold).fontSize(9);
+		const size = Math.max(7, (9 * valueWidth) / Math.max(doc.widthOfString(value), valueWidth));
 		doc
-			.font(font.bold)
-			.fontSize(9)
+			.fontSize(size)
 			.fillColor(color.text)
-			.text(value, posX + 90, posY, { align: "right", width: page.right - posX - 102 });
+			.text(value, posX + labelWidth, posY + (9 - size) / 2, { align: "right", lineBreak: false, width: valueWidth });
 		posY += 18;
 	}
 }
 
-function drawItemHeader(doc: PDFKit.PDFDocument) {
+function drawItemHeader(doc: PDFKit.PDFDocument, labels: PdfLabels) {
 	const posY = doc.y;
 	doc.rect(page.left, posY, page.width, 22).fill(color.soft);
-	const labels: Record<keyof typeof columns, string> = {
-		amount: "Amount",
-		description: "Description",
-		position: "Pos.",
-		quantity: "Qty",
-		taxRate: "VAT",
-		unit: "Unit",
-		unitPrice: "Price",
+	const headers: Record<keyof typeof columns, string> = {
+		amount: labels.amount,
+		description: labels.description,
+		position: labels.position,
+		quantity: labels.quantity,
+		taxRate: labels.vat,
+		unit: labels.unit,
+		unitPrice: labels.unitPrice,
 	};
 	doc.font(font.bold).fontSize(8.5).fillColor(color.muted);
-	for (const [column, label] of Object.entries(labels) as [keyof typeof columns, string][]) {
+	for (const [column, label] of Object.entries(headers) as [keyof typeof columns, string][]) {
 		const { align, posX, width } = columns[column];
 		doc.text(label, posX, posY + 7, { align, width });
 	}
 	setTop(doc, posY + 22);
 }
 
-function drawItems(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"], money: (value: Value) => string) {
+function drawItems(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"], format: Format) {
+	const { labels, money } = format;
 	doc.moveDown(1.2);
-	drawItemHeader(doc);
+	drawItemHeader(doc, labels);
 	const items = [...(invoice.items ?? [])].sort((first, second) => (first.position ?? 0) - (second.position ?? 0));
 	items.forEach((item, index) => {
 		const description = item.description ?? "";
@@ -247,16 +296,16 @@ function drawItems(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoic
 		const height = Math.max(doc.heightOfString(description, { width: columns.description.width }), 12) + 12;
 		if (doc.y + height > page.bottom - 40) {
 			doc.addPage();
-			drawItemHeader(doc);
+			drawItemHeader(doc, labels);
 		}
 		const posY = doc.y + 6;
 		const cells: [keyof typeof columns, string][] = [
 			["position", String(item.position ?? index + 1)],
 			["description", description],
-			["quantity", formatNumber(item.quantity, 3)],
-			["unit", item.unit ?? ""],
+			["quantity", format.number(item.quantity, 3)],
+			["unit", labels.units[(item.unit ?? "").toLowerCase()] ?? item.unit ?? ""],
 			["unitPrice", money(item.unitPrice)],
-			["taxRate", `${formatNumber(item.taxRate, 2)}%`],
+			["taxRate", `${format.number(item.taxRate, 2)} %`],
 			["amount", money(item.netAmount)],
 		];
 		doc.fillColor(color.text);
@@ -269,30 +318,39 @@ function drawItems(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoic
 	});
 }
 
-function drawPageFooters(doc: PDFKit.PDFDocument, company: NonNullable<SalesInvoicePdfData["company"]>) {
+function drawPageFooters(
+	doc: PDFKit.PDFDocument,
+	company: NonNullable<SalesInvoicePdfData["company"]>,
+	labels: PdfLabels,
+) {
 	const blocks = [
 		[company.companyName, company.ownerName, company.street, join(" ", company.postalCode, company.city)],
 		[company.phone, company.email, company.website],
-		[company.taxNumber && `Tax number ${company.taxNumber}`, company.vatId && `VAT ID ${company.vatId}`],
+		[
+			company.managingDirectors && `${labels.managingDirectors}: ${company.managingDirectors}`,
+			join(", ", company.registerCourt, company.registerNumber),
+			company.taxNumber && `${labels.taxNumber} ${company.taxNumber}`,
+			company.vatId && `${labels.vatId} ${company.vatId}`,
+		],
 		[company.bankName, company.iban && `IBAN ${formatIban(company.iban)}`, company.bic && `BIC ${company.bic}`],
 	].map((lines) => lines.filter(Boolean).join("\n"));
 	const range = doc.bufferedPageRange();
 	for (let index = range.start; index < range.start + range.count; index++) {
 		doc.switchToPage(index);
-		const posY = 782;
+		const posY = 778;
 		doc
 			.moveTo(page.left, posY - 8)
 			.lineTo(page.right, posY - 8)
 			.lineWidth(0.5)
 			.strokeColor(color.border)
 			.stroke();
-		doc.font(font.regular).fontSize(7).fillColor(color.muted);
+		doc.font(font.regular).fontSize(6.5).fillColor(color.muted);
 		blocks.forEach((text, column) => {
 			const { posX, width } = footerColumns[column];
-			doc.text(text, page.left + posX, posY, { height: 40, width });
+			doc.text(text, page.left + posX, posY, { height: 52, width });
 		});
 		if (range.count > 1) {
-			doc.text(`Page ${index + 1} of ${range.count}`, page.left, posY - 22, { align: "right", width: page.width });
+			doc.text(labels.page(index + 1, range.count), page.left, posY - 22, { align: "right", width: page.width });
 		}
 	}
 }
@@ -301,17 +359,17 @@ function drawPayment(
 	doc: PDFKit.PDFDocument,
 	company: NonNullable<SalesInvoicePdfData["company"]>,
 	invoice: SalesInvoicePdfData["invoice"],
-	money: (value: Value) => string,
+	{ date, labels, money }: Format,
 ) {
 	ensureSpace(doc, 70);
-	doc.font(font.bold).fontSize(10).fillColor(color.text).text("Payment", page.left, doc.y);
+	doc.font(font.bold).fontSize(10).fillColor(color.text).text(labels.payment, page.left, doc.y);
 	doc.moveDown(0.3).font(font.regular).fontSize(10);
 	if (invoice.paymentStatus_code === "PAID") {
-		doc.text(`Paid on ${formatDate(invoice.paymentDate)}. Thank you!`, { width: page.width });
+		doc.text(labels.paidOn(date(invoice.paymentDate)), { width: page.width });
 		return;
 	}
-	const reference = invoice.invoiceNumber ? ` Please use ${invoice.invoiceNumber} as the payment reference.` : "";
-	doc.text(`Please transfer ${money(invoice.grossAmount)} by ${formatDate(invoice.dueDate)}.${reference}`, {
+	const reference = invoice.invoiceNumber ? labels.paymentReference(invoice.invoiceNumber) : "";
+	doc.text(`${labels.payBy(money(invoice.grossAmount), date(invoice.dueDate))}${reference}`, {
 		width: page.width,
 	});
 	const bank = [
@@ -333,7 +391,7 @@ function drawRecipient(
 	const sender = [company.companyName, company.street, join(" ", company.postalCode, company.city)]
 		.filter(Boolean)
 		.join(" · ");
-	doc.font(font.regular).fontSize(7).fillColor(color.muted).text(sender, page.left, top, { width: 260 });
+	doc.font(font.regular).fontSize(7).fillColor(color.muted).text(sender, page.left, top, { width: 240 });
 
 	const customer = invoice.customer ?? {};
 	const foreign = customer.country_code && customer.country_code !== company.country_code;
@@ -350,7 +408,7 @@ function drawRecipient(
 			.font(index === 0 ? font.bold : font.regular)
 			.fontSize(10.5)
 			.fillColor(color.text)
-			.text(line, page.left, doc.y, { width: 260 });
+			.text(line, page.left, doc.y, { width: 240 });
 	});
 }
 
@@ -382,12 +440,12 @@ function drawSeller(doc: PDFKit.PDFDocument, company: NonNullable<SalesInvoicePd
 	}
 }
 
-function drawStatusBadge(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"]) {
+function drawStatusBadge(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"], labels: PdfLabels) {
 	const badge =
 		invoice.paymentStatus_code === "PAID" && invoice.status_code !== "CANCELLED"
-			? { color: "#067647", fill: "#ecfdf3", text: "PAID" }
+			? { color: "#067647", fill: "#ecfdf3", text: labels.paid }
 			: invoice.status_code === "CANCELLED"
-				? { color: "#b42318", fill: "#fef3f2", text: "CANCELLED" }
+				? { color: "#b42318", fill: "#fef3f2", text: labels.cancelled }
 				: undefined;
 	if (!badge) {
 		return;
@@ -402,37 +460,36 @@ function drawStatusBadge(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["
 	setTop(doc, posY + 22);
 }
 
-function drawTotals(doc: PDFKit.PDFDocument, invoice: SalesInvoicePdfData["invoice"], money: (value: Value) => string) {
+/**
+ * Totals on a white background: net amount, VAT per rate, a divider and the bold total.
+ * Values are right-aligned in their own column, so long VAT labels never run into them.
+ */
+function drawTotals(
+	doc: PDFKit.PDFDocument,
+	invoice: SalesInvoicePdfData["invoice"],
+	{ labels, money, number }: Format,
+) {
 	const taxes = invoice.taxes ?? [];
-	ensureSpace(doc, 50 + taxes.length * 16);
-	const posX = 330;
-	const width = page.right - posX;
-	let posY = doc.y + 14;
+	ensureSpace(doc, 80 + taxes.length * 18);
+	const posX = 290;
+	const valueWidth = 110;
+	const labelWidth = page.right - posX - valueWidth;
+	let posY = doc.y + 18;
 	const row = (label: string, value: string) => {
-		doc
-			.font(font.regular)
-			.fontSize(10)
-			.fillColor(color.muted)
-			.text(label, posX, posY, { width: width / 2 });
-		doc.fillColor(color.text).text(value, posX + width / 2, posY, { align: "right", width: width / 2 });
-		posY += 16;
+		doc.font(font.regular).fontSize(9.5).fillColor(color.muted).text(label, posX, posY, { width: labelWidth });
+		doc.fillColor(color.text).text(value, posX + labelWidth, posY, { align: "right", width: valueWidth });
+		posY += 18;
 	};
-	row("Net amount", money(invoice.netAmount));
+	row(labels.netAmount, money(invoice.netAmount));
 	for (const tax of [...taxes].sort((first, second) => Number(second.taxRate) - Number(first.taxRate))) {
-		row(`VAT ${formatNumber(tax.taxRate, 2)}% on ${money(tax.netAmount)}`, money(tax.taxAmount));
+		row(labels.vatOn(number(tax.taxRate, 2), money(tax.netAmount)), money(tax.taxAmount));
 	}
-	posY += 4;
-	doc.roundedRect(posX - 10, posY, width + 10, 30, 6).fill(color.accent);
-	doc
-		.font(font.bold)
-		.fontSize(12)
-		.fillColor("#ffffff")
-		.text("Total", posX, posY + 9, { width: width / 2 });
-	doc
-		.fontSize(13)
-		.text(money(invoice.grossAmount), posX + width / 2 - 10, posY + 8, { align: "right", width: width / 2 });
-	doc.fillColor(color.text);
-	setTop(doc, posY + 44);
+	posY += 2;
+	doc.moveTo(posX, posY).lineTo(page.right, posY).lineWidth(0.75).strokeColor(color.border).stroke();
+	posY += 10;
+	doc.font(font.bold).fontSize(11.5).fillColor(color.text).text(labels.total, posX, posY, { width: labelWidth });
+	doc.text(money(invoice.grossAmount), posX + labelWidth, posY, { align: "right", width: valueWidth });
+	setTop(doc, posY + 34);
 	setLeft(doc, page.left);
 }
 
@@ -442,15 +499,6 @@ function ensureSpace(doc: PDFKit.PDFDocument, height: number) {
 	}
 }
 
-function formatDate(value: null | string | undefined): string {
-	if (!value) {
-		return "";
-	}
-	return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC", year: "numeric" }).format(
-		new Date(value),
-	);
-}
-
 function formatIban(iban: string): string {
 	return iban
 		.replace(/\s+/g, "")
@@ -458,12 +506,22 @@ function formatIban(iban: string): string {
 		.trim();
 }
 
-function formatNumber(value: Value, maximumFractionDigits: number): string {
-	return new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(Number(value ?? 0));
-}
-
 function join(separator: string, ...parts: (null | string | undefined)[]): string {
 	return parts.filter(Boolean).join(separator);
+}
+
+/** The service period, or the single service date; without one, the invoice date is the service date. */
+function serviceDateRow(
+	invoice: SalesInvoicePdfData["invoice"],
+	labels: PdfLabels,
+	date: Format["date"],
+): [string, string] {
+	const start = invoice.servicePeriodStart;
+	const end = invoice.servicePeriodEnd;
+	if (start && end && start !== end) {
+		return [labels.servicePeriod, `${date(start)} – ${date(end)}`];
+	}
+	return [labels.serviceDate, date(start || end || invoice.invoiceDate)];
 }
 
 /** Moves the text cursor to the given horizontal position. */

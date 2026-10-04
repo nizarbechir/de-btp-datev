@@ -50,6 +50,7 @@ export function writeCii(invoice: EInvoiceContext): string {
 					: "",
 			)
 		: el("ram:SpecifiedTradeSettlementPaymentMeans", el("ram:TypeCode", "1"));
+	const period = invoice.servicePeriod ?? {};
 	const document = el(
 		'rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"',
 		el(
@@ -81,6 +82,13 @@ export function writeCii(invoice: EInvoiceContext): string {
 				el("ram:InvoiceCurrencyCode", invoice.currency),
 				paymentMeans,
 				...taxes,
+				period.start || period.end
+					? el(
+							"ram:BillingSpecifiedPeriod",
+							period.start ? el("ram:StartDateTime", date(period.start)) : "",
+							period.end ? el("ram:EndDateTime", date(period.end)) : "",
+						)
+					: "",
 				invoice.dueDate || invoice.payment.terms
 					? el(
 							"ram:SpecifiedTradePaymentTerms",

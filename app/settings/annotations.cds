@@ -25,6 +25,11 @@ annotate service.CompanySettings with @(
     {Value: taxNumber},
     {Value: vatId}
   ]},
+  UI.FieldGroup #Legal   : {Data: [
+    {Value: managingDirectors},
+    {Value: registerCourt},
+    {Value: registerNumber}
+  ]},
   UI.FieldGroup #Bank    : {Data: [
     {Value: bankName},
     {Value: iban},
@@ -35,7 +40,8 @@ annotate service.CompanySettings with @(
     {Value: defaultTaxRate},
     {Value: defaultPaymentTermDays},
     {Value: invoicePrefix},
-    {Value: quotePrefix}
+    {Value: quotePrefix},
+    {Value: documentLanguage_code}
   ]},
   UI.FieldGroup #Logo    : {Data: [{Value: logo}]},
   UI.Facets              : [
@@ -61,6 +67,12 @@ annotate service.CompanySettings with @(
           ID    : 'Tax',
           Label : '{i18n>TaxDetails}',
           Target: '@UI.FieldGroup#Tax'
+        },
+        {
+          $Type : 'UI.ReferenceFacet',
+          ID    : 'Legal',
+          Label : '{i18n>LegalDetails}',
+          Target: '@UI.FieldGroup#Legal'
         }
       ]
     },
@@ -93,12 +105,25 @@ annotate service.CompanySettings with @(
 );
 
 annotate service.CompanySettings with {
-  country         @(
+  country          @(
     Common.Text                    : country.name,
     Common.TextArrangement         : #TextOnly,
     Common.ValueListWithFixedValues: true
   );
-  defaultCurrency @Common.ValueListWithFixedValues: false;
+  defaultCurrency  @Common.ValueListWithFixedValues: false;
+  documentLanguage @(
+    Common.Text                    : documentLanguage.name,
+    Common.TextArrangement         : #TextOnly,
+    Common.ValueListWithFixedValues: true,
+    Common.ValueList               : {
+      CollectionPath: 'DocumentLanguages',
+      Parameters    : [{
+        $Type            : 'Common.ValueListParameterInOut',
+        LocalDataProperty: documentLanguage_code,
+        ValueListProperty: 'code'
+      }]
+    }
+  );
 };
 
 // ---------------------------------------------------------------------------

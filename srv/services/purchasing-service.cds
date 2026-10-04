@@ -10,7 +10,11 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
     balance : redirected to SupplierBalances
   };
 
-  entity SupplierInvoices         as projection on my.SupplierInvoices
+  entity SupplierInvoices         as projection on my.SupplierInvoices {
+    *,
+    /** Shown while editing: what happens when a document is uploaded. */
+    virtual null as documentHint : String(300) @title: '{i18n>Note}' @readonly @UI.MultiLineText
+  }
     actions {
       /** Records a payment of the open amount, dated today. */
       @title: '{i18n>MarkPaid}'
@@ -26,7 +30,7 @@ service PurchasingService @(path: '/odata/v4/purchasing') {
 
   entity IncomingDocuments        as projection on my.IncomingDocuments
     actions {
-      /** Reads an embedded e-invoice (ZUGFeRD) again and proposes the invoice data. */
+      /** Reads the document again (e-invoice or PDF text) and proposes the invoice data. */
       @title: '{i18n>Process}'
       action process()                                         returns IncomingDocuments;
       /** Creates the supplier invoice from the document and marks the document as processed. */

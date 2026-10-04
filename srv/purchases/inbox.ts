@@ -1,17 +1,17 @@
 import cds, { Request } from "@sap/cds";
 
-import { extract } from "../integrations/einvoice/zugferd";
 import { requireOrganization } from "../organizations/organization-context";
 import { assertOwned } from "../organizations/tenant-guard";
 import { DomainError } from "../payments/payments";
 import { toBuffer } from "../sales/sales-documents";
+import { extractInvoice } from "./extraction";
 import { findSupplier } from "./supplier-matching";
 
 /**
  * Document inbox: supplier documents are uploaded first and turned into supplier invoices later.
- * ZUGFeRD PDFs are read automatically and the supplier is matched where it is certain.
+ * The invoice data is read automatically (see ./extraction) and only proposed: the user checks it
+ * in the create dialog. The supplier is matched where it is certain.
  */
-// TODO(feature): Add OCR extraction
 // TODO(feature): external document storage/object storage if needed at scale
 const Documents = "swiver.IncomingDocuments";
 
@@ -91,7 +91,7 @@ export async function createSupplierInvoice(
 	return invoiceID;
 }
 
-/** Detects the document type and reads an embedded e-invoice. Errors are kept on the document. */
+/** Detects the document type and reads the invoice data. Errors are kept on the document. */
 export async function processDocument(documentID: string): Promise<void> {
 	const document = await SELECT.one
 		.from(Documents)
@@ -108,55 +108,34 @@ export async function processDocument(documentID: string): Promise<void> {
 		});
 		return;
 	}
-	if (document.mediaType !== "application/pdf") {
-		await UPDATE(Documents, documentID).with({
-			detectedDocumentType: "IMAGE",
-			processingMessage: "Enter the invoice data.",
-		});
-		return;
-	}
-	try {
-		const einvoice = await extract(content);
-		if (!einvoice) {
-			await UPDATE(Documents, documentID).with({
-				detectedDocumentType: "PDF",
-				processingMessage: "Enter the invoice data.",
-			});
-			return;
-		}
-		const { data } = einvoice;
-		const supplierID = await findSupplier({
-			iban: data.iban,
-			name: data.sellerName,
-			taxNumber: data.sellerTaxNumber,
-			vatId: data.sellerVatId,
-		});
-		await UPDATE(Documents, documentID).with({
-			detectedDocumentType: "ZUGFERD",
-			extractedCurrency_code: data.currency ?? null,
-			extractedDueDate: data.dueDate ?? null,
-			extractedGrossAmount: data.grossAmount ?? null,
-			extractedIBAN: data.iban ?? null,
-			extractedInvoiceDate: data.invoiceDate ?? null,
-			extractedInvoiceNumber: data.invoiceNumber ?? null,
-			extractedNetAmount: data.netAmount ?? null,
-			extractedSupplier_ID: supplierID ?? null,
-			extractedSupplierName: data.sellerName ?? null,
-			extractedTaxAmount: data.taxAmount ?? null,
-			extractedVatId: data.sellerVatId ?? null,
-			processingMessage: supplierID
-				? "E-invoice read and supplier recognized. Check the data and create the supplier invoice."
-				: "E-invoice read. Choose the supplier or enter a new supplier name, then create the supplier invoice.",
-			processingStatus_code: "NEW",
-		});
-	} catch (error) {
-		cds.log("inbox").warn("Could not read the e-invoice", error);
-		await UPDATE(Documents, documentID).with({
-			detectedDocumentType: "PDF",
-			processingMessage: "The embedded e-invoice could not be read. Enter the invoice data.",
-			processingStatus_code: "ERROR",
-		});
-	}
+	const { data, documentType, failed, message } = await extractInvoice({ content, mediaType: document.mediaType });
+	const supplierID = await findSupplier({
+		iban: data.iban,
+		name: data.sellerName,
+		taxNumber: data.sellerTaxNumber,
+		vatId: data.sellerVatId,
+	});
+	const recognized = Object.keys(data).length > 0;
+	await UPDATE(Documents, documentID).with({
+		detectedDocumentType: documentType,
+		extractedCurrency_code: data.currency ?? null,
+		extractedDueDate: data.dueDate ?? null,
+		extractedGrossAmount: data.grossAmount ?? null,
+		extractedIBAN: data.iban ?? null,
+		extractedInvoiceDate: data.invoiceDate ?? null,
+		extractedInvoiceNumber: data.invoiceNumber ?? null,
+		extractedNetAmount: data.netAmount ?? null,
+		extractedSupplier_ID: supplierID ?? null,
+		extractedSupplierName: data.sellerName ?? null,
+		extractedTaxAmount: data.taxAmount ?? null,
+		extractedVatId: data.sellerVatId ?? null,
+		processingMessage: !recognized
+			? message
+			: supplierID
+				? `${message} Supplier recognized. Check the data and create the supplier invoice.`
+				: `${message} Choose the supplier or enter a new supplier name, then create the supplier invoice.`,
+		processingStatus_code: failed ? "ERROR" : "NEW",
+	});
 }
 
 async function createSupplier(document: Record<string, unknown>, newSupplierName?: null | string): Promise<string> {

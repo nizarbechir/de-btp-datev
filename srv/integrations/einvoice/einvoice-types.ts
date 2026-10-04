@@ -12,6 +12,8 @@ export interface EInvoiceContext {
 	/** Number of the invoice this one corrects (type code 384). */
 	precedingInvoiceNumber?: null | string;
 	seller: EInvoiceParty;
+	/** Service period (BT-73/BT-74). */
+	servicePeriod?: { end?: null | string; start?: null | string };
 	taxAmount: string;
 	taxes: EInvoiceTax[];
 }
