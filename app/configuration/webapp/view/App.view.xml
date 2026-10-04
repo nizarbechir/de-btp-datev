@@ -18,10 +18,12 @@
 						<tnt:NavigationListItem text="{i18n>suppliers}" key="swiver.suppliers" />
 						<tnt:NavigationListItem text="{i18n>expenseCategories}" key="swiver.expensecategories" />
 					</tnt:NavigationListItem>
-					<tnt:NavigationListItem text="{i18n>groupHelp}" icon="sap-icon://headset" selectable="false">
-						<tnt:NavigationListItem text="{i18n>support}" key="swiver.support" />
-					</tnt:NavigationListItem>
 				</tnt:NavigationList>
+				<tnt:fixedItem>
+					<tnt:NavigationList>
+						<tnt:NavigationListItem text="{i18n>support}" icon="sap-icon://headset" key="swiver.support" />
+					</tnt:NavigationList>
+				</tnt:fixedItem>
 			</tnt:SideNavigation>
 		</tnt:sideContent>
 		<tnt:mainContents>
