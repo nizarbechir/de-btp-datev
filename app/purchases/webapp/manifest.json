@@ -153,10 +153,6 @@
 										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Open"
 									},
 									{
-										"key": "overdue",
-										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Overdue"
-									},
-									{
 										"key": "paid",
 										"annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#Paid"
 									}

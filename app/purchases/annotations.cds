@@ -16,6 +16,7 @@ annotate service.SupplierInvoices with @(
     supplier_ID,
     expenseCategory_ID,
     paymentStatus_code,
+    isOverdue,
     invoiceDate,
     dueDate
   ],
@@ -61,17 +62,6 @@ annotate service.SupplierInvoices with @(
         Sign  : #E,
         Option: #EQ,
         Low   : 'PAID'
-      }]
-    }]
-  },
-  UI.SelectionVariant #Overdue: {
-    Text         : '{i18n>Overdue}',
-    SelectOptions: [{
-      PropertyName: isOverdue,
-      Ranges      : [{
-        Sign  : #I,
-        Option: #EQ,
-        Low   : true
       }]
     }]
   },

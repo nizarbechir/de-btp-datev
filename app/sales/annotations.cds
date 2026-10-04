@@ -17,6 +17,7 @@ annotate service.SalesInvoices with @(
     customer_ID,
     status_code,
     paymentStatus_code,
+    isOverdue,
     invoiceDate,
     dueDate
   ],
@@ -100,17 +101,6 @@ annotate service.SalesInvoices with @(
         }]
       }
     ]
-  },
-  UI.SelectionVariant #Overdue   : {
-    Text         : '{i18n>Overdue}',
-    SelectOptions: [{
-      PropertyName: isOverdue,
-      Ranges      : [{
-        Sign  : #I,
-        Option: #EQ,
-        Low   : true
-      }]
-    }]
   },
   UI.SelectionVariant #Paid      : {
     Text         : '{i18n>Paid}',
