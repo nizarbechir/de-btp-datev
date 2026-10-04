@@ -2,6 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@j
 import cds from "@sap/cds";
 
 import * as email from "../../srv/integrations/email/email-provider";
+import { migrateToOrganizations } from "../../srv/organizations/migration";
 
 /**
  * Support tickets: creating and following tickets, sequential numbers, organization isolation of
@@ -148,6 +149,16 @@ describe("Creating a ticket", () => {
 	it("numbers tickets sequentially across organizations", async () => {
 		const first = await createTicket(alice);
 		const second = await createTicket(bob);
+		const third = await createTicket(alice);
+		expect([second.ticketNumber, third.ticketNumber]).toEqual([first.ticketNumber + 1, first.ticketNumber + 2]);
+	});
+
+	it("continues the numbers after a restart and when the counter is missing", async () => {
+		const first = await createTicket(alice);
+		// Runs on every start
+		await migrateToOrganizations();
+		const second = await createTicket(bob);
+		await DELETE.from("swiver.NumberRanges").where({ range: "global:SupportTicket" });
 		const third = await createTicket(alice);
 		expect([second.ticketNumber, third.ticketNumber]).toEqual([first.ticketNumber + 1, first.ticketNumber + 2]);
 	});

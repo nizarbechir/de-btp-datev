@@ -30,20 +30,27 @@ export async function nextSalesInvoiceNumber(prefix: string, invoiceDate: string
 	return `${prefix}-${year}-${String(number).padStart(4, "0")}`;
 }
 
-/** Support ticket numbers are shared by all organizations: 1001, 1002, ... */
+/**
+ * Support ticket numbers are shared by all organizations: 1001, 1002, ...
+ * The range name contains a colon, so the start-up migration never moves it into an organization.
+ * A new range continues after the highest existing ticket number.
+ */
 export async function nextSupportTicketNumber(): Promise<number> {
-	return 1000 + (await nextInRange("SupportTicket"));
+	const last = (await SELECT.one.from("swiver.SupportTickets").columns("max(ticketNumber) as max")) as {
+		max: null | number;
+	};
+	return 1000 + (await nextInRange("global:SupportTicket", Math.max((last?.max ?? 1000) - 1000, 0)));
 }
 
 async function increment(range: string): Promise<number> {
 	return UPDATE(NumberRanges).set`lastNumber = lastNumber + 1`.where({ range });
 }
 
-async function nextInRange(range: string): Promise<number> {
+async function nextInRange(range: string, start = 0): Promise<number> {
 	if (!(await increment(range))) {
 		try {
-			await INSERT.into(NumberRanges).entries({ lastNumber: 1, range });
-			return 1;
+			await INSERT.into(NumberRanges).entries({ lastNumber: start + 1, range });
+			return start + 1;
 		} catch (error) {
 			// A parallel save created the range first (unique key): continue with its next number.
 			if (!(await increment(range))) {
