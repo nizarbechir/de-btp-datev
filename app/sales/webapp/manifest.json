@@ -172,6 +172,13 @@
 									"tableSettings": {
 										"type": "ResponsiveTable",
 										"selectionMode": "Multi"
+									},
+									"actions": {
+										"showQuotes": {
+											"press": "swiver.sales.ext.document.DocumentActions.showQuotes",
+											"text": "{i18n>showQuotes}",
+											"requiresSelection": false
+										}
 									}
 								}
 							}
@@ -304,6 +311,13 @@
 								"@com.sap.vocabularies.UI.v1.LineItem": {
 									"tableSettings": {
 										"type": "ResponsiveTable"
+									},
+									"actions": {
+										"showInvoices": {
+											"press": "swiver.sales.ext.document.DocumentActions.showInvoices",
+											"text": "{i18n>showInvoices}",
+											"requiresSelection": false
+										}
 									}
 								}
 							}
