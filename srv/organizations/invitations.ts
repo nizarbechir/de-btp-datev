@@ -175,6 +175,10 @@ async function openInvitation(req: cds.Request, statuses: string[]): Promise<Inv
  */
 async function send(req: cds.Request, invitationId: string, token: string) {
 	const link = acceptanceLink(req, token);
+	// Locally the link is always printed, so invitations can be accepted without the e-mail.
+	if (cds.env.profiles.includes("development")) {
+		log.info("Invitation link (development only):", link);
+	}
 	try {
 		await sendMembershipInvitation(invitationId, link);
 	} catch (error) {
@@ -182,9 +186,6 @@ async function send(req: cds.Request, invitationId: string, token: string) {
 			throw error;
 		}
 		req.warn(424, "EMAIL_NOT_CONFIGURED");
-		if (cds.env.profiles.includes("development")) {
-			log.info("Invitation link (development only):", link);
-		}
 	}
 }
 
